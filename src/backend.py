@@ -23,6 +23,187 @@ class BackendBase(ABC):
         pass
 
 
+class DanmujiBackend(BackendBase):
+    def __init__(self):
+        super().__init__()
+
+    def run(self):
+        """
+        :returns: A list of invariants, a list of variables appeared in invariants.
+                If there is no output, returns two empty lists.
+        """
+        logger.info('Running Danmuji for inference. This make take a while ...')
+        # (1) generate invariants based on passing traces
+        # Note: another thing to try is to set lower --conf_limit
+        inv_cmd = (values.full_danmuji + " "
+            + values.file_daikon_decl + " " + values.file_daikon_pass_traces + values.file_daikon_fail_traces
+            + values.file_daikon_pass_inv)
+        cp = subprocess.run(inv_cmd, shell=True, encoding='utf-8',
+            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+
+        # parse the output - only get invariants
+        logger.debug(f'Raw daikon output is: {cp.stdout}')
+        raw_lines = cp.stdout.strip('\n').split('\n')
+        raw_lines = [ line.strip() for line in raw_lines ] # strip spaces
+        # filter out meta lines (with [...] or ~~~) and empty lines
+        inv_lines = [ line for line in raw_lines
+                    if not line.startswith('[') and not line.startswith('~~~')
+                    and line != "" ]
+        invariants = self.__filter_daikon_invariants(inv_lines)
+        invariants = self.__sanitize_daikon_invariants(invariants)
+        invariants = self.__remove_duplicated_invariants(invariants)
+
+        return invariants
+
+    def __filter_daikon_invariants(self, invs):
+        """
+        Some daikon invariants are complicated to turn off from Daikon configs.
+        We filter them out here.
+        :param invs: A list of Daikon invariants.
+        """
+        filtered_invs = list()
+        for inv in invs:
+            if "has only one value" in inv:
+                continue
+            if "is boolean" in inv:
+                continue
+            filtered_invs.append(inv)
+        return filtered_invs
+
+
+    def __sanitize_daikon_invariants(self, invs):
+        """
+        Daikon output is formatted in java. Here we sanitize them to format that
+        can be handled by z3 in python, and also can be use to generat patch in C.
+        """
+        sanitized_invs = list()
+        java_long_pattern = re.compile("^[0-9]+L$")
+        const_pattern = re.compile("^[0-9]+$")
+        gdiff_pattern = re.compile("^_GDiff_.+$")
+        for inv in invs:
+            tokens = inv.split()
+            # remove `L` from long integers
+            tokens = [ t[:-1] if java_long_pattern.match(t) else t for t in tokens ]
+            # remove UpperBound invariant if upper bound is very big
+            if (len(tokens) == 3 and
+                tokens[-2] == '<=' and
+                const_pattern.match(tokens[-1]) and
+                int(tokens[-1]) > 100):
+                continue
+            # remove LowerBound invariant if lower bound is very big or very small
+            if (len(tokens) == 3 and
+                tokens[-2] == '>=' and
+                const_pattern.match(tokens[-1]) and
+                (int(tokens[-1]) > 100 or int(tokens[-1]) < -100)):
+                continue
+            # remove x = a invariant if x is _GDiff_ (a pointer is of constant
+            # offset is not interesting)
+            if (len(tokens) == 3 and
+                tokens[-2] == '==' and
+                const_pattern.match(tokens[-1]) and
+                gdiff_pattern.match(tokens[0])):
+                continue
+            # replace `null` with `NULL`
+            tokens = [ 'NULL' if t == 'null' else t for t in tokens ]
+            # form the new invariant
+            new_inv = " ".join(tokens)
+            sanitized_invs.append(new_inv)
+
+        return sanitized_invs
+
+    def __remove_duplicated_invariants(self, invs):
+        """
+        Daikon can produce semantically equivalent invariants.
+        This method detects the duplicates and only keeps one of them.
+        """
+        # remove literal duplicates
+        sanitized_invs = set(invs)
+        # a >= 1, a != 0 are duplicated if a is unsigned type
+        ge_one_pattern = re.compile("^([->\.\w]+) >= 1")
+        eq_zero_pattern = re.compile("^([->\.\w]+) != 0")
+        ge_one_vars = list()
+        for inv in sanitized_invs:
+            if ge_one_pattern.match(inv):
+                ge_one_vars.append(ge_one_pattern.match(inv).group(1))
+        inv_to_remove = set()
+        for inv in sanitized_invs:
+            if eq_zero_pattern.match(inv):
+                var = eq_zero_pattern.match(inv).group(1)
+                if var not in ge_one_vars:
+                    continue
+                if not is_unsigned_type(values.var_types[var]):
+                    continue
+                inv_to_remove.add(inv)
+        sanitized_invs = list(sanitized_invs.difference(inv_to_remove))
+
+        return sanitized_invs
+
+
+    def generate_input_from_snapshots(self):
+        """
+        pre-condition: all snapshots should have the same keys (variables)
+        """
+        pass_ss = snapshot_pool.pass_ss
+        fail_ss = snapshot_pool.fail_ss
+
+        logger.debug(f'BEFORE BACKEND: # passing: {len(pass_ss)}; # failing: {len(fail_ss)}')
+        common = "input-language C/C++\ndecl-version 2.0\nvar-comparability implicit\n"
+        all_keys = (pass_ss + fail_ss)[0].keys()
+
+        # (1) Build decl file
+        decl_res = common
+        decl_res += self.__convert_vars_into_decls(all_keys)
+        with open(values.file_daikon_decl, "w") as f:
+            f.write(decl_res)
+
+        # (2) build dtrace files
+        pass_res = common
+        fail_res = common
+        for snapshot in pass_ss:
+            pass_res += "\n\n..fix_location():::ENTER\n"
+            pass_res += "\n\n..fix_location():::EXIT\n"
+            pass_res += self.__convert_single_snapshot_to_dtrace(snapshot, all_keys)
+        with open(values.file_daikon_pass_traces, "w") as f:
+            f.write(pass_res)
+        for snapshot in fail_ss:
+            fail_res += "\n\n..fix_location():::ENTER\n"
+            fail_res += "\n\n..fix_location():::EXIT\n"
+            fail_res += self.__convert_single_snapshot_to_dtrace(snapshot, all_keys)
+        with open(values.file_daikon_fail_traces, "w") as f:
+            f.write(fail_res)
+
+
+    def __convert_vars_into_decls(self, vars):
+        res = "\n\nppt ..fix_location():::ENTER\n"
+        res += "\n\nppt ..fix_location():::EXIT\n"
+        res += "  ppt-type point\n"
+        for k in vars:
+            res += "  variable " + k + "\n"
+            # TODO: include field kind?
+            res += "    var-kind variable\n"
+            # we only differentiate between ptr and others;
+            # for int types, use same dec-type so that daikon will compare them
+            if values.var_types[k] == "ptr":
+                res += "    rep-type hashcode\n"
+                res += "    dec-type ptr\n"
+            else:
+                res += "    rep-type int\n"
+                res += "    dec-type int\n"
+            res += "    comparability 1\n"
+            # TODO: include min max value based on type
+        res += "\n\n"
+        return res
+
+
+    def __convert_single_snapshot_to_dtrace(self, snapshot, all_keys):
+        res = ""
+        for k in all_keys:
+            res += k + "\n" # name
+            res += snapshot[k] + "\n" # value
+            res += "1\n" # modified? always 1
+        return res
+
+
 """
 For debugging:
 java -Xmx256m -cp thirdparty/daikon/daikon.jar daikon.Daikon --nohierarchy --conf_limit 1 --format java --config daikon-config

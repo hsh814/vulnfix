@@ -30,6 +30,8 @@ def parse_config_and_setup_runtime(config_file):
     values.dir_runtime = config_dict['runtime-dir']
     if values.backend_choice == 'cvc5':
         values.dir_runtime = values.dir_runtime.replace('runtime', 'cvcback-runtime')
+    if values.backend_choice == 'danmuji':
+        values.dir_runtime = values.dir_runtime.replace('runtime', 'danmuji-runtime')
     elif values.concfuzz:
         values.dir_runtime = values.dir_runtime.replace('runtime', 'conc-runtime')
     elif values.aflfuzz:
@@ -367,6 +369,8 @@ def main():
         backend = DaikonBackend()
     elif values.backend_choice == 'cvc5':
         backend = CvcBackend()
+    elif values.backend_choice == 'danmuji':
+        backend = DanmujiBackend()
     else:
         logger.warning(f'Backend {values.backend_choice} not supported. Aborting.')
         os.abort()
@@ -397,6 +401,8 @@ def main():
 
     # STEP (2): get eligible tests from AFL outputs
     if values.backend_choice == 'daikon':
+        filter_store_initial_tests_and_snapshots()
+    elif values.backend_choice == 'danmuji':
         filter_store_initial_tests_and_snapshots()
     elif values.backend_choice == 'cvc5':
         # for cvc, the time bottleneck is at inference, not processing inputs.
@@ -442,7 +448,7 @@ def main():
     elif len(final_patch_invs) != 1:
         logger.info('More than one final patch invariant.')
     else: # got only 1 patch invariant
-        if values.backend_choice == 'daikon':
+        if values.backend_choice == 'daikon' or values.backend_choice == 'danmuji':
             # only do patch generation for daikon backend to demonstrate the idea
             patch_inv = final_patch_invs[0]
             logger.info(f'Generating patch from the patch invariant `{patch_inv}` ...')

@@ -44,6 +44,8 @@ def __debug_file_name():
     debug_file = values.file_logging + ".debug"
     if values.backend_choice == 'cvc5':
         debug_file += ".cvc5"
+    if values.backend_choice == 'danmuji':
+        debug_file += ".danmuji"
     if values.concfuzz:
         debug_file += ".conc"
     if values.aflfuzz:
@@ -55,6 +57,8 @@ def __info_file_name():
     info_file = values.file_logging + ".info"
     if values.backend_choice == 'cvc5':
         info_file += ".cvc5"
+    if values.backend_choice == 'danmuji':
+        info_file += ".danmuji"
     if values.concfuzz:
         info_file += ".conc"
     if values.aflfuzz:

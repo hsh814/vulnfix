@@ -179,7 +179,7 @@ def decide_vars_to_include(pass_ss, fail_ss):
     top_level_vars = set(select_top_level_vars(vars_to_include))
     # (4) OPTIONAL, only done if use reduced snapshot (this is the default)
     if not values.unreduced:
-        if (values.backend_choice == 'daikon' and num_vars > NUM_VAR_THRESHOLD) or values.backend_choice == 'cvc5':
+        if ((values.backend_choice == 'daikon' or values.backend_choice == 'danmuji') and num_vars > NUM_VAR_THRESHOLD) or values.backend_choice == 'cvc5':
             # select only sep score > 0
             top_sep_vars = select_based_on_sep_score(pass_ss, fail_ss)
             vars_to_include = [ v for v in top_sep_vars if v in vars_to_include ]

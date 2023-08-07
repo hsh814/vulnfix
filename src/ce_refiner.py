@@ -3,6 +3,7 @@ import random
 from ce_single_var import *
 from subroutines import *
 from snapshot import *
+from math import log as ln
 
 EARLY_TERM_THRESHOLD = 5
 
@@ -16,6 +17,10 @@ class CeRefiner(object):
         self.round = 0
         self.candidate_exprs = exprs
         self.consecutive_same_count = 0
+        self.error_rate = 0.05
+        self.confidence = 0.02
+        self.sample_complexity = 10000
+        self.prev_sample_size = 0
         # all the inputs given
         self.inputs_pass = inputs_pass
         self.inputs_fail = inputs_fail
@@ -74,6 +79,8 @@ class CeRefiner(object):
         else:
             max_iter = 10
 
+        temp_prev_sample = len(snapshot_pool.pass_ss) + len(snapshot_pool.fail_ss)
+
         # generate new counter example snapshots
         for expr in self.candidate_exprs:
             ce_pass_ss, ce_fail_ss = self.__get_ce_for_single_constraint(expr, max_iter)
@@ -93,23 +100,28 @@ class CeRefiner(object):
 
         # update refiner attributes
         self.round += 1
-        if candidate_exprs == self.candidate_exprs:
+        if len(candidate_exprs) == len(self.candidate_exprs):
             self.consecutive_same_count += 1
+            self.prev_sample_size = temp_prev_sample
         else:
             self.consecutive_same_count = 0
+            self.sample_complexity = temp_prev_sample + int((1/self.error_rate)*(ln(len(self.candidate_exprs))+ln(1/self.confidence)))
+            self.prev_sample_size = temp_prev_sample
         self.candidate_exprs = candidate_exprs
         self.__refresh_driver_tests()
 
-        logger.info(f'--- Refinement round {self.round} finished. '
+        logger.info(f'--- Refinement round {self.round} finished. Sample complexity : {self.sample_complexity} / {self.prev_sample_size}  '
             f'Current patch invariants - #({len(self.candidate_exprs)}) : '
             f'{[e for e in self.candidate_exprs]} ---\n')
         return candidate_exprs
 
 
     def reach_early_termination_criteria(self):
+        reached_pac = self.sample_complexity <= self.prev_sample_size
         reached_count = self.consecutive_same_count >= EARLY_TERM_THRESHOLD
         only_one_expr = len(self.candidate_exprs) == 1
-        return reached_count and only_one_expr
+        logger.info(f'Early Termination {self.sample_complexity} \ {self.prev_sample_size}\n')
+        return reached_pac
 
 
     def __get_ce_for_single_constraint(self, constraint, max_iter):
