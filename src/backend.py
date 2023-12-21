@@ -42,12 +42,18 @@ class DanmujiBackend(BackendBase):
             stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
 
         # parse the output - only get invariants
-        logger.debug(f'Raw daikon output is: {cp.stdout}')
+        logger.debug(f'Raw danmuji output is: {cp.stdout}')
         raw_lines = cp.stdout.strip('\n').split('\n')
         raw_lines = [ line.strip() for line in raw_lines ] # strip spaces
         # filter out meta lines (with [...] or ~~~) and empty lines
+        hypothesis_space = 0
+        for i in raw_lines:
+            if i.startswith('Hypothesis'):
+                hypothesis_space = i.split(":")[1].strip()
+                break
+        logger.debug(f'Hypothesis space is: {hypothesis_space}')
         inv_lines = [ line for line in raw_lines
-                    if not line.startswith('[') and not line.startswith('~~~')
+                    if not line.startswith('Hypothesis') and not line.startswith('~~~')
                     and line != "" ]
         invariants = self.__filter_daikon_invariants(inv_lines)
         invariants = self.__sanitize_daikon_invariants(invariants)
