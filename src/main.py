@@ -326,7 +326,7 @@ def main():
     parser.add_argument('--budget', default=30, type=int,
                         help='Time budget in mins.')
     parser.add_argument('--backend', default='daikon',
-                        choices=['daikon', 'cvc5'],
+                        choices=['daikon', 'cvc5', 'danmuji'],
                         help='Backend for inferring invariants.')
     parser.add_argument('--unreduced', default=False, action='store_true',
                         help='Force to use original and unreduced snapshots.')
