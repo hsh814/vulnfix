@@ -14,3 +14,7 @@
 	path = thirdparty/daikon
 	url = https://github.com/yuntongzhang/daikon.git
 	ignore = dirty
+[submodule "Danmuji"]
+	path = thirdparty/Danmuji
+	url = https://github.com/pslhy/Danmuji.git
+	ignore = dirty
