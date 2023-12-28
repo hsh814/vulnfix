@@ -14,8 +14,7 @@ RUN apt update
 RUN DEBIAN_FRONTEND=noninteractive apt install -y git vim python3-pip gdb \
     default-jdk m4 xxd clang flex bison autopoint gperf texinfo libjpeg-dev \
     nasm libass-dev libmp3lame-dev dh-autoreconf unzip libopus-dev \
-    libtheora-dev libvorbis-dev rsync python3-dev python-dev \
-    libgcc-9-dev
+    libtheora-dev libvorbis-dev rsync python3-dev python-dev 
 
 RUN DEBIAN_FRONTEND=noninteractive apt install -y clang-10
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y llvm-12 liblldb-12 python3-lldb-12 lldb-12 llvm-12-dev libllvm12 llvm-12-runtime
