@@ -10,6 +10,17 @@ RUN printf "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-12 main" | tee
 RUN wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add
 RUN apt update
 
+# install a newer version of cmake, since it is required by z3
+RUN DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends wget
+RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null
+RUN DEBIAN_FRONTEND=noninteractive apt purge --yes --auto-remove cmake && \
+    apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main"  && \
+    apt update && \
+    apt-get install --yes --no-install-recommends cmake
+
+# install python3.8, for driver scripts of the project
+RUN DEBIAN_FRONTEND=noninteractive apt install -y python3.8
+
 # install other libraries
 RUN DEBIAN_FRONTEND=noninteractive apt install -y git vim python3-pip gdb \
     default-jdk m4 xxd clang flex bison autopoint gperf texinfo libjpeg-dev \
@@ -17,7 +28,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt install -y git vim python3-pip gdb \
     libtheora-dev libvorbis-dev rsync python3-dev python-dev 
 
 RUN DEBIAN_FRONTEND=noninteractive apt install -y clang-10
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y llvm-12 liblldb-12 python3-lldb-12 lldb-12 llvm-12-dev libllvm12 llvm-12-runtime
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y llvm-12 libpython3.5 liblldb-12 python3-lldb-12 lldb-12 llvm-12-dev libllvm12 llvm-12-runtime
 RUN update-alternatives --install /usr/bin/llvm-config llvm-config /usr/bin/llvm-config-12 10
 
 # install DAFL
@@ -44,7 +55,6 @@ RUN make
 RUN make install
 
 # install python3.8 and the libraries we need
-RUN DEBIAN_FRONTEND=noninteractive apt install -y python3.8
 RUN python3.8 -m pip install toml pyparsing z3-solver libclang
 RUN python3 -m pip install toml pyparsing
 
