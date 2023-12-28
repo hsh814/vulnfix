@@ -8,11 +8,11 @@ RUN add-apt-repository ppa:deadsnakes/ppa
 RUN add-apt-repository ppa:avsm/ppa
 RUN printf "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-12 main" | tee /etc/apt/sources.list.d/llvm-toolchain-xenial-12.list
 RUN wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add
-RUN apt-get install llvm-12 lldb-12 llvm-12-dev libllvm12 llvm-12-runtime
-RUN update-alternatives --install /usr/bin/llvm-config llvm-config /usr/bin/llvm-config-12 10
 RUN apt update
 
 # install other libraries
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y llvm-12 lldb-12 llvm-12-dev libllvm12 llvm-12-runtime
+RUN update-alternatives --install /usr/bin/llvm-config llvm-config /usr/bin/llvm-config-12 10
 RUN DEBIAN_FRONTEND=noninteractive apt install -y git vim python3-pip gdb \
     default-jdk m4 xxd clang flex bison autopoint gperf texinfo libjpeg-dev \
     nasm libass-dev libmp3lame-dev dh-autoreconf unzip libopus-dev \
