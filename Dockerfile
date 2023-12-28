@@ -2,7 +2,7 @@ FROM ubuntu:18.04
 
 RUN apt clean
 RUN apt update
-RUN DEBIAN_FRONTEND=noninteractive apt install -y build-essential curl wget software-properties-common llvm update-alternatives git
+RUN DEBIAN_FRONTEND=noninteractive apt install -y build-essential curl wget software-properties-common llvm git
 # add this for installing latest version of python3.8
 RUN add-apt-repository ppa:deadsnakes/ppa
 RUN apt update
