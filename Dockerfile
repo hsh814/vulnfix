@@ -28,7 +28,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt install -y git vim python3-pip gdb \
     libtheora-dev libvorbis-dev rsync python3-dev python-dev 
 
 RUN DEBIAN_FRONTEND=noninteractive apt install -y clang-10
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y llvm-12 llvm-12-dev libllvm12 llvm-12-runtime
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y llvm-12 llvm-12-dev libllvm12 llvm-12-runtime opam
 RUN update-alternatives --install /usr/bin/llvm-config llvm-config /usr/bin/llvm-config-12 10
 
 # install DAFL
