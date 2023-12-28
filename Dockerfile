@@ -7,6 +7,24 @@ RUN DEBIAN_FRONTEND=noninteractive apt install -y build-essential curl wget soft
 RUN add-apt-repository ppa:deadsnakes/ppa
 RUN apt update
 
+# install DAFL
+RUN git clone https://github.com/pslhy/DAFL.git --recursive
+RUN git clone https://github.com/prosyslab/smake.git
+RUN git clone https://github.com/prosyslab/sparrow.git
+
+# build DAFL
+WORKDIR /DAFL
+RUN make && cd llvm_mode && make
+
+# build sparrow
+WORKDIR /sparrow
+RUN add-apt-repository ppa:avsm/ppa
+RUN printf "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-12 main" | tee /etc/apt/sources.list.d/llvm-toolchain-xenial-12.list
+RUN wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add
+RUN apt-get install llvm-12 lldb-12 llvm-12-dev libllvm12 llvm-12-runtime
+RUN update-alternatives --install /usr/bin/llvm-config llvm-config /usr/bin/llvm-config-12 10
+RUN ./build.sh
+
 # install elfutils
 RUN DEBIAN_FRONTEND=noninteractive apt install -y unzip pkg-config zlib1g zlib1g-dev autoconf libtool cmake
 WORKDIR /root
