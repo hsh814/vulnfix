@@ -35,7 +35,7 @@ RUN update-alternatives --install /usr/bin/clang clang /usr/bin/clang-12 40
 RUN update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-12 40
 
 # install DAFL
-RUN git clone https://github.com/pslhy/DAFL.git --recursive
+RUN git clone https://github.com/prosyslab/DAFL.git --recursive
 RUN git clone https://github.com/prosyslab/smake.git
 RUN git clone https://github.com/prosyslab/sparrow.git
 
