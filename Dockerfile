@@ -27,12 +27,12 @@ RUN DEBIAN_FRONTEND=noninteractive apt install -y git vim python3-pip gdb \
     nasm libass-dev libmp3lame-dev dh-autoreconf unzip libopus-dev \
     libtheora-dev libvorbis-dev rsync python3-dev python-dev 
 
-RUN DEBIAN_FRONTEND=noninteractive apt install -y clang-10
+RUN DEBIAN_FRONTEND=noninteractive apt install -y clang-12
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y llvm-12 llvm-12-dev libllvm12 llvm-12-runtime opam \
     libclang-12-dev libgmp-dev libmpfr-dev llvm-dev ncurses-dev libclang-dev
 RUN update-alternatives --install /usr/bin/llvm-config llvm-config /usr/bin/llvm-config-12 10
-RUN update-alternatives --install /usr/bin/clang clang /usr/bin/clang-10 40
-RUN update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-10 40
+RUN update-alternatives --install /usr/bin/clang clang /usr/bin/clang-12 40
+RUN update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-12 40
 
 # install DAFL
 RUN git clone https://github.com/pslhy/DAFL.git --recursive
