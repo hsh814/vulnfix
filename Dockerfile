@@ -66,7 +66,10 @@ COPY . /home/yuntong/vulnfix/
 WORKDIR /home/yuntong/vulnfix/
 RUN git submodule init
 RUN git submodule update
-# build is slow within docker build, so just build inside container
+RUN python3.8 -m pip install -r requirements.txt
+# required for building cvc5 (default python3 is 3.6)
+RUN python3 -m pip install toml pyparsing
+# NOTE: this might be slow
 RUN ./build.sh
 
 ENV PATH="/home/yuntong/vulnfix/bin:${PATH}"
