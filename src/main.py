@@ -465,25 +465,43 @@ def main():
     elif len(final_patch_invs) != 1:
         logger.info('More than one final patch invariant.')
     else: # got only 1 patch invariant
-        if values.backend_choice == 'daikon' or values.backend_choice == 'danmuji':
-            # only do patch generation for daikon backend to demonstrate the idea
-            patch_inv = final_patch_invs[0]
-            logger.info(f'Generating patch from the patch invariant `{patch_inv}` ...')
-            try:
-                generator = PatchGenerator(patch_inv)
-                is_patched = generator.gen()
-            except Exception as e:
-                logger.info(f'Patch generation unsuccessful due to exception {e}.')
-                is_patched = False
+        logger.info('Exactly one final patch invariant.')
+        # if values.backend_choice == 'daikon' or values.backend_choice == 'danmuji':
+        #     # only do patch generation for daikon backend to demonstrate the idea
+        #     patch_inv = final_patch_invs[0]
+        #     logger.info(f'Generating patch from the patch invariant `{patch_inv}` ...')
+        #     try:
+        #         generator = PatchGenerator(patch_inv)
+        #         is_patched = generator.gen()
+        #     except Exception as e:
+        #         logger.info(f'Patch generation unsuccessful due to exception {e}.')
+        #         is_patched = False
 
     # fini_logger()
-
-    if num_patches == 0:
-        logger.info('No patches generated.')
-    else:
-        logger.info(f'Generated {num_patches} patches.')
-
+    save_invariant_result(final_patch_invs)
+    num_patches = 0
+    logger.info(f"Attempting to generate patches from {len(final_patch_invs)} patch invariant(s) ...")
+    for inv in final_patch_invs:
+        if values.backend_choice not in ['daikon', 'danmuji']:
+            logger.warning(f'Patch generation is only supported for daikon backend. Skipping.')
+            break
+        logger.info(f'Generating patch from the patch invariant `{inv}` ...')
+        try:
+            generator = PatchGenerator(inv)
+            patch_file = generator.gen()
+        except Exception as e:
+            logger.warning(f'{inv}: Patch generation unsuccessful due to exception {e}.')
+            continue
+        # let's see whether a patch file has been generated for this inv
+        if patch_file is None:
+            continue
+        # patch file generated successfully
+        num_patches += 1
+        new_patch_f_name = f"{num_patches}.patch"
+        save_one_patch(patch_file, new_patch_f_name)
     logger.info(f"VulnFix finished. Please find results at {values.dir_result}.")
+    
+    
 
 
 if __name__ == "__main__":
