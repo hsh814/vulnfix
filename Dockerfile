@@ -57,16 +57,26 @@ RUN ./configure --disable-debuginfod --disable-libdebuginfod
 RUN make
 RUN make install
 
-# install python3.8 and the libraries we need
-RUN python3.8 -m pip install toml pyparsing z3-solver libclang
-RUN python3 -m pip install toml pyparsing
+# install a newer version of cmake, since it is required by z3
+RUN DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends wget
+RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null
+RUN DEBIAN_FRONTEND=noninteractive apt purge --yes --auto-remove cmake && \
+    apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main"  && \
+    apt update && \
+    apt-get install --yes --no-install-recommends cmake
+
+# install python3.8, for driver scripts of the project
+RUN DEBIAN_FRONTEND=noninteractive apt install -y python3.8
 
 # build the project
 COPY . /home/yuntong/vulnfix/
 WORKDIR /home/yuntong/vulnfix/
 RUN git submodule init
 RUN git submodule update
-# build is slow within docker build, so just build inside container
+RUN python3.8 -m pip install -r requirements.txt
+# required for building cvc5 (default python3 is 3.6)
+RUN python3 -m pip install toml pyparsing
+# NOTE: this might be slow
 RUN ./build.sh
 
 ENV PATH="/home/yuntong/vulnfix/bin:${PATH}"
