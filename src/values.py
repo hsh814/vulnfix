@@ -21,6 +21,7 @@ dir_danmuji = pjoin(dir_thirdparty, "danmuji")
 full_danmuji = pjoin(dir_danmuji, "danmuji")
 dir_afl = pjoin(dir_thirdparty, "AFL")
 dir_temp = pjoin(dir_root, "run-temp") # a temp dir to store runtime-generated junk files)
+dir_dafl = pjoin(dir_thirdparty, "DAFL")
 
 dir_afl_raw_input = ""
 dir_afl_raw_output = ""
@@ -33,7 +34,9 @@ dir_seed_fail = ""
 
 # original and patched binaries
 bin_orig = ""
+bin_instrumented = ""
 bin_afl = ""
+bin_dafl = ""
 bin_snapshot = ""
 bin_mutate = ""
 bin_crash = "" # should crash at crash location with `patch_exit_code`
@@ -132,6 +135,8 @@ early_term = True
 concfuzz = False
 # Are we using AFL-only instead of AFL+snapshot fuzzing?
 aflfuzz = False
+# Are we using DAFL-only instead of AFL+snapshot fuzzing?
+daflfuzz = False
 # Are we resetting benchmark instead of running it?
 resetbench = False
 

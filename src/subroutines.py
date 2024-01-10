@@ -201,7 +201,6 @@ def patch_for_mutate(k, instructions):
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     os.chdir(values.dir_root)
 
-
 def run_afl(mins):
     if not os.path.isdir(values.dir_afl_raw_input):
         os.mkdir(values.dir_afl_raw_input)
@@ -233,6 +232,46 @@ def run_afl(mins):
     afl_cmd = afl_cmd.split()
     try:
         subprocess.run(afl_cmd, timeout=mins*60)
+    except subprocess.TimeoutExpired: # raised after child process terminates
+        logger.info(f'\nFinished running AFL for {mins} mins.')
+    os.chdir(values.dir_root)
+
+def run_dafl(mins):
+    # We share the same dirs with AFL for snapshot runs.
+    if not os.path.isdir(values.dir_afl_raw_input):
+        os.mkdir(values.dir_afl_raw_input)
+    if not os.path.isdir(values.dir_afl_raw_output):
+        os.mkdir(values.dir_afl_raw_output)
+    # prepare afl binary
+    # NOTE: Instrumentation for checking input reaches crash and fix location.
+    #       Since we are using DAFL, we don't need this instrumentation. 
+    #       We copy the sparrow instrumented binary to the runtime dir.
+    # patch_for_afl()
+    shutil.copy2(values.bin_instrumented, values.bin_dafl)
+    # prepare input seed
+    shutil.copy2(values.file_exploit, values.dir_afl_raw_input)
+    # actually run DAFL
+    os.chdir(values.dir_temp)
+    dafl_fuzz = os.path.join(values.dir_dafl, "afl-fuzz")
+    seed_size_bytes = os.path.getsize(values.file_exploit)
+    # decide whether skip deterministic stage
+    if values.afl_skip_deterministic is None: # config didnt say anything
+        if seed_size_bytes > BIG_FILE_SIZE:
+            dafl_fuzz += ' -d' # skip deterministic stage
+    else: # if config specifies this, follow what config says
+        if values.afl_skip_deterministic:
+            dafl_fuzz += ' -d'
+    dafl_cmd = (dafl_fuzz + ' -C -t 2000ms -m none -i ' + values.dir_afl_raw_input
+        + ' -o ' + values.dir_afl_raw_output + ' ' + values.bin_dafl)
+    if values.input_from_stdin:
+        inited_prog_cmd = init_prog_cmd_with_input_file("")
+    else:
+        inited_prog_cmd = init_prog_cmd_with_input_file("@@")
+    dafl_cmd += ' ' + inited_prog_cmd
+    logger.debug(f'\tCmd to run: {dafl_cmd}')
+    dafl_cmd = dafl_cmd.split()
+    try:
+        subprocess.run(dafl_cmd, timeout=mins*60)
     except subprocess.TimeoutExpired: # raised after child process terminates
         logger.info(f'\nFinished running AFL for {mins} mins.')
     os.chdir(values.dir_root)

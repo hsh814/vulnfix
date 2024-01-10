@@ -34,19 +34,6 @@ RUN update-alternatives --install /usr/bin/llvm-config llvm-config /usr/bin/llvm
 RUN update-alternatives --install /usr/bin/clang clang /usr/bin/clang-12 40
 RUN update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-12 40
 
-# install DAFL
-RUN git clone https://github.com/prosyslab/DAFL.git --recursive
-RUN git clone https://github.com/prosyslab/smake.git
-RUN git clone https://github.com/prosyslab/sparrow.git
-
-# build DAFL
-WORKDIR /DAFL
-RUN make && cd llvm_mode && make
-
-# build sparrow
-WORKDIR /sparrow
-RUN ./build.sh
-
 # install elfutils
 RUN DEBIAN_FRONTEND=noninteractive apt install -y unzip pkg-config zlib1g zlib1g-dev autoconf libtool cmake
 WORKDIR /root
@@ -73,6 +60,15 @@ COPY . /home/yuntong/vulnfix/
 WORKDIR /home/yuntong/vulnfix/
 RUN git submodule init
 RUN git submodule update
+
+# build DAFL
+WORKDIR /home/yuntong/vulnfix/thirdparty/DAFL
+RUN make && cd llvm_mode && make
+
+# build sparrow
+WORKDIR /home/yuntong/vulnfix/thirdparty/sparrow
+RUN ./build.sh
+
 RUN python3.8 -m pip install -r requirements.txt
 # required for building cvc5 (default python3 is 3.6)
 RUN python3 -m pip install toml pyparsing

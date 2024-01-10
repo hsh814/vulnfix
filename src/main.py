@@ -31,7 +31,7 @@ def parse_config_and_setup_runtime(config_file):
     values.dir_runtime = config_dict['runtime-dir']
     if values.backend_choice == 'cvc5':
         values.dir_runtime = values.dir_runtime.replace('runtime', 'cvcback-runtime')
-    if values.backend_choice == 'danmuji':
+    elif values.backend_choice == 'danmuji':
         values.dir_runtime = values.dir_runtime.replace('runtime', 'danmuji-runtime')
     elif values.concfuzz:
         values.dir_runtime = values.dir_runtime.replace('runtime', 'conc-runtime')
@@ -67,7 +67,9 @@ def parse_config_and_setup_runtime(config_file):
     bin_name = os.path.split(values.binary_full_path)[1]
     shutil.copy2(values.binary_full_path, values.dir_runtime)
     values.bin_orig = pjoin(values.dir_runtime, bin_name)
+    values.bin_instrumented = pjoin(values.dir_runtime, bin_name + ".instrumented")
     values.bin_afl = pjoin(values.dir_runtime, bin_name + ".afl")
+    values.bin_dafl = pjoin(values.dir_runtime, bin_name + ".dafl")
     values.bin_snapshot = pjoin(values.dir_runtime, bin_name + ".snapshot")
     values.bin_mutate = pjoin(values.dir_runtime, bin_name + ".mutate")
     values.bin_crash = pjoin(values.dir_runtime, bin_name + ".crash")
@@ -125,6 +127,9 @@ def filter_store_initial_tests_and_snapshots(bound_time=True):
         os.mkdir(values.dir_afl_fail)
     raw_fails_dir = pjoin(values.dir_afl_raw_output, "crashes")
     raw_passes_dir = pjoin(values.dir_afl_raw_output, "normals")
+    # If there is no normal dir, then make it.
+    if not os.path.isdir(raw_passes_dir):
+        os.mkdir(raw_passes_dir) 
     raw_fails = [pjoin(raw_fails_dir, t) for t in os.listdir(raw_fails_dir)]
     raw_passes = [pjoin(raw_passes_dir, t) for t in os.listdir(raw_passes_dir)]
     if values.files_normal_in: # consider outputs from normal run as well
@@ -132,6 +137,13 @@ def filter_store_initial_tests_and_snapshots(bound_time=True):
         raw_passes_dir_normal = pjoin(values.dir_afl_raw_output_normal, "normals")
         raw_fails.extend([pjoin(raw_fails_dir_normal, t) for t in os.listdir(raw_fails_dir_normal)])
         raw_passes.extend([pjoin(raw_passes_dir_normal, t) for t in os.listdir(raw_passes_dir_normal)])
+
+    # NOTE : For DAFL, We need to separate normal and crash inputs from crash inputs
+    # since we inserted a crash at the end of the buggy statement.
+    # We can sparate them by checking the return status.
+    if values.daflfuzz:
+        raw_fails = [t for t in raw_fails if run_bin_orig(t) == ExecResult.failing]
+        raw_passes = [t for t in raw_fails if run_bin_orig(t) == ExecResult.passing]
     # preparation
     random.shuffle(raw_fails)
     random.shuffle(raw_passes)
@@ -307,6 +319,26 @@ def run_concfuzz_and_inference(backend):
     # fini_logger()
     save_invariant_result(candidate_exprs)
 
+def run_daflfuzz_and_inference(backend):
+    """
+    Entry for invoking DAFL and then running backend for patch invariant inference.
+    """
+    if not values.files_normal_in: # only -C
+        run_dafl(values.time_budget)
+    else: # additionally perform the normal run without -C
+        run_dafl(values.time_budget / 2)
+        # TODO : make dafl normal functional
+        # run_dafl_normal(values.time_budget / 2) 
+    logger.info('Running generated inputs to collect snapshots ...')
+    filter_store_initial_tests_and_snapshots(bound_time=False)
+    logger.info('Invoking backend on the collected snapshots to infer patch invariants ...')
+    backend.generate_input_from_snapshots()
+    candidate_exprs = backend.run()
+    logger.info(f'Patch invariants from daflfuzz - '
+        f'#({len(candidate_exprs)}) : {[e for e in candidate_exprs]}.\n')
+    # fini_logger()
+    save_invariant_result(candidate_exprs)
+
 
 def run_aflfuzz_and_inference(backend):
     """
@@ -345,6 +377,8 @@ def main():
                         help='use concfuzz instead of snapshot fuzzing')
     parser.add_argument('--aflfuzz', default=False, action='store_true',
                         help='use afl-only fuzzing instead of snapshot fuzzing')
+    parser.add_argument('--daflfuzz', default=False, action='store_true',
+                        help='use dafl-only fuzzing instead of snapshot fuzzing')
     parser.add_argument('--reset-bench', default=False, action='store_true',
                         help='reset benchmark subject for re-running it.')
 
@@ -356,6 +390,7 @@ def main():
     values.early_term = (not parsed_args.no_early_term)
     values.concfuzz = parsed_args.concfuzz
     values.aflfuzz = parsed_args.aflfuzz
+    values.daflfuzz = parsed_args.daflfuzz
     values.resetbench = parsed_args.reset_bench
 
     parse_config_and_setup_runtime(config_file)
@@ -388,6 +423,10 @@ def main():
     ########### For ablation study ###########
     if values.concfuzz:
         run_concfuzz_and_inference(backend)
+        return
+    
+    if values.daflfuzz:
+        run_daflfuzz_and_inference(backend)
         return
 
     if values.aflfuzz:
