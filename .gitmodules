@@ -18,3 +18,12 @@
 	path = thirdparty/Danmuji
 	url = https://github.com/pslhy/Danmuji.git
 	ignore = dirty
+[submodule "thirdparty/DAFL"]
+	path = thirdparty/DAFL
+	url = git@github.com:prosyslab/DAFL.git
+[submodule "thirdparty/smake"]
+	path = thirdparty/smake
+	url = git@github.com:prosyslab/smake.git
+[submodule "thirdparty/sparrow"]
+	path = thirdparty/sparrow
+	url = git@github.com:prosyslab/sparrow.git

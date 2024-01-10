@@ -20,7 +20,7 @@ full_daikon = pjoin(dir_daikon, "daikon.jar")
 dir_danmuji = pjoin(dir_thirdparty, "danmuji")
 full_danmuji = pjoin(dir_danmuji, "danmuji")
 dir_afl = pjoin(dir_thirdparty, "AFL")
-dir_temp = pjoin(dir_root, "run-temp") # a temp dir to store runtime-generated junk files
+dir_temp = pjoin(dir_root, "run-temp") # a temp dir to store runtime-generated junk files)
 
 dir_afl_raw_input = ""
 dir_afl_raw_output = ""
