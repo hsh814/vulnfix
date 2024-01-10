@@ -20,10 +20,10 @@
 	ignore = dirty
 [submodule "thirdparty/DAFL"]
 	path = thirdparty/DAFL
-	url = git@github.com:prosyslab/DAFL.git
+	url = https://github.com/prosyslab/DAFL.git
 [submodule "thirdparty/smake"]
 	path = thirdparty/smake
-	url = git@github.com:prosyslab/smake.git
+	url = https://github.com/prosyslab/smake.git
 [submodule "thirdparty/sparrow"]
 	path = thirdparty/sparrow
-	url = git@github.com:prosyslab/sparrow.git
+	url = https://github.com/prosyslab/sparrow.git
