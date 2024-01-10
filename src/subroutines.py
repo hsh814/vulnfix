@@ -139,13 +139,14 @@ def rebuild_project():
     else:
         # move binary from build dir to runtime dir
         shutil.copy2(values.binary_full_path, values.bin_orig)
+        shutil.copy2(values.binary_full_path_dafl, values.bin_dafl)
     return rc
 
 
 def patch_for_afl():
     os.chdir(values.dir_lib)
     patch_cmd = ('./e9afl -o ' + values.bin_afl + ' ' + values.fix_loc + ' '
-        + values.crash_loc + ' ' + values.bin_orig)
+        + values.crash_loc + ' ' + values.bin_dafl) # change from bin_orig
     logger.debug(f'Cmd for patch: {patch_cmd}')
     subprocess.run(patch_cmd, shell=True,
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)

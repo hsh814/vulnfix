@@ -28,7 +28,8 @@ def parse_config_and_setup_runtime(config_file):
         config.read_string("[DEFAULT]\n" + f.read())
     config_dict = config['DEFAULT']
     # runtime-dir
-    values.dir_runtime = config_dict['runtime-dir']
+    values.dir_benchmark = config_dict["benchmark-dir"]
+    values.dir_runtime = pjoin(values.dir_benchmark, config_dict['runtime-dir'])
     if values.backend_choice == 'cvc5':
         values.dir_runtime = values.dir_runtime.replace('runtime', 'cvcback-runtime')
     if values.backend_choice == 'danmuji':
@@ -63,21 +64,24 @@ def parse_config_and_setup_runtime(config_file):
     values.file_daikon_decl = pjoin(values.dir_runtime, "daikon.decls")
     values.file_daikon_pass_inv = pjoin(values.dir_runtime, "pass.inv")
     # binary
-    values.binary_full_path = config_dict['binary']
+    values.binary_full_path = pjoin(values.dir_benchmark, config_dict["vulnfix-dir"], config_dict['binary'])
+    values.binary_full_path_dafl = pjoin(values.dir_benchmark, config_dict["dafl-dir"], config_dict['binary'])
     bin_name = os.path.split(values.binary_full_path)[1]
     shutil.copy2(values.binary_full_path, values.dir_runtime)
     values.bin_orig = pjoin(values.dir_runtime, bin_name)
+    values.bin_dafl = pjoin(values.dir_runtime, bin_name + ".dafl")
+    shutil.copy2(values.binary_full_path_dafl, values.bin_dafl)
     values.bin_afl = pjoin(values.dir_runtime, bin_name + ".afl")
     values.bin_snapshot = pjoin(values.dir_runtime, bin_name + ".snapshot")
     values.bin_mutate = pjoin(values.dir_runtime, bin_name + ".mutate")
     values.bin_crash = pjoin(values.dir_runtime, bin_name + ".crash")
     # exploit
-    shutil.copyfile(config_dict['exploit'], values.file_exploit)
+    shutil.copyfile(pjoin(values.dir_benchmark, config_dict['exploit']), values.file_exploit)
     # others
     values.prog_cmd = config_dict['cmd']
     values.fix_loc = config_dict['fix-location']
     values.crash_loc = config_dict['crash-location']
-    values.dir_source = config_dict['source-dir']
+    values.dir_source = pjoin(values.dir_benchmark, config_dict['source-dir'])
     values.fix_file_rel_path = config_dict['fix-file-path']
     values.fix_file_path = pjoin(values.dir_source, values.fix_file_rel_path)
     values.backup_file_path = pjoin(os.path.dirname(values.fix_file_path), "fix-file-backup.c")

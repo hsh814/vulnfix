@@ -17,9 +17,10 @@ dir_cvc5 = pjoin(dir_thirdparty, "cvc5")
 full_cvc5 = pjoin(dir_cvc5, "build", "bin", "cvc5")
 dir_daikon = pjoin(dir_thirdparty, "daikon")
 full_daikon = pjoin(dir_daikon, "daikon.jar")
-dir_afl = pjoin(dir_thirdparty, "AFL")
+dir_afl = pjoin("/DAFL") #pjoin(dir_thirdparty, "AFL")
 dir_temp = pjoin(dir_root, "run-temp") # a temp dir to store runtime-generated junk files
 
+dir_benchmark = ""
 dir_afl_raw_input = ""
 dir_afl_raw_output = ""
 dir_afl_raw_input_normal = ""
@@ -32,6 +33,7 @@ dir_seed_fail = ""
 # original and patched binaries
 bin_orig = ""
 bin_afl = ""
+bin_dafl = ""
 bin_snapshot = ""
 bin_mutate = ""
 bin_crash = "" # should crash at crash location with `patch_exit_code`
@@ -148,6 +150,7 @@ backup_file_path = ""
 fix_line = None
 build_cmd = ""
 binary_full_path = ""
+binary_full_path_dafl = ""
 
 all_pass_inputs = list()
 all_fail_inputs = list()
