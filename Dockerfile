@@ -69,6 +69,7 @@ RUN make && cd llvm_mode && make
 WORKDIR /home/yuntong/vulnfix/thirdparty/sparrow
 RUN ./build.sh
 
+WORKDIR /home/yuntong/vulnfix/
 RUN python3.8 -m pip install -r requirements.txt
 # required for building cvc5 (default python3 is 3.6)
 RUN python3 -m pip install toml pyparsing
