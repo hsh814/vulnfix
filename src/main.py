@@ -122,6 +122,13 @@ def filter_store_initial_tests_and_snapshots(bound_time=True):
 
     Also stores the test inputs in a dir, and stores snapshots into pool.
     """
+    def add_inputs(input_dir: str, inputs: list):
+        """
+        Add inputs to a dir.
+        """
+        if not os.path.isdir(input_dir):
+            return
+        inputs.extend([pjoin(input_dir, t) for t in os.listdir(input_dir)])
     # prepare raw tests
     if not os.path.isdir(values.dir_afl_pass):
         os.mkdir(values.dir_afl_pass)
@@ -129,13 +136,15 @@ def filter_store_initial_tests_and_snapshots(bound_time=True):
         os.mkdir(values.dir_afl_fail)
     raw_fails_dir = pjoin(values.dir_afl_raw_output, "crashes")
     raw_passes_dir = pjoin(values.dir_afl_raw_output, "normals")
-    raw_fails = [pjoin(raw_fails_dir, t) for t in os.listdir(raw_fails_dir)]
-    raw_passes = [pjoin(raw_passes_dir, t) for t in os.listdir(raw_passes_dir)]
+    raw_fails = list()
+    add_inputs(raw_fails_dir, raw_fails)
+    raw_passes = list()
+    add_inputs(raw_passes_dir, raw_passes)
     if values.files_normal_in: # consider outputs from normal run as well
         raw_fails_dir_normal = pjoin(values.dir_afl_raw_output_normal, "crashes")
         raw_passes_dir_normal = pjoin(values.dir_afl_raw_output_normal, "normals")
-        raw_fails.extend([pjoin(raw_fails_dir_normal, t) for t in os.listdir(raw_fails_dir_normal)])
-        raw_passes.extend([pjoin(raw_passes_dir_normal, t) for t in os.listdir(raw_passes_dir_normal)])
+        add_inputs(raw_fails_dir_normal, raw_fails)
+        add_inputs(raw_passes_dir_normal, raw_passes)
     # preparation
     random.shuffle(raw_fails)
     random.shuffle(raw_passes)

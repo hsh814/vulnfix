@@ -93,6 +93,9 @@ def collect_ss_from_one(test):
     except subprocess.TimeoutExpired:
         logger.debug(f'\tInput test {test} timeout. Skip.')
         return ExecResult.error, pass_snapshots, fail_snapshots
+    except FileNotFoundError:
+        logger.debug(f'\tInput test {test} not found. Skip.')
+        return ExecResult.error, pass_snapshots, fail_snapshots
     snapshots = parse_snapshots_from_file()
     if not snapshots:
         logger.debug(f'\tInput test {test} produced no snapshot.')
