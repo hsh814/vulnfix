@@ -67,7 +67,7 @@ def parse_config_and_setup_runtime(config_file):
     bin_name = os.path.split(values.binary_full_path)[1]
     shutil.copy2(values.binary_full_path, values.dir_runtime)
     values.bin_orig = pjoin(values.dir_runtime, bin_name)
-    values.bin_instrumented = pjoin(values.dir_runtime, bin_name + ".instrumented")
+    values.bin_instrumented = values.binary_full_path + ".instrumented"
     values.bin_afl = pjoin(values.dir_runtime, bin_name + ".afl")
     values.bin_dafl = pjoin(values.dir_runtime, bin_name + ".dafl")
     values.bin_snapshot = pjoin(values.dir_runtime, bin_name + ".snapshot")

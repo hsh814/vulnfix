@@ -1,4 +1,4 @@
-binary=/home/yuntong/vulnfix/data/binutils/cve_2017_15025/source/binutils/nm-new
+binary=/home/yuntong/vulnfix/data/binutils/cve_2017_15025/nm-new
 cmd=-A -a -l -S -s --special-syms --synthetic --with-symbol-versions <exploit>
 exploit=/home/yuntong/vulnfix/data/binutils/cve_2017_15025/exploit
 fix-location=dwarf2.c:2440
