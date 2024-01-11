@@ -35,7 +35,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt install -y python3.8
 RUN DEBIAN_FRONTEND=noninteractive apt install -y git vim python3-pip gdb \
     default-jdk m4 xxd clang flex bison autopoint gperf texinfo libjpeg-dev \
     nasm libass-dev libmp3lame-dev dh-autoreconf unzip libopus-dev \
-    libtheora-dev libvorbis-dev rsync python3-dev python-dev 
+    libtheora-dev libvorbis-dev rsync python3-dev python-dev opam
 
 # RUN DEBIAN_FRONTEND=noninteractive apt install -y clang-12
 # RUN DEBIAN_FRONTEND=noninteractive apt-get install -y llvm-12 llvm-12-dev libllvm12 llvm-12-runtime opam \
