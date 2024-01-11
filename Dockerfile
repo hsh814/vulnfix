@@ -38,8 +38,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt install -y git vim python3-pip gdb \
     libtheora-dev libvorbis-dev rsync python3-dev python-dev opam
 
 # RUN DEBIAN_FRONTEND=noninteractive apt install -y clang-12
-# RUN DEBIAN_FRONTEND=noninteractive apt-get install -y llvm-12 llvm-12-dev libllvm12 llvm-12-runtime opam \
-#     libclang-12-dev libgmp-dev libmpfr-dev llvm-dev ncurses-dev libclang-dev
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y libgmp-dev libmpfr-dev llvm-dev ncurses-dev libclang-dev
 
 
 # install elfutils
