@@ -17,6 +17,8 @@ dir_cvc5 = pjoin(dir_thirdparty, "cvc5")
 full_cvc5 = pjoin(dir_cvc5, "build", "bin", "cvc5")
 dir_daikon = pjoin(dir_thirdparty, "daikon")
 full_daikon = pjoin(dir_daikon, "daikon.jar")
+dir_danmuji = os.path.join(dir_thirdparty, "Danmuji")
+full_danmuji = os.path.join(dir_danmuji, "danmuji")
 dir_afl = pjoin("/DAFL") #pjoin(dir_thirdparty, "AFL")
 dir_temp = pjoin(dir_root, "run-temp") # a temp dir to store runtime-generated junk files
 
