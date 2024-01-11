@@ -18,7 +18,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt purge --yes --auto-remove cmake && \
     apt update && \
     apt-get install --yes --no-install-recommends cmake
 
-COPY docker-setup/checkout_build_install_llvm.sh /root/
+COPY checkout_build_install_llvm.sh /root/
 RUN /root/checkout_build_install_llvm.sh
 RUN rm /root/checkout_build_install_llvm.sh
 
