@@ -39,7 +39,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt install -y git vim python3-pip gdb \
 
 RUN DEBIAN_FRONTEND=noninteractive apt install -y clang-12
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y opam libclang-cpp12-dev libgmp-dev libclang-12-dev libmpfr-dev ncurses-dev
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y opam libclang-cpp12-dev libgmp-dev libclang-12-dev libmpfr-dev ncurses-dev libclang-dev llvm-dev
 RUN ln -s "/usr/lib/llvm-12/libclang.so" "/usr/lib/libclang.so"
 
 RUN update-alternatives --install /usr/bin/llvm-config llvm-config /usr/bin/llvm-config-12 10
@@ -68,7 +68,6 @@ RUN make && cd llvm_mode && make
 
 # build sparrow
 WORKDIR /home/yuntong/vulnfix/thirdparty/sparrow
-RUN sed -i '/opam install -j \$NCPU sparrow --deps-only/s/$/ --assume-depexts/' ./build.sh
 RUN ./build.sh
 
 WORKDIR /home/yuntong/vulnfix/
