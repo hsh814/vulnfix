@@ -67,6 +67,13 @@ RUN rm /usr/lib/LLVMgold.so
 RUN ln -s /usr/lib/llvm-12/lib/libLTO.so /usr/lib/libLTO.so
 RUN ln -s /usr/lib/llvm-12/lib/LLVMgold.so /usr/lib/LLVMgold.so
 
+# fix the llvm include path
+RUN rm -rf /usr/include/llvm
+RUN rm -rf /usr/include/llvm-c
+RUN ln -s /usr/lib/llvm-12/include/llvm /usr/include/llvm
+RUN ln -s /usr/lib/llvm-12/include/llvm-c /usr/include/llvm-c
+
+
 # install elfutils
 RUN DEBIAN_FRONTEND=noninteractive apt install -y unzip pkg-config zlib1g zlib1g-dev autoconf libtool cmake
 WORKDIR /root
