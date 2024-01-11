@@ -128,7 +128,9 @@ def filter_store_initial_tests_and_snapshots(bound_time=True):
         """
         if not os.path.isdir(input_dir):
             return
-        inputs.extend([pjoin(input_dir, t) for t in os.listdir(input_dir)])
+        for file in os.listdir(input_dir):
+            if file != "README.txt":
+                inputs.append(pjoin(input_dir, file))
     # prepare raw tests
     if not os.path.isdir(values.dir_afl_pass):
         os.mkdir(values.dir_afl_pass)
