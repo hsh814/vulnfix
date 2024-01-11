@@ -27,6 +27,31 @@ RUN DEBIAN_FRONTEND=noninteractive apt install -y git vim python3-pip gdb \
     nasm libass-dev libmp3lame-dev dh-autoreconf unzip libopus-dev \
     libtheora-dev libvorbis-dev rsync python3-dev python-dev opam
 
+RUN DEBIAN_FRONTEND=noninteractive apt install -y clang-10
+
+# install elfutils
+RUN DEBIAN_FRONTEND=noninteractive apt install -y unzip pkg-config zlib1g zlib1g-dev autoconf libtool cmake
+WORKDIR /root
+RUN curl -o elfutils-0.185.tar.bz2 https://sourceware.org/elfutils/ftp/0.185/elfutils-0.185.tar.bz2
+RUN tar -xf elfutils-0.185.tar.bz2
+WORKDIR /root/elfutils-0.185/
+RUN ./configure --disable-debuginfod --disable-libdebuginfod
+RUN make
+RUN make install
+
+# build the project
+COPY . /home/yuntong/vulnfix/
+WORKDIR /home/yuntong/vulnfix/
+RUN git submodule init
+RUN git submodule update
+
+WORKDIR /home/yuntong/vulnfix/
+RUN python3.8 -m pip install -r requirements.txt
+# required for building cvc5 (default python3 is 3.6)
+RUN python3 -m pip install toml pyparsing
+# NOTE: this might be slow
+RUN ./build.sh
+
 RUN DEBIAN_FRONTEND=noninteractive apt install -y clang-12
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y llvm-12 llvm-12-dev libllvm12 llvm-12-runtime opam \
     libclang-12-dev libgmp-dev libmpfr-dev llvm-dev ncurses-dev libclang-dev
@@ -73,36 +98,12 @@ RUN rm -rf /usr/include/llvm-c
 RUN ln -s /usr/lib/llvm-12/include/llvm /usr/include/llvm
 RUN ln -s /usr/lib/llvm-12/include/llvm-c /usr/include/llvm-c
 
-
-# install elfutils
-RUN DEBIAN_FRONTEND=noninteractive apt install -y unzip pkg-config zlib1g zlib1g-dev autoconf libtool cmake
-WORKDIR /root
-RUN curl -o elfutils-0.185.tar.bz2 https://sourceware.org/elfutils/ftp/0.185/elfutils-0.185.tar.bz2
-RUN tar -xf elfutils-0.185.tar.bz2
-WORKDIR /root/elfutils-0.185/
-RUN ./configure --disable-debuginfod --disable-libdebuginfod
-RUN make
-RUN make install
-
-# build the project
-COPY . /home/yuntong/vulnfix/
-WORKDIR /home/yuntong/vulnfix/
-RUN git submodule init
-RUN git submodule update
-
 # build DAFL
 WORKDIR /home/yuntong/vulnfix/thirdparty/DAFL
 RUN make && cd llvm_mode && make
 
 # build sparrow
 WORKDIR /home/yuntong/vulnfix/thirdparty/sparrow
-RUN ./build.sh
-
-WORKDIR /home/yuntong/vulnfix/
-RUN python3.8 -m pip install -r requirements.txt
-# required for building cvc5 (default python3 is 3.6)
-RUN python3 -m pip install toml pyparsing
-# NOTE: this might be slow
 RUN ./build.sh
 
 ENV PATH="/home/yuntong/vulnfix/bin:${PATH}"
