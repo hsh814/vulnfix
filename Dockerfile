@@ -37,7 +37,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt install -y git vim python3-pip gdb \
     nasm libass-dev libmp3lame-dev dh-autoreconf unzip libopus-dev \
     libtheora-dev libvorbis-dev rsync python3-dev python-dev opam
 
-# RUN DEBIAN_FRONTEND=noninteractive apt install -y clang-12
+RUN DEBIAN_FRONTEND=noninteractive apt install -y clang-12
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y opam libclang-cpp12-dev libgmp-dev libclang-12-dev llvm-12-dev libmpfr-dev
 RUN update-alternatives --install /usr/bin/llvm-config llvm-config /usr/bin/llvm-config-12 10
