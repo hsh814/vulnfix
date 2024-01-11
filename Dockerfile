@@ -46,6 +46,12 @@ RUN ./configure --disable-debuginfod --disable-libdebuginfod
 RUN make
 RUN make install
 
+ENV OUT=/out
+ENV SRC=/src
+ENV WORK=/work
+ENV PATH="$PATH:/out"
+RUN mkdir -p $OUT $SRC $WORK
+
 # install a newer version of cmake, since it is required by z3
 RUN DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends wget
 RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null
