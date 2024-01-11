@@ -38,7 +38,7 @@ class DanmujiBackend(BackendBase):
         inv_cmd = (values.full_danmuji + " "
             + values.file_daikon_decl + " " + values.file_daikon_pass_traces + values.file_daikon_fail_traces
             + values.file_daikon_pass_inv)
-        cp = subprocess.run(inv_cmd, shell=True, encoding='utf-8',
+        cp = subprocess.run(inv_cmd, shell=True, encoding='utf-8', cwd=values.dir_danmuji,
             stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
 
         # parse the output - only get invariants
