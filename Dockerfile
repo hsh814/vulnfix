@@ -47,7 +47,7 @@ RUN update-alternatives --install /usr/bin/llvm-dis llvm-dis /usr/bin/llvm-dis-1
 RUN update-alternatives --install /usr/bin/llvm-link llvm-link /usr/bin/llvm-link-12 40
 RUN update-alternatives --install /usr/bin/llvm-mc llvm-mc /usr/bin/llvm-mc-12 40
 RUN update-alternatives --install /usr/bin/llvm-nm llvm-nm /usr/bin/llvm-nm-12 40
-RUN update-alternatives --install /usr/bin/llvm-objdump  llvm-objdump  /usr/bin/llvm-objdump -12 40
+RUN update-alternatives --install /usr/bin/llvm-objdump  llvm-objdump  /usr/bin/llvm-objdump-12 40
 RUN update-alternatives --install /usr/bin/llvm-profdata llvm-profdata /usr/bin/llvm-profdata-12 40
 RUN update-alternatives --install /usr/bin/llvm-ranlib llvm-ranlib /usr/bin/llvm-ranlib-12 40
 RUN update-alternatives --install /usr/bin/llvm-rtdyld llvm-rtdyld /usr/bin/llvm-rtdyld-12 40
