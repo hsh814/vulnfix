@@ -40,7 +40,8 @@ RUN DEBIAN_FRONTEND=noninteractive apt install -y git vim python3-pip gdb \
 RUN DEBIAN_FRONTEND=noninteractive apt install -y clang-12
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y llvm-12 llvm-12-dev libllvm12 llvm-12-runtime opam \
-    libclang-12-dev libgmp-dev libmpfr-dev llvm-dev ncurses-dev libclang-dev
+    libclang-cpp12-dev libgmp-dev libclang-12-dev llvm-12-dev libmpfr-dev ncurses-dev 
+RUN sed -i '/opam install -j \$NCPU sparrow --deps-only/s/$/ --assume-depexts/'
     
 RUN update-alternatives --install /usr/bin/llvm-config llvm-config /usr/bin/llvm-config-12 10
 RUN update-alternatives --install /usr/bin/clang clang /usr/bin/clang-12 40
