@@ -18,6 +18,10 @@ RUN DEBIAN_FRONTEND=noninteractive apt purge --yes --auto-remove cmake && \
     apt update && \
     apt-get install --yes --no-install-recommends cmake
 
+COPY docker-setup/checkout_build_install_llvm.sh /root/
+RUN /root/checkout_build_install_llvm.sh
+RUN rm /root/checkout_build_install_llvm.sh
+
 # install python3.8, for driver scripts of the project
 RUN DEBIAN_FRONTEND=noninteractive apt install -y python3.8
 
@@ -27,39 +31,9 @@ RUN DEBIAN_FRONTEND=noninteractive apt install -y git vim python3-pip gdb \
     nasm libass-dev libmp3lame-dev dh-autoreconf unzip libopus-dev \
     libtheora-dev libvorbis-dev rsync python3-dev python-dev 
 
-RUN DEBIAN_FRONTEND=noninteractive apt install -y clang-12
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y llvm-12 llvm-12-dev libllvm12 llvm-12-runtime opam \
-    libclang-12-dev libgmp-dev libmpfr-dev llvm-dev ncurses-dev libclang-dev
-RUN update-alternatives --install /usr/bin/llvm-config llvm-config /usr/bin/llvm-config-12 10
-RUN update-alternatives --install /usr/bin/clang clang /usr/bin/clang-12 40
-RUN update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-12 40
-
-# We need to update every llvm tools to version 12
-RUN update-alternatives --install /usr/bin/llvm-symbolizer llvm-symbolizer /usr/bin/llvm-symbolizer-12 40
-RUN update-alternatives --install /usr/bin/llc llc /usr/bin/llc-12 40
-RUN update-alternatives --install /usr/bin/lli lli /usr/bin/lli-12 40
-RUN update-alternatives --install /usr/bin/llvm-ar llvm-ar /usr/bin/llvm-ar-12 40
-RUN update-alternatives --install /usr/bin/llvm-as llvm-as /usr/bin/llvm-as-12 40
-RUN update-alternatives --install /usr/bin/llvm-bcanalyzer llvm-bcanalyzer /usr/bin/llvm-bcanalyzer-12 40
-RUN update-alternatives --install /usr/bin/llvm-cov llvm-cov /usr/bin/llvm-cov-12 40
-RUN update-alternatives --install /usr/bin/llvm-diff llvm-diff /usr/bin/llvm-diff-12 40
-RUN update-alternatives --install /usr/bin/llvm-dis llvm-dis /usr/bin/llvm-dis-12 40
-RUN update-alternatives --install /usr/bin/llvm-link llvm-link /usr/bin/llvm-link-12 40
-RUN update-alternatives --install /usr/bin/llvm-mc llvm-mc /usr/bin/llvm-mc-12 40
-RUN update-alternatives --install /usr/bin/llvm-nm llvm-nm /usr/bin/llvm-nm-12 40
-RUN update-alternatives --install /usr/bin/llvm-objdump  llvm-objdump  /usr/bin/llvm-objdump-12 40
-RUN update-alternatives --install /usr/bin/llvm-profdata llvm-profdata /usr/bin/llvm-profdata-12 40
-RUN update-alternatives --install /usr/bin/llvm-ranlib llvm-ranlib /usr/bin/llvm-ranlib-12 40
-RUN update-alternatives --install /usr/bin/llvm-rtdyld llvm-rtdyld /usr/bin/llvm-rtdyld-12 40
-RUN update-alternatives --install /usr/bin/llvm-size llvm-size /usr/bin/llvm-size-12 40
-RUN update-alternatives --install /usr/bin/llvm-tblgen llvm-tblgen /usr/bin/llvm-tblgen-12 40
-RUN update-alternatives --install /usr/bin/obj2yaml obj2yaml /usr/bin/obj2yaml-12 40
-RUN update-alternatives --install /usr/bin/opt opt /usr/bin/opt-12 40
-RUN update-alternatives --install /usr/bin/verify-uselistorder verify-uselistorder /usr/bin/verify-uselistorder-12 40
-RUN update-alternatives --install /usr/bin/yaml2obj yaml2obj /usr/bin/yaml2obj-12 40
-RUN update-alternatives --install /usr/bin/bugpoint bugpoint /usr/bin/bugpoint-12 40
-RUN update-alternatives --install /usr/bin/llvm-dwarfdump llvm-dwarfdump /usr/bin/llvm-dwarfdump-12 40
-RUN update-alternatives --install /usr/bin/llvm-extract llvm-extract /usr/bin/llvm-extract-12 40
+# RUN DEBIAN_FRONTEND=noninteractive apt install -y clang-12
+# RUN DEBIAN_FRONTEND=noninteractive apt-get install -y llvm-12 llvm-12-dev libllvm12 llvm-12-runtime opam \
+#     libclang-12-dev libgmp-dev libmpfr-dev llvm-dev ncurses-dev libclang-dev
 
 
 # install elfutils
