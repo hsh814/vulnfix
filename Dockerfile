@@ -57,6 +57,9 @@ RUN update-alternatives --install /usr/bin/obj2yaml obj2yaml /usr/bin/obj2yaml-1
 RUN update-alternatives --install /usr/bin/opt opt /usr/bin/opt-12 40
 RUN update-alternatives --install /usr/bin/verify-uselistorder verify-uselistorder /usr/bin/verify-uselistorder-12 40
 RUN update-alternatives --install /usr/bin/yaml2obj yaml2obj /usr/bin/yaml2obj-12 40
+RUN update-alternatives --install /usr/bin/bugpoint bugpoint /usr/bin/bugpoint-12 40
+RUN update-alternatives --install /usr/bin/llvm-dwarfdump llvm-dwarfdump /usr/bin/llvm-dwarfdump-12 40
+RUN update-alternatives --install /usr/bin/llvm-extract llvm-extract /usr/bin/llvm-extract-12 40
 
 
 # install elfutils
