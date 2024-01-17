@@ -25,20 +25,18 @@ pushd dafl_source
   DAFL_SELECTIVE_COV="/home/yuntong/vulnfix/data/libxml2/cve_2012_5314/sparrow-out/bug/slice_func.txt" \
   DAFL_DFG_SCORE="/home/yuntong/vulnfix/data/libxml2/cve_2012_5314/sparrow-out/bug/slice_dfg.txt" \
   ASAN_OPTIONS=detect_leaks=0 CC=/home/yuntong/vulnfix/thirdparty/DAFL/afl-clang-fast CXX=/home/yuntong/vulnfix/thirdparty/DAFL/afl-clang-fast++ \
-  CMAKE_EXPORT_COMPILE_COMMANDS=1 CFLAGS="-DFORTIFY_SOURCE=2 -fno-omit-frame-pointer -fsanitize=address -ggdb -Wno-error" \
-  CXXFLAGS="$CFLAGS" ../source/configure
+  CMAKE_EXPORT_COMPILE_COMMANDS=1 ../source/autogen.sh
 
   DAFL_SELECTIVE_COV="/home/yuntong/vulnfix/data/libxml2/cve_2012_5314/sparrow-out/bug/slice_func.txt" \
   DAFL_DFG_SCORE="/home/yuntong/vulnfix/data/libxml2/cve_2012_5314/sparrow-out/bug/slice_dfg.txt" \
   ASAN_OPTIONS=detect_leaks=0 CC=/home/yuntong/vulnfix/thirdparty/DAFL/afl-clang-fast CXX=/home/yuntong/vulnfix/thirdparty/DAFL/afl-clang-fast++ \
-  make CFLAGS="-ldl -lutil -fsanitize=address -ggdb -Wno-error" CXXFLAGS="-fsanitize=address -ldl -lutil -ggdb -Wno-error" \
-  LDFLAGS=" -ldl -lutil -fsanitize=address" -j 10
+  make CFLAGS="-static -fsanitize=address -g" CXXFLAGS="-static -fsanitize=address -g" LDFLAGS="-fsanitize=address" -j10
 popd
 
 rm -rf raw_build && mkdir raw_build
 pushd raw_build
-  ../source/configure
-  make CFLAGS="-static -fsanitize=address -fsanitize=undefined -g" CXXFLAGS="-static -fsanitize=address -fsanitize=undefined -g" -j10
+  ../source/autogen.sh
+  make CFLAGS="-static -fsanitize=address -g" CXXFLAGS="-static -fsanitize=address -g" LDFLAGS="-fsanitize=address" -j10
 popd
 
 cp raw_build/xmllint ../xmllint
