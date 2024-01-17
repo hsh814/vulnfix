@@ -39,5 +39,5 @@ pushd raw_build
   make CFLAGS="-static -fsanitize=address -g" CXXFLAGS="-static -fsanitize=address -g" LDFLAGS="-fsanitize=address" -j10
 popd
 
-cp raw_build/xmllint ../xmllint
-cp dafl_source/xmllint ../xmllint.instrumented
+cp raw_build/xmllint ./xmllint
+cp dafl_source/xmllint ./xmllint.instrumented
