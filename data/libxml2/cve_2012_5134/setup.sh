@@ -8,9 +8,9 @@ popd
 
 rm -rf smake_source && mkdir smake_source
 pushd smake_source
-  ../source/autogen.sh
-  /home/yuntong/vulnfix/thirdparty/smake/smake --init
-  /home/yuntong/vulnfix/thirdparty/smake/smake CFLAGS="-static -fsanitize=address -g" CXXFLAGS="-static -fsanitize=address -g" LDFLAGS="-fsanitize=address" -j10
+  CC=clang CXX=clang++ ../source/autogen.sh
+  CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake --init
+  CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake CFLAGS="-static -fsanitize=address -g" CXXFLAGS="-static -fsanitize=address -g" LDFLAGS="-fsanitize=address" -j10
 popd
 
 rm -rf sparrow-out && mkdir sparrow-out
