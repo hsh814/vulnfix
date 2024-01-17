@@ -1,7 +1,7 @@
 #!/bin/bash
 
 commit_id=393881d
-dir=/home/yuntong/vulnfix/data/libtiff/cve_2016_10272
+dir=/home/yuntong/vulnfix/data/libtiff/cve_2017_5225
 
 rm -rf source
 git clone https://github.com/vadz/libtiff.git
