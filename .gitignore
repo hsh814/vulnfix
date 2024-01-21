@@ -61,3 +61,13 @@ listmp3
 tiff2ps
 gif2tiff
 data/potrace/*/potrace
+
+data/*/*/dafl_source
+data/*/*/smake_source
+data/*/*/sparrow-in
+data/*/*/sparrow-out
+data/*/*/danmuji-runtime
+data/*/*/vulnfix_source
+data/*/*/raw_build
+data/*/*/*.instrumented
+data/*/*/*-sparrow
