@@ -69,5 +69,6 @@ data/*/*/sparrow-out
 data/*/*/danmuji-runtime
 data/*/*/vulnfix_source
 data/*/*/raw_build
+data/*/*/aflgo_build
 data/*/*/*.instrumented
 data/*/*/*-sparrow
