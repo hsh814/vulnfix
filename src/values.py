@@ -146,6 +146,11 @@ backend_choice = ""
 
 # int: total time budget for this VulnFix run
 time_budget = 30
+# int: time budget for each iteration
+cycle = 10
+# float: target error rate calculated by PAC learning
+epsilon = 0.1
+delta = 0.01
 
 # Patch validation
 dir_source = ""

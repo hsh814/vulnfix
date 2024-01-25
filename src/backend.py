@@ -49,7 +49,7 @@ class DanmujiBackend(BackendBase):
         hypothesis_space = 0
         for i in raw_lines:
             if i.startswith('Hypothesis'):
-                hypothesis_space = i.split(":")[1].strip()
+                hypothesis_space = int(i.split(":")[1].strip())
                 break
         logger.debug(f'Hypothesis space is: {hypothesis_space}')
         inv_lines = [ line for line in raw_lines
@@ -59,7 +59,7 @@ class DanmujiBackend(BackendBase):
         invariants = self.__sanitize_daikon_invariants(invariants)
         invariants = self.__remove_duplicated_invariants(invariants)
 
-        return invariants
+        return invariants, hypothesis_space
 
     def __filter_daikon_invariants(self, invs):
         """
