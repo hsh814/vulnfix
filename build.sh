@@ -97,3 +97,16 @@ echo -e "${YELLOW}$0${OFF}: other libraries has been built!"
 popd
 
 echo -e "${YELLOW}$0${OFF}: build finished."
+
+
+# STEP (7): build AFLGo
+pushd $AFLGO
+    make clean all
+    pushd llvm_mode
+        make clean all
+    popd
+    pushd distance_calculator
+        cmake .
+        cmake --build .
+    popd
+popd

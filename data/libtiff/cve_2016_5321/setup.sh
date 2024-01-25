@@ -40,5 +40,18 @@ pushd raw_build
   make CFLAGS="-static -fsanitize=address -fsanitize=undefined -g" CXXFLAGS="-static -fsanitize=address -fsanitize=undefined -g" -j10
 popd
 
+# aflgo
+export AFLGO=/home/yuntong/vulnfix/thirdparty/aflgo
+rm -rf aflgo_build && mkdir aflgo_build
+pushd aflgo_build
+  mkdir temp
+  TMP_DIR=$PWD/temp
+  echo "tiffcrop.c:994" > $TMP_DIR/BBtargets.txt
+  ADDITIONAL_FLAGS="-targets=$TMP_DIR/BBtargets.txt -outdir=$TMP_DIR -flto -fuse-ld=gold -Wl,-plugin-opt=save-temps"
+  AFL_PATH=$AFLGO CC=$AFLGO/afl-clang-fast CXX=$AFLGO/afl-clang-fast++ ../source/configure
+  AFL_PATH=$AFLGO CC=$AFLGO/afl-clang-fast CXX=$AFLGO/afl-clang-fast++ make CFLAGS="$ADDITIONAL_FLAGS -fsanitize=address -fsanitize=undefined -g" CXXFLAGS="$ADDITIONAL_FLAGS -fsanitize=address -fsanitize=undefined -g" -j10
+popd
+
+
 cp raw_build/tools/tiffcrop ./tiffcrop
 cp dafl_source/tools/tiffcrop ./tiffcrop.instrumented
