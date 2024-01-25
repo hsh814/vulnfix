@@ -71,4 +71,5 @@ data/*/*/vulnfix_source
 data/*/*/raw_build
 data/*/*/aflgo_build
 data/*/*/*.instrumented
+data/*/*/*.aflgo
 data/*/*/*-sparrow
