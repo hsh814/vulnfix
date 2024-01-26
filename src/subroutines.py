@@ -5,6 +5,7 @@ import itertools
 import enum
 import signal
 import operator
+import time
 
 import values
 from utils import *
@@ -236,6 +237,62 @@ def run_afl(mins):
         logger.info(f'\nFinished running AFL for {mins} mins.')
     os.chdir(values.dir_root)
 
+
+def check_dafl_status():
+    logger.info(f'Checking DAFL status...')
+    dafl_status = os.path.join(values.dir_dafl, "afl-whatsup")
+    status_cmd = dafl_status + ' ' + values.dir_runtime
+    try:
+        proc = subprocess.Popen([status_cmd], start_new_session=True, shell=True,
+            encoding='utf-8', universal_newlines=True, errors='replace',
+            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+        proc.wait()
+    except subprocess.TimeoutExpired as e:
+        os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
+        raise e
+    res = proc.stdout.readlines()
+    for line in res:
+        if "Fuzzers alive" in line:
+            return int(line.strip().split()[3])
+    return 0
+
+def pause_dafl():
+    logger.info(f'Pausing DAFL...')
+    dafl_status = os.path.join(values.dir_dafl, "afl-pause")
+    pause_cmd = dafl_status + ' ' + values.dir_runtime
+    try:
+        proc = subprocess.Popen([pause_cmd], start_new_session=True, shell=True,
+            encoding='utf-8', universal_newlines=True, errors='replace',
+            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+        proc.wait()
+    except subprocess.TimeoutExpired as e:
+        os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
+        raise e
+    res = proc.stdout.readlines()
+    for line in res:
+        if "Fuzzers paused:" in line:
+            return int(line.strip().split()[2])
+    return 0
+
+def resume_dafl():
+    logger.info(f'Resuming DAFL...')
+    dafl_status = os.path.join(values.dir_dafl, "afl-resume")
+    resume_cmd = dafl_status + ' ' + values.dir_runtime
+    resume_cmd = resume_cmd.split()
+    try:
+        proc = subprocess.Popen([resume_cmd], start_new_session=True, shell=True,
+            encoding='utf-8', universal_newlines=True, errors='replace',
+            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+        proc.wait()
+    except subprocess.TimeoutExpired as e:
+        os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
+        raise e
+    res = proc.stdout.readlines()
+    for line in res:
+        if "Fuzzers resumed:" in line:
+            return int(line.strip().split()[2])
+    return 0
+
 def run_dafl(mins):
     # We share the same dirs with AFL for snapshot runs.
     if not os.path.isdir(values.dir_afl_raw_input):
@@ -251,31 +308,86 @@ def run_dafl(mins):
     # prepare input seed
     shutil.copy2(values.file_exploit, values.dir_afl_raw_input)
     # actually run DAFL
-    os.chdir(values.dir_temp)
-    dafl_fuzz = os.path.join(values.dir_dafl, "afl-fuzz")
-    seed_size_bytes = os.path.getsize(values.file_exploit)
-    # decide whether skip deterministic stage
-    if values.afl_skip_deterministic is None: # config didnt say anything
-        if seed_size_bytes > BIG_FILE_SIZE:
-            dafl_fuzz += ' -d' # skip deterministic stage
-    else: # if config specifies this, follow what config says
-        if values.afl_skip_deterministic:
-            dafl_fuzz += ' -d'
-    dafl_cmd = (dafl_fuzz + ' -C -t 2000ms -m none -i ' + values.dir_afl_raw_input
-        + ' -o ' + values.dir_afl_raw_output + ' ' + values.bin_dafl)
-    if values.input_from_stdin:
-        inited_prog_cmd = init_prog_cmd_with_input_file("")
+    alive = 0
+    if check_dafl_status() < 1:
+        os.chdir(values.dir_temp)
+        dafl_fuzz = os.path.join(values.dir_dafl, "afl-fuzz")
+        seed_size_bytes = os.path.getsize(values.file_exploit)
+        # decide whether skip deterministic stage
+        if values.afl_skip_deterministic is None: # config didnt say anything
+            if seed_size_bytes > BIG_FILE_SIZE:
+                dafl_fuzz += ' -d' # skip deterministic stage
+        else: # if config specifies this, follow what config says
+            if values.afl_skip_deterministic:
+                dafl_fuzz += ' -d'
+        dafl_cmd = (dafl_fuzz + ' -C -t 2000ms -m none -i ' + values.dir_afl_raw_input
+            + ' -o ' + values.dir_afl_raw_output + ' ' + values.bin_dafl)
+        if values.input_from_stdin:
+            inited_prog_cmd = init_prog_cmd_with_input_file("")
+        else:
+            inited_prog_cmd = init_prog_cmd_with_input_file("@@")
+        dafl_cmd += ' ' + inited_prog_cmd
+        logger.debug(f'\tCmd to run: {dafl_cmd}')
+        dafl_cmd = dafl_cmd.split()
+        subprocess.Popen(dafl_cmd)
     else:
-        inited_prog_cmd = init_prog_cmd_with_input_file("@@")
-    dafl_cmd += ' ' + inited_prog_cmd
-    logger.debug(f'\tCmd to run: {dafl_cmd}')
-    dafl_cmd = dafl_cmd.split()
-    try:
-        subprocess.run(dafl_cmd, timeout=mins*60)
-    except subprocess.TimeoutExpired: # raised after child process terminates
-        logger.info(f'\nFinished running AFL for {mins} mins.')
+        resume_dafl()
+    time.sleep(mins*60)
+    if check_dafl_status() > 0:
+        logger.info(f'\nFinished running DAFL for {mins} mins.')
+        pause_dafl()
+    else:
+        logger.info(f'\nDAFL terminated before {mins} mins.')
     os.chdir(values.dir_root)
 
+def run_dafl_normal(mins):
+    if not os.path.isdir(values.dir_afl_raw_input_normal):
+        os.mkdir(values.dir_afl_raw_input_normal)
+    if not os.path.isdir(values.dir_afl_raw_output_normal):
+        os.mkdir(values.dir_afl_raw_output_normal)
+    # prepare afl binary
+    # NOTE: Instrumentation for checking input reaches crash and fix location.
+    #       Since we are using DAFL, we don't need this instrumentation. 
+    #       We copy the sparrow instrumented binary to the runtime dir.
+    # patch_for_afl()
+    shutil.copy2(values.bin_instrumented, values.bin_dafl)
+    # prepare input seed
+    skip_deterministic = False
+    for input in values.files_normal_in:
+        seed_size_bytes = os.path.getsize(input)
+        if seed_size_bytes > BIG_FILE_SIZE:
+            skip_deterministic = True
+        shutil.copy2(input, values.dir_afl_raw_input_normal)
+    # actually run AFL
+    if check_dafl_status() < 1:
+        os.chdir(values.dir_temp)
+        dafl_fuzz = os.path.join(values.dir_dafl, "afl-fuzz")
+        # decide whether skip deterministic stage
+        if values.afl_skip_deterministic is None: # config didnt say anything
+            if skip_deterministic:
+                afl_fuzz += ' -d' # skip deterministic stage
+        else: # if config specifies this, follow what config says
+            if values.afl_skip_deterministic:
+                afl_fuzz += ' -d'
+        dafl_cmd = (dafl_fuzz + ' -t 500ms -m none -i ' + values.dir_afl_raw_input_normal
+            + ' -o ' + values.dir_afl_raw_output_normal + ' ' + values.bin_dafl)
+        if values.input_from_stdin:
+            inited_prog_cmd = init_prog_cmd_with_input_file("")
+        else:
+            inited_prog_cmd = init_prog_cmd_with_input_file("@@")
+        dafl_cmd += ' ' + inited_prog_cmd
+        logger.debug(f'\tCmd to run: {dafl_cmd}')
+        dafl_cmd = dafl_cmd.split()
+        subprocess.Popen(dafl_cmd)
+    else:
+        resume_dafl()
+    time.sleep(mins*60)
+    if check_dafl_status() > 0:
+        logger.info(f'\nFinished running DAFL for {mins} mins.')
+        pause_dafl()
+    else:
+        logger.info(f'\nDAFL terminated before {mins} mins.')
+    os.chdir(values.dir_root)
 
 def run_afl_normal(mins):
     if not os.path.isdir(values.dir_afl_raw_input_normal):

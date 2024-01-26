@@ -18,7 +18,7 @@ full_cvc5 = pjoin(dir_cvc5, "build", "bin", "cvc5")
 dir_daikon = pjoin(dir_thirdparty, "daikon")
 full_daikon = pjoin(dir_daikon, "daikon.jar")
 dir_danmuji = pjoin(dir_thirdparty, "danmuji")
-full_danmuji = pjoin(dir_danmuji, "danmuji")
+full_danmuji = pjoin(dir_danmuji, "danmuji.exe")
 dir_afl = pjoin(dir_thirdparty, "AFL")
 dir_temp = pjoin(dir_root, "run-temp") # a temp dir to store runtime-generated junk files)
 dir_dafl = pjoin(dir_thirdparty, "DAFL")
@@ -146,6 +146,11 @@ backend_choice = ""
 
 # int: total time budget for this VulnFix run
 time_budget = 30
+# int: time budget for each iteration
+cycle = 10
+# float: target error rate calculated by PAC learning
+epsilon = 0.1
+delta = 0.01
 
 # Patch validation
 dir_source = ""

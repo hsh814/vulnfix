@@ -5,6 +5,7 @@ import random
 import argparse
 import configparser
 from os.path import join as pjoin
+import math
 
 import values
 import snapshot_pool
@@ -323,20 +324,35 @@ def run_daflfuzz_and_inference(backend):
     """
     Entry for invoking DAFL and then running backend for patch invariant inference.
     """
-    if not values.files_normal_in: # only -C
-        run_dafl(values.time_budget)
-    else: # additionally perform the normal run without -C
-        run_dafl(values.time_budget / 2)
-        # TODO : make dafl normal functional
-        # run_dafl_normal(values.time_budget / 2) 
-    logger.info('Running generated inputs to collect snapshots ...')
-    filter_store_initial_tests_and_snapshots(bound_time=False)
-    logger.info('Invoking backend on the collected snapshots to infer patch invariants ...')
-    backend.generate_input_from_snapshots()
-    candidate_exprs = backend.run()
-    logger.info(f'Patch invariants from daflfuzz - '
-        f'#({len(candidate_exprs)}) : {[e for e in candidate_exprs]}.\n')
-    # fini_logger()
+    cycle_epsilon = 0
+    cycle_cnt = 1
+    candidate_exprs = []
+    start = time.time()
+    while cycle_epsilon < values.epsilon:
+        end = time.time()
+        if (end - start) > values.time_budget * 60:
+            logger.info('Time out reached - stopping cycle ...')
+            break
+        logger.info('Running '+str(cycle_cnt)+'th cycle ...')
+        if not values.files_normal_in: # only -C
+            run_dafl(values.cycle)
+        else: # additionally perform the normal run without -C
+            run_dafl(values.cycle)
+            # TODO : make dafl normal functional
+            run_dafl_normal(values.cycle) 
+        cycle_cnt += 1
+        logger.info('Running generated inputs to collect snapshots ...')
+        filter_store_initial_tests_and_snapshots(bound_time=False)
+        logger.info('Invoking backend on the collected snapshots to infer patch invariants ...')
+        backend.generate_input_from_snapshots()
+        candidate_exprs, hypothesis_space = backend.run()
+        logger.info(f'Patch invariants from daflfuzz - '
+            f'#({len(candidate_exprs)}) : {[e for e in candidate_exprs]}.\n')
+        samples_cnt = len(snapshot_pool.pass_ss) + len(snapshot_pool.fail_ss)
+        current_epsilon = (1/samples_cnt) * (math.log(hypothesis_space)+math.log(1/values.delta))
+        cycle_epsilon = current_epsilon
+        logger.info(f'Current epsilon : {current_epsilon}')
+        # fini_logger()
     save_invariant_result(candidate_exprs)
 
 
@@ -365,6 +381,10 @@ def main():
     parser.add_argument('config_file', help='Path to the config file.')
     parser.add_argument('--budget', default=30, type=int,
                         help='Time budget in mins.')
+    parser.add_argument('--cycle', default=10, type=int,
+                        help='Time budget for each iteration in mins.')
+    parser.add_argument('--epsilon', default=1, type=float,
+                        help='Target error rate for PAC learning.')
     parser.add_argument('--backend', default='daikon',
                         choices=['daikon', 'cvc5', 'danmuji'],
                         help='Backend for inferring invariants.')
@@ -385,6 +405,8 @@ def main():
     parsed_args = parser.parse_args()
     config_file = parsed_args.config_file
     values.time_budget = parsed_args.budget
+    values.cycle = parsed_args.cycle
+    values.epsilon = parsed_args.epsilon
     values.backend_choice = parsed_args.backend
     values.unreduced = parsed_args.unreduced
     values.early_term = (not parsed_args.no_early_term)

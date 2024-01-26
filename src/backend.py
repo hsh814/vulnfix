@@ -36,8 +36,7 @@ class DanmujiBackend(BackendBase):
         # (1) generate invariants based on passing traces
         # Note: another thing to try is to set lower --conf_limit
         inv_cmd = (values.full_danmuji + " "
-            + values.file_daikon_decl + " " + values.file_daikon_pass_traces + values.file_daikon_fail_traces
-            + values.file_daikon_pass_inv)
+            + values.file_daikon_decl + " " + values.file_daikon_pass_traces + " " + values.file_daikon_fail_traces)
         cp = subprocess.run(inv_cmd, shell=True, encoding='utf-8',
             stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
 
@@ -49,7 +48,7 @@ class DanmujiBackend(BackendBase):
         hypothesis_space = 0
         for i in raw_lines:
             if i.startswith('Hypothesis'):
-                hypothesis_space = i.split(":")[1].strip()
+                hypothesis_space = int(i.split(":")[1].strip())
                 break
         logger.debug(f'Hypothesis space is: {hypothesis_space}')
         inv_lines = [ line for line in raw_lines
@@ -59,7 +58,7 @@ class DanmujiBackend(BackendBase):
         invariants = self.__sanitize_daikon_invariants(invariants)
         invariants = self.__remove_duplicated_invariants(invariants)
 
-        return invariants
+        return invariants, hypothesis_space
 
     def __filter_daikon_invariants(self, invs):
         """
