@@ -242,9 +242,8 @@ def check_dafl_status():
     logger.info(f'Checking DAFL status...')
     dafl_status = os.path.join(values.dir_dafl, "afl-whatsup")
     status_cmd = dafl_status + ' ' + values.dir_runtime
-    status_cmd = status_cmd.split()
     try:
-        proc = subprocess.Popen(status_cmd, start_new_session=True, shell=True,
+        proc = subprocess.Popen([status_cmd], start_new_session=True, shell=True,
             encoding='utf-8', universal_newlines=True, errors='replace',
             stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
         proc.wait()
@@ -254,16 +253,15 @@ def check_dafl_status():
     res = proc.stdout.readlines()
     for line in res:
         if "Fuzzers alive" in line:
-            return int(line.strip().split()[2])
+            return int(line.strip().split()[3])
     return 0
 
 def pause_dafl():
     logger.info(f'Pausing DAFL...')
     dafl_status = os.path.join(values.dir_dafl, "afl-pause")
     pause_cmd = dafl_status + ' ' + values.dir_runtime
-    pause_cmd = pause_cmd.split()
     try:
-        proc = subprocess.Popen(pause_cmd, start_new_session=True, shell=True,
+        proc = subprocess.Popen([pause_cmd], start_new_session=True, shell=True,
             encoding='utf-8', universal_newlines=True, errors='replace',
             stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
         proc.wait()
@@ -273,7 +271,7 @@ def pause_dafl():
     res = proc.stdout.readlines()
     for line in res:
         if "Fuzzers paused:" in line:
-            return int(line.strip().split()[1])
+            return int(line.strip().split()[2])
     return 0
 
 def resume_dafl():
@@ -282,7 +280,7 @@ def resume_dafl():
     resume_cmd = dafl_status + ' ' + values.dir_runtime
     resume_cmd = resume_cmd.split()
     try:
-        proc = subprocess.Popen(resume_cmd, start_new_session=True, shell=True,
+        proc = subprocess.Popen([resume_cmd], start_new_session=True, shell=True,
             encoding='utf-8', universal_newlines=True, errors='replace',
             stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
         proc.wait()
@@ -292,7 +290,7 @@ def resume_dafl():
     res = proc.stdout.readlines()
     for line in res:
         if "Fuzzers resumed:" in line:
-            return int(line.strip().split()[1])
+            return int(line.strip().split()[2])
     return 0
 
 def run_dafl(mins):
