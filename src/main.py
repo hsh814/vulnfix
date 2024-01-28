@@ -324,11 +324,11 @@ def run_daflfuzz_and_inference(backend):
     """
     Entry for invoking DAFL and then running backend for patch invariant inference.
     """
-    cycle_epsilon = 0
+    cycle_epsilon = 1
     cycle_cnt = 1
     candidate_exprs = []
     start = time.time()
-    while cycle_epsilon < values.epsilon:
+    while cycle_epsilon > values.epsilon:
         end = time.time()
         if (end - start) > values.time_budget * 60:
             logger.info('Time out reached - stopping cycle ...')
@@ -351,7 +351,8 @@ def run_daflfuzz_and_inference(backend):
         samples_cnt = len(snapshot_pool.pass_ss) + len(snapshot_pool.fail_ss)
         current_epsilon = (1/samples_cnt) * (math.log(hypothesis_space)+math.log(1/values.delta))
         cycle_epsilon = current_epsilon
-        logger.info(f'Current epsilon : {current_epsilon}')
+        logger.debug(f'Sample # : {samples_cnt} / Hypothesis space : {hypothesis_space} / Delta : {values.delta}')
+        logger.info(f'Target epsilon : {values.epsilon} / Current epsilon : {current_epsilon}')
         # fini_logger()
     save_invariant_result(candidate_exprs)
 

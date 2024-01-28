@@ -278,7 +278,6 @@ def resume_dafl():
     logger.info(f'Resuming DAFL...')
     dafl_status = os.path.join(values.dir_dafl, "afl-resume")
     resume_cmd = dafl_status + ' ' + values.dir_runtime
-    resume_cmd = resume_cmd.split()
     try:
         proc = subprocess.Popen([resume_cmd], start_new_session=True, shell=True,
             encoding='utf-8', universal_newlines=True, errors='replace',
@@ -304,7 +303,8 @@ def run_dafl(mins):
     #       Since we are using DAFL, we don't need this instrumentation. 
     #       We copy the sparrow instrumented binary to the runtime dir.
     # patch_for_afl()
-    shutil.copy2(values.bin_instrumented, values.bin_dafl)
+    if not os.path.isfile(values.bin_dafl):
+        shutil.copy2(values.bin_instrumented, values.bin_dafl)
     # prepare input seed
     shutil.copy2(values.file_exploit, values.dir_afl_raw_input)
     # actually run DAFL
