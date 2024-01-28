@@ -238,9 +238,12 @@ def run_afl(mins):
     os.chdir(values.dir_root)
 
 
-def check_dafl_status():
-    logger.info(f'Checking DAFL status...')
-    dafl_status = os.path.join(values.dir_dafl, "afl-whatsup")
+def check_fuzzer_status():
+    logger.info(f'Checking Fuzzer status...')
+    target_dir = values.dir_dafl
+    if values.aflgofuzz:
+        target_dir = values.dir_aflgo
+    dafl_status = os.path.join(target_dir, "afl-whatsup")
     status_cmd = dafl_status + ' ' + values.dir_runtime
     try:
         proc = subprocess.Popen([status_cmd], start_new_session=True, shell=True,
@@ -256,9 +259,12 @@ def check_dafl_status():
             return int(line.strip().split()[3])
     return 0
 
-def pause_dafl():
-    logger.info(f'Pausing DAFL...')
-    dafl_status = os.path.join(values.dir_dafl, "afl-pause")
+def pause_fuzzer():
+    logger.info(f'Pausing Fuzzer...')
+    target_dir = values.dir_dafl
+    if values.aflgofuzz:
+        target_dir = values.dir_aflgo
+    dafl_status = os.path.join(target_dir, "afl-pause")
     pause_cmd = dafl_status + ' ' + values.dir_runtime
     try:
         proc = subprocess.Popen([pause_cmd], start_new_session=True, shell=True,
@@ -274,9 +280,12 @@ def pause_dafl():
             return int(line.strip().split()[2])
     return 0
 
-def resume_dafl():
-    logger.info(f'Resuming DAFL...')
-    dafl_status = os.path.join(values.dir_dafl, "afl-resume")
+def resume_fuzzer():
+    logger.info(f'Resuming Fuzzer...')
+    target_dir = values.dir_dafl
+    if values.aflgofuzz:
+        target_dir = values.dir_aflgo
+    dafl_status = os.path.join(target_dir, "afl-resume")
     resume_cmd = dafl_status + ' ' + values.dir_runtime
     try:
         proc = subprocess.Popen([resume_cmd], start_new_session=True, shell=True,
@@ -309,7 +318,7 @@ def run_dafl(mins):
     shutil.copy2(values.file_exploit, values.dir_afl_raw_input)
     # actually run DAFL
     alive = 0
-    if check_dafl_status() < 1:
+    if check_fuzzer_status() < 1:
         os.chdir(values.dir_temp)
         dafl_fuzz = os.path.join(values.dir_dafl, "afl-fuzz")
         seed_size_bytes = os.path.getsize(values.file_exploit)
@@ -331,11 +340,11 @@ def run_dafl(mins):
         dafl_cmd = dafl_cmd.split()
         subprocess.Popen(dafl_cmd)
     else:
-        resume_dafl()
+        resume_fuzzer()
     time.sleep(mins*60)
-    if check_dafl_status() > 0:
+    if check_fuzzer_status() > 0:
         logger.info(f'\nFinished running DAFL for {mins} mins.')
-        pause_dafl()
+        pause_fuzzer()
     else:
         logger.info(f'\nDAFL terminated before {mins} mins.')
     os.chdir(values.dir_root)
@@ -359,16 +368,16 @@ def run_dafl_normal(mins):
             skip_deterministic = True
         shutil.copy2(input, values.dir_afl_raw_input_normal)
     # actually run AFL
-    if check_dafl_status() < 1:
+    if check_fuzzer_status() < 1:
         os.chdir(values.dir_temp)
         dafl_fuzz = os.path.join(values.dir_dafl, "afl-fuzz")
         # decide whether skip deterministic stage
         if values.afl_skip_deterministic is None: # config didnt say anything
             if skip_deterministic:
-                afl_fuzz += ' -d' # skip deterministic stage
+                dafl_fuzz += ' -d' # skip deterministic stage
         else: # if config specifies this, follow what config says
             if values.afl_skip_deterministic:
-                afl_fuzz += ' -d'
+                dafl_fuzz += ' -d'
         dafl_cmd = (dafl_fuzz + ' -t 500ms -m none -i ' + values.dir_afl_raw_input_normal
             + ' -o ' + values.dir_afl_raw_output_normal + ' ' + values.bin_dafl)
         if values.input_from_stdin:
@@ -380,13 +389,111 @@ def run_dafl_normal(mins):
         dafl_cmd = dafl_cmd.split()
         subprocess.Popen(dafl_cmd)
     else:
-        resume_dafl()
+        resume_fuzzer()
     time.sleep(mins*60)
-    if check_dafl_status() > 0:
+    if check_fuzzer_status() > 0:
         logger.info(f'\nFinished running DAFL for {mins} mins.')
-        pause_dafl()
+        pause_fuzzer()
     else:
         logger.info(f'\nDAFL terminated before {mins} mins.')
+    os.chdir(values.dir_root)
+
+def run_aflgo(mins):
+    # We share the same dirs with AFL for snapshot runs.
+    if not os.path.isdir(values.dir_afl_raw_input):
+        os.mkdir(values.dir_afl_raw_input)
+    if not os.path.isdir(values.dir_afl_raw_output):
+        os.mkdir(values.dir_afl_raw_output)
+    # prepare afl binary
+    # NOTE: Instrumentation for checking input reaches crash and fix location.
+    #       Since we are using AFLGo, we don't need this instrumentation. 
+    #       We copy the sparrow instrumented binary to the runtime dir.
+    # patch_for_afl()
+    if not os.path.isfile(values.bin_aflgo):
+        shutil.copy2(values.bin_instrumented, values.bin_aflgo)
+    # prepare input seed
+    shutil.copy2(values.file_exploit, values.dir_afl_raw_input)
+    # actually run AFLGo
+    alive = 0
+    if check_fuzzer_status() < 1:
+        os.chdir(values.dir_temp)
+        aflgo = os.path.join(values.dir_aflgo, "afl-fuzz")
+        seed_size_bytes = os.path.getsize(values.file_exploit)
+        # decide whether skip deterministic stage
+        if values.afl_skip_deterministic is None: # config didnt say anything
+            if seed_size_bytes > BIG_FILE_SIZE:
+                aflgo += ' -d' # skip deterministic stage
+        else: # if config specifies this, follow what config says
+            if values.afl_skip_deterministic:
+                aflgo += ' -d'
+        aflgo_cmd = (aflgo + ' -C -t 2000ms -m none -i ' + values.dir_afl_raw_input
+            + ' -o ' + values.dir_afl_raw_output + ' ' + values.bin_aflgo)
+        if values.input_from_stdin:
+            inited_prog_cmd = init_prog_cmd_with_input_file("")
+        else:
+            inited_prog_cmd = init_prog_cmd_with_input_file("@@")
+        aflgo_cmd += ' ' + inited_prog_cmd
+        logger.debug(f'\tCmd to run: {aflgo_cmd}')
+        aflgo_cmd = aflgo_cmd.split()
+        subprocess.Popen(aflgo_cmd)
+    else:
+        resume_fuzzer()
+    time.sleep(mins*60)
+    if check_fuzzer_status() > 0:
+        logger.info(f'\nFinished running AFLGo for {mins} mins.')
+        pause_fuzzer()
+    else:
+        logger.info(f'\nAFLGo terminated before {mins} mins.')
+    os.chdir(values.dir_root)
+
+def run_aflgo_normal(mins):
+    if not os.path.isdir(values.dir_afl_raw_input_normal):
+        os.mkdir(values.dir_afl_raw_input_normal)
+    if not os.path.isdir(values.dir_afl_raw_output_normal):
+        os.mkdir(values.dir_afl_raw_output_normal)
+    # prepare afl binary
+    # NOTE: Instrumentation for checking input reaches crash and fix location.
+    #       Since we are using AFLGo, we don't need this instrumentation. 
+    #       We copy the sparrow instrumented binary to the runtime dir.
+    # patch_for_afl()
+    if not os.path.isfile(values.bin_aflgo):
+        shutil.copy2(values.bin_instrumented, values.bin_aflgo)
+    # prepare input seed
+    skip_deterministic = False
+    for input in values.files_normal_in:
+        seed_size_bytes = os.path.getsize(input)
+        if seed_size_bytes > BIG_FILE_SIZE:
+            skip_deterministic = True
+        shutil.copy2(input, values.dir_afl_raw_input_normal)
+    # actually run AFL
+    if check_fuzzer_status() < 1:
+        os.chdir(values.dir_temp)
+        aflgo = os.path.join(values.dir_aflgo, "afl-fuzz")
+        # decide whether skip deterministic stage
+        if values.afl_skip_deterministic is None: # config didnt say anything
+            if skip_deterministic:
+                aflgo += ' -d' # skip deterministic stage
+        else: # if config specifies this, follow what config says
+            if values.afl_skip_deterministic:
+                aflgo += ' -d'
+        aflgo_cmd = (aflgo + ' -t 500ms -m none -i ' + values.dir_afl_raw_input_normal
+            + ' -o ' + values.dir_afl_raw_output_normal + ' ' + values.bin_aflgo)
+        if values.input_from_stdin:
+            inited_prog_cmd = init_prog_cmd_with_input_file("")
+        else:
+            inited_prog_cmd = init_prog_cmd_with_input_file("@@")
+        aflgo_cmd += ' ' + inited_prog_cmd
+        logger.debug(f'\tCmd to run: {aflgo_cmd}')
+        aflgo_cmd = aflgo_cmd.split()
+        subprocess.Popen(aflgo_cmd)
+    else:
+        resume_fuzzer()
+    time.sleep(mins*60)
+    if check_fuzzer_status() > 0:
+        logger.info(f'\nFinished running AFLGo for {mins} mins.')
+        pause_fuzzer()
+    else:
+        logger.info(f'\nAFLGo terminated before {mins} mins.')
     os.chdir(values.dir_root)
 
 def run_afl_normal(mins):
