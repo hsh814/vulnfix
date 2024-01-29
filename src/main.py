@@ -71,6 +71,7 @@ def parse_config_and_setup_runtime(config_file):
     values.bin_instrumented = values.binary_full_path + ".instrumented"
     values.bin_afl = pjoin(values.dir_runtime, bin_name + ".afl")
     values.bin_dafl = pjoin(values.dir_runtime, bin_name + ".dafl")
+    values.bin_aflgo = pjoin(values.dir_runtime, bin_name + ".aflgo")
     values.bin_snapshot = pjoin(values.dir_runtime, bin_name + ".snapshot")
     values.bin_mutate = pjoin(values.dir_runtime, bin_name + ".mutate")
     values.bin_crash = pjoin(values.dir_runtime, bin_name + ".crash")
@@ -142,7 +143,7 @@ def filter_store_initial_tests_and_snapshots(bound_time=True):
     # NOTE : For DAFL, We need to separate normal and crash inputs from crash inputs
     # since we inserted a crash at the end of the buggy statement.
     # We can sparate them by checking the return status.
-    if values.daflfuzz:
+    if values.daflfuzz or values.aflgofuzz:
         raw_fails = [t for t in raw_fails if run_bin_orig(t) == ExecResult.failing]
         raw_passes = [t for t in raw_fails if run_bin_orig(t) == ExecResult.passing]
     # preparation
@@ -324,11 +325,11 @@ def run_daflfuzz_and_inference(backend):
     """
     Entry for invoking DAFL and then running backend for patch invariant inference.
     """
-    cycle_epsilon = 0
+    cycle_epsilon = 1
     cycle_cnt = 1
     candidate_exprs = []
     start = time.time()
-    while cycle_epsilon < values.epsilon:
+    while cycle_epsilon > values.epsilon:
         end = time.time()
         if (end - start) > values.time_budget * 60:
             logger.info('Time out reached - stopping cycle ...')
@@ -351,10 +352,46 @@ def run_daflfuzz_and_inference(backend):
         samples_cnt = len(snapshot_pool.pass_ss) + len(snapshot_pool.fail_ss)
         current_epsilon = (1/samples_cnt) * (math.log(hypothesis_space)+math.log(1/values.delta))
         cycle_epsilon = current_epsilon
-        logger.info(f'Current epsilon : {current_epsilon}')
+        logger.debug(f'Sample # : {samples_cnt} / Hypothesis space : {hypothesis_space} / Delta : {values.delta}')
+        logger.info(f'Target epsilon : {values.epsilon} / Current epsilon : {current_epsilon}')
         # fini_logger()
     save_invariant_result(candidate_exprs)
 
+def run_aflgo_and_inference(backend):
+    """
+    Entry for invoking AFLGo and then running backend for patch invariant inference.
+    """
+    cycle_epsilon = 1
+    cycle_cnt = 1
+    candidate_exprs = []
+    start = time.time()
+    while cycle_epsilon > values.epsilon:
+        end = time.time()
+        if (end - start) > values.time_budget * 60:
+            logger.info('Time out reached - stopping cycle ...')
+            break
+        logger.info('Running '+str(cycle_cnt)+'th cycle ...')
+        if not values.files_normal_in: # only -C
+            run_aflgo(values.cycle)
+        else: # additionally perform the normal run without -C
+            run_aflgo(values.cycle)
+            # TODO : make dafl normal functional
+            run_aflgo_normal(values.cycle) 
+        cycle_cnt += 1
+        logger.info('Running generated inputs to collect snapshots ...')
+        filter_store_initial_tests_and_snapshots(bound_time=False)
+        logger.info('Invoking backend on the collected snapshots to infer patch invariants ...')
+        backend.generate_input_from_snapshots()
+        candidate_exprs, hypothesis_space = backend.run()
+        logger.info(f'Patch invariants from AFLGo - '
+            f'#({len(candidate_exprs)}) : {[e for e in candidate_exprs]}.\n')
+        samples_cnt = len(snapshot_pool.pass_ss) + len(snapshot_pool.fail_ss)
+        current_epsilon = (1/samples_cnt) * (math.log(hypothesis_space)+math.log(1/values.delta))
+        cycle_epsilon = current_epsilon
+        logger.debug(f'Sample # : {samples_cnt} / Hypothesis space : {hypothesis_space} / Delta : {values.delta}')
+        logger.info(f'Target epsilon : {values.epsilon} / Current epsilon : {current_epsilon}')
+        # fini_logger()
+    save_invariant_result(candidate_exprs)
 
 def run_aflfuzz_and_inference(backend):
     """
@@ -399,6 +436,8 @@ def main():
                         help='use afl-only fuzzing instead of snapshot fuzzing')
     parser.add_argument('--daflfuzz', default=False, action='store_true',
                         help='use dafl-only fuzzing instead of snapshot fuzzing')
+    parser.add_argument('--aflgofuzz', default=False, action='store_true',
+                        help='use aflgo-only fuzzing instead of snapshot fuzzing')
     parser.add_argument('--reset-bench', default=False, action='store_true',
                         help='reset benchmark subject for re-running it.')
 
@@ -413,6 +452,7 @@ def main():
     values.concfuzz = parsed_args.concfuzz
     values.aflfuzz = parsed_args.aflfuzz
     values.daflfuzz = parsed_args.daflfuzz
+    values.aflgofuzz = parsed_args.aflgofuzz
     values.resetbench = parsed_args.reset_bench
 
     parse_config_and_setup_runtime(config_file)
@@ -449,6 +489,10 @@ def main():
     
     if values.daflfuzz:
         run_daflfuzz_and_inference(backend)
+        return
+    
+    if values.aflgofuzz:
+        run_aflgo_and_inference(backend)
         return
 
     if values.aflfuzz:

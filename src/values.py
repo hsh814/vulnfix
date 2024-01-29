@@ -22,6 +22,7 @@ full_danmuji = pjoin(dir_danmuji, "danmuji.exe")
 dir_afl = pjoin(dir_thirdparty, "AFL")
 dir_temp = pjoin(dir_root, "run-temp") # a temp dir to store runtime-generated junk files)
 dir_dafl = pjoin(dir_thirdparty, "DAFL")
+dir_aflgo = pjoin(dir_thirdparty, "AFLGo")
 
 dir_afl_raw_input = ""
 dir_afl_raw_output = ""
@@ -37,6 +38,7 @@ bin_orig = ""
 bin_instrumented = ""
 bin_afl = ""
 bin_dafl = ""
+bin_aflgo = ""
 bin_snapshot = ""
 bin_mutate = ""
 bin_crash = "" # should crash at crash location with `patch_exit_code`
@@ -137,6 +139,8 @@ concfuzz = False
 aflfuzz = False
 # Are we using DAFL-only instead of AFL+snapshot fuzzing?
 daflfuzz = False
+# Are we using AFLGo-only instead of AFL+snapshot fuzzing?
+aflgofuzz = False
 # Are we resetting benchmark instead of running it?
 resetbench = False
 
