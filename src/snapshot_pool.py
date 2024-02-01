@@ -11,15 +11,19 @@ def add_new_snapshots(new_passes, new_fails):
     When new snapshots are added to pool, they will be sanitized here as well.
     """
     global pass_ss, fail_ss
+    # We consider new snapshots only, since # of snapshots affects the 
+    # performance of invariant inference.
     for ss in new_passes:
-        hash = calc_single_ss_hash(ss)
-        snapshot_hashes.add(hash)
-        pass_ss.append(ss)
+        if is_new_snapshot(ss):
+            hash = calc_single_ss_hash(ss)
+            snapshot_hashes.add(hash)
+            pass_ss.append(ss)
 
     for ss in new_fails:
-        hash = calc_single_ss_hash(ss)
-        snapshot_hashes.add(hash)
-        fail_ss.append(ss)
+        if is_new_snapshot(ss):
+            hash = calc_single_ss_hash(ss)
+            snapshot_hashes.add(hash)
+            fail_ss.append(ss)
 
     pass_ss, fail_ss = sanitize_snapshots(pass_ss, fail_ss)
 
