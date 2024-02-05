@@ -43,5 +43,30 @@ pushd raw_build
   make CFLAGS="-fsanitize=float-cast-overflow,address -static -ggdb" CXXFLAGS="-fsanitize=float-cast-overflow,address -static -ggdb" LDFLAGS="-fsanitize=float-cast-overflow,address" -j10
 popd
 
+# aflgo
+export AFLGO=/home/yuntong/vulnfix/thirdparty/aflgo
+rm -rf aflgo_build && mkdir aflgo_build
+pushd aflgo_build
+  # first build
+  mkdir temp
+  TMP_DIR=$PWD/temp
+  echo "tif_dirwrite.c:980" > $TMP_DIR/BBtargets.txt
+  ADDITIONAL_FLAGS="-targets=$TMP_DIR/BBtargets.txt -outdir=$TMP_DIR -flto -fuse-ld=gold -Wl,-plugin-opt=save-temps"
+  AFL_PATH=$AFLGO CC=$AFLGO/afl-clang-fast CXX=$AFLGO/afl-clang-fast++ ../source/configure
+  AFL_PATH=$AFLGO CC=$AFLGO/afl-clang-fast CXX=$AFLGO/afl-clang-fast++ make CFLAGS="$ADDITIONAL_FLAGS -fsanitize=float-cast-overflow,address -static -ggdb" CXXFLAGS="$ADDITIONAL_FLAGS -fsanitize=float-cast-overflow,address -static -ggdb" -j10
+  # generate distance
+  cat $TMP_DIR/BBnames.txt | rev | cut -d: -f2- | rev | sort | uniq > $TMP_DIR/BBnames2.txt \
+            && mv $TMP_DIR/BBnames2.txt $TMP_DIR/BBnames.txt
+  cat $TMP_DIR/BBcalls.txt | sort | uniq > $TMP_DIR/BBcalls2.txt \
+            && mv $TMP_DIR/BBcalls2.txt $TMP_DIR/BBcalls.txt
+  $AFLGO/scripts/genDistance.sh $PWD $TMP_DIR tiffcp
+  # second build
+  make clean
+  ADDITIONAL_FLAGS="-distance=$TMP_DIR/distance.cfg.txt"
+  AFL_PATH=$AFLGO CC=$AFLGO/afl-clang-fast CXX=$AFLGO/afl-clang-fast++ ../source/configure
+  AFL_PATH=$AFLGO CC=$AFLGO/afl-clang-fast CXX=$AFLGO/afl-clang-fast++ make CFLAGS="$ADDITIONAL_FLAGS -fsanitize=float-cast-overflow,address -static -ggdb" CXXFLAGS="$ADDITIONAL_FLAGS -fsanitize=float-cast-overflow,address -static -ggdb" -j10
+popd
+
 cp raw_build/tools/tiffcp ./tiffcp
 cp dafl_source/tools/tiffcp ./tiffcp.instrumented
+cp aflgo_build/tools/tiffcp ./tiffcp.aflgo

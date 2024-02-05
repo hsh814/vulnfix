@@ -59,3 +59,30 @@ ASAN_OPTIONS=detect_leaks=0 make CFLAGS="-ldl -lutil -fsanitize=address -ggdb -W
 
 cd ..
 cp ./raw_build/binutils/nm-new ./nm-new
+
+
+# aflgo
+export AFLGO=/home/yuntong/vulnfix/thirdparty/aflgo
+rm -rf aflgo_build && mkdir aflgo_build
+pushd aflgo_build
+  # first build
+  mkdir temp
+  TMP_DIR=$PWD/temp
+  echo "dwarf2.c:2441" > $TMP_DIR/BBtargets.txt
+  ADDITIONAL_FLAGS="-targets=$TMP_DIR/BBtargets.txt -outdir=$TMP_DIR -flto -fuse-ld=gold -Wl,-plugin-opt=save-temps"
+  AFL_PATH=$AFLGO CC=$AFLGO/afl-clang-fast CXX=$AFLGO/afl-clang-fast++ ../source/configure --disable-shared --disable-gdb --disable-libdecnumber --disable-readline --disable-sim LIBS='-ldl -lutil'
+  AFL_PATH=$AFLGO CC=$AFLGO/afl-clang-fast CXX=$AFLGO/afl-clang-fast++ make CFLAGS="$ADDITIONAL_FLAGS -ldl -lutil -fsanitize=address -ggdb -Wno-error" CXXFLAGS="$ADDITIONAL_FLAGS -ldl -lutil -fsanitize=address -ggdb -Wno-error" -j10
+  # generate distance
+  cat $TMP_DIR/BBnames.txt | rev | cut -d: -f2- | rev | sort | uniq > $TMP_DIR/BBnames2.txt \
+            && mv $TMP_DIR/BBnames2.txt $TMP_DIR/BBnames.txt
+  cat $TMP_DIR/BBcalls.txt | sort | uniq > $TMP_DIR/BBcalls2.txt \
+            && mv $TMP_DIR/BBcalls2.txt $TMP_DIR/BBcalls.txt
+  $AFLGO/scripts/genDistance.sh $PWD $TMP_DIR nm-new
+  # second build
+  make clean
+  ADDITIONAL_FLAGS="-distance=$TMP_DIR/distance.cfg.txt"
+  # AFL_PATH=$AFLGO CC=$AFLGO/afl-clang-fast CXX=$AFLGO/afl-clang-fast++ ../source/configure  --disable-shared --disable-gdb --disable-libdecnumber --disable-readline --disable-sim LIBS='-ldl -lutil'
+  AFL_PATH=$AFLGO CC=$AFLGO/afl-clang-fast CXX=$AFLGO/afl-clang-fast++ make CFLAGS="$ADDITIONAL_FLAGS -ldl -lutil -fsanitize=address -ggdb -Wno-error" CXXFLAGS="$ADDITIONAL_FLAGS -ldl -lutil -fsanitize=address -ggdb -Wno-error" -j10
+popd
+
+cp aflgo_build/binutils/nm-new ./nm-new.aflgo
