@@ -49,7 +49,7 @@ pushd aflgo_build
   # first build
   mkdir temp
   TMP_DIR=$PWD/temp
-  echo "memdisk.c:182" > $TMP_DIR/BBtargets.txt
+  echo "memdisk.c:174" > $TMP_DIR/BBtargets.txt
   ADDITIONAL_FLAGS="-targets=$TMP_DIR/BBtargets.txt -outdir=$TMP_DIR -flto -fuse-ld=gold -Wl,-plugin-opt=save-temps"
   AFL_PATH=$AFLGO CC=$AFLGO/afl-clang-fast CXX=$AFLGO/afl-clang-fast++ ../source/configure
   AFL_PATH=$AFLGO CC=$AFLGO/afl-clang-fast CXX=$AFLGO/afl-clang-fast++ make CFLAGS="$ADDITIONAL_FLAGS -static -fsanitize=address -g" CXXFLAGS="$ADDITIONAL_FLAGS -static -fsanitize=address -g" LDFLAGS="-fsanitize=address" -j10
