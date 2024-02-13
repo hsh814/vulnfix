@@ -64,7 +64,24 @@ pushd aflgo_build
   AFL_PATH=$AFLGO CC=$AFLGO/afl-clang-fast CXX=$AFLGO/afl-clang-fast++ make CFLAGS="$ADDITIONAL_FLAGS -static -fsanitize=address -fsanitize=undefined -g" CXXFLAGS="$ADDITIONAL_FLAGS -static -fsanitize=address -fsanitize=undefined -g" -j10
 popd
 
+# beacon
+rm -rf beacon_build && mkdir beacon_build
+BEACON_DIR=/home/yuntong/vulnfix/thirdparty/Beacon
+pushd beacon_build
+  CC=$BEACON_DIR/llvm4/bin/clang CXX=$BEACON_DIR/llvm4/bin/clang++ ../source/configure  --enable-static --disable-shared --without-threads --without-lzma
+  ADDITIONAL_FLAGS="-flto -fuse-ld=gold -Wl,-plugin-opt=save-temps"
+  make CFLAGS="$ADDITIONAL_FLAGS -static -fsanitize=address -fsanitize=undefined -g" CXXFLAGS="$ADDITIONAL_FLAGS -static -fsanitize=address -fsanitize=undefined -g" -j10
+  mkdir temp
+  echo "tiffcrop.c:994" > temp/target.txt
+  cp tools/tiffcrop.0.0.preopt.bc temp/tiffcrop.bc
+  pushd temp
+    $BEACON_DIR/precondInfer tiffcrop.bc --target-file=target.txt --join-bound=5 > precond.log 2>&1
+    $BEACON_DIR/Ins -output=tiffcrop.bc -byte -blocks=bbreaches__benchmark_target_line -afl -log=ins.log -load=range_res.txt ins.bc
+  popd
+popd
+
 
 cp raw_build/tools/tiffcrop ./tiffcrop
 cp dafl_source/tools/tiffcrop ./tiffcrop.instrumented
 cp aflgo_build/tools/tiffcrop ./tiffcrop.aflgo
+cp beacon_build/tools/tiffcrop ./tiffcrop.beacon
