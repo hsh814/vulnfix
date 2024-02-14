@@ -85,4 +85,23 @@ pushd aflgo_build
   AFL_PATH=$AFLGO CC=$AFLGO/afl-clang-fast CXX=$AFLGO/afl-clang-fast++ make CFLAGS="$ADDITIONAL_FLAGS -ldl -lutil -fsanitize=address -ggdb -Wno-error" CXXFLAGS="$ADDITIONAL_FLAGS -ldl -lutil -fsanitize=address -ggdb -Wno-error" -j10
 popd
 
+# beacon
+rm -rf beacon_build && mkdir beacon_build
+BEACON_DIR=/home/yuntong/vulnfix/thirdparty/Beacon
+pushd beacon_build
+  OLD_PATH=$PATH
+  export PATH=$BEACON_DIR/llvm4/bin:$PATH
+  CC=clang CXX=clang++ ../source/configure  --disable-shared --disable-gdb --disable-libdecnumber --disable-readline --disable-sim LIBS='-ldl -lutil'
+  ADDITIONAL_FLAGS="-flto -fuse-ld=gold -Wl,-plugin-opt=save-temps"
+  make CFLAGS="$ADDITIONAL_FLAGS -ldl -lutil -fsanitize=address -ggdb -Wno-error" CXXFLAGS="$ADDITIONAL_FLAGS -ldl -lutil -fsanitize=address -ggdb -Wno-error" -j10
+  mkdir temp
+  echo "dwarf2.c:2441" > temp/target.txt
+  cp binutils/nm-new.0.0.preopt.bc temp/nm-new.bc
+  pushd temp
+    $BEACON_DIR/precondInfer nm-new.bc --target-file=target.txt --join-bound=5 > precond.log 2>&1
+    $BEACON_DIR/Ins -output=nm-new.bc -byte -blocks=bbreaches__benchmark_target_line -afl -log=ins.log -load=range_res.txt ins.bc
+  popd
+  export PATH=$OLD_PATH
+popd
+
 cp aflgo_build/binutils/nm-new ./nm-new.aflgo
