@@ -63,6 +63,30 @@ pushd aflgo_build
   AFL_PATH=$AFLGO CC=$AFLGO/afl-clang-fast CXX=$AFLGO/afl-clang-fast++ make CFLAGS="$ADDITIONAL_FLAGS -static -fsanitize=address -g" CXXFLAGS="-static -fsanitize=address -g" CXXFLAGS="$ADDITIONAL_FLAGS -static -fsanitize=address -g" CXXFLAGS="-static -fsanitize=address -g" -j10
 popd
 
+# windranger
+rm -rf windranger_build && mkdir windranger_build
+WINDRANGER_DIR=/home/yuntong/vulnfix/thirdparty/WindRanger
+pushd windranger_build
+  bin_name=tiff2pdf
+  OLD_PATH=$PATH
+  export PATH=/usr/lib/llvm-10/bin:/root/go/bin:$PATH
+  CC=gclang CXX=gclang++ ../source/configure
+  make CFLAGS="-static -fsanitize=address -fsanitize=undefined -g" CXXFLAGS="-static -fsanitize=address -fsanitize=undefined -g" -j 32
+  get-bc tools/$bin_name
+  mkdir temp
+  echo "tiff2pdf.c:2900" > temp/target.txt
+  TARGET_FILE=$PWD/temp/target.txt
+  cp tools/$bin_name.bc temp
+  pushd temp
+    $WINDRANGER_DIR/windranger/instrument/bin/cbi --targets=$TARGET_FILE ./$bin_name.bc
+    $WINDRANGER_DIR/windranger/fuzz/afl-clang-fast -ljpeg -lm -lz -fsanitize=address -fsanitize=undefined -g ./$bin_name.ci.bc -o $bin_name.windranger
+    # run command: $WINDRANGER_DIR/windranger/fuzz/afl-fuzz -m none -d -i seed -o out -C -- ./tiffcrop.windranger @@ /tmp/out.tif
+    # you need to copy distance.txt, targets.txt, condition_info.txt if you want to run this in other directory
+  popd
+  export PATH=$OLD_PATH
+popd
+
 cp raw_build/tools/tiff2pdf ./tiff2pdf
 cp dafl_source/tools/tiff2pdf ./tiff2pdf.instrumented
 cp aflgo_build/tools/tiff2pdf ./tiff2pdf.aflgo
+cp windranger_build/temp/windranger.out ./tiffcrop.windranger

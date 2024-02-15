@@ -109,5 +109,5 @@ cp raw_build/tools/tiffcrop ./tiffcrop
 cp dafl_source/tools/tiffcrop ./tiffcrop.instrumented
 cp aflgo_build/tools/tiffcrop ./tiffcrop.aflgo
 cp beacon_build/tools/tiffcrop ./tiffcrop.beacon
-cp windranger_build/windranger.out ./tiffcrop.windranger
+cp windranger_build/temp/windranger.out ./tiffcrop.windranger
 
