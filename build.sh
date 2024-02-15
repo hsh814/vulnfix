@@ -110,3 +110,13 @@ pushd $AFLGO
         cmake --build .
     popd
 popd
+
+# STEP (8): build WindRanger
+pushd $ROOT/thirdparty/WindRanger
+    ./build.sh
+popd
+
+# STEP (9): build Beacon
+pushd $ROOT/thirdparty/Beacon
+    ./setup.sh
+popd
