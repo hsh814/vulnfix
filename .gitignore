@@ -71,7 +71,9 @@ data/*/*/vulnfix_source
 data/*/*/raw_build
 data/*/*/aflgo_build
 data/*/*/beacon_build
+data/*/*/windranger_build
 data/*/*/*.instrumented
 data/*/*/*.aflgo
 data/*/*/*.beacon
+data/*/*/*.windranger
 data/*/*/*-sparrow

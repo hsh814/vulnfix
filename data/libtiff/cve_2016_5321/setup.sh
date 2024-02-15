@@ -83,8 +83,31 @@ pushd beacon_build
   export PATH=$OLD_PATH
 popd
 
+# windranger
+rm -rf windranger_build && mkdir windranger_build
+WINDRANGER_DIR=/home/yuntong/vulnfix/thirdparty/WindRanger
+pushd windranger_build
+  OLD_PATH=$PATH
+  export PATH=/usr/lib/llvm-10/bin:/root/go/bin:$PATH
+  CC=gclang CXX=gclang++ ../source/configure --enable-static --disable-shared --without-threads --without-lzma
+  make CFLAGS="-static -fsanitize=address -fsanitize=undefined -g" CXXFLAGS="-static -fsanitize=address -fsanitize=undefined -g" -j 32
+  get-bc tools/tiffcrop
+  mkdir temp
+  echo "tiffcrop.c:994" > temp/target.txt
+  TARGET_FILE=$PWD/temp/target.txt
+  cp tools/tiffcrop.bc temp/tiffcrop.bc
+  pushd temp
+    $WINDRANGER_DIR/windranger/instrument/bin/cbi --targets=$TARGET_FILE ./tiffcrop.bc
+    $WINDRANGER_DIR/windranger/fuzz/afl-clang-fast -ljpeg -lm -lz -fsanitize=address -fsanitize=undefined -g ./tiffcrop.ci.bc -o tiffcrop.windranger
+    # run command: $WINDRANGER_DIR/windranger/fuzz/afl-fuzz -m none -d -i seed -o out -C -- ./tiffcrop.windranger @@ /tmp/out.tif
+    # you need to copy distance.txt, targets.txt, condition_info.txt if you want to run this in other directory
+  popd
+  export PATH=$OLD_PATH
+popd
 
 cp raw_build/tools/tiffcrop ./tiffcrop
 cp dafl_source/tools/tiffcrop ./tiffcrop.instrumented
 cp aflgo_build/tools/tiffcrop ./tiffcrop.aflgo
 cp beacon_build/tools/tiffcrop ./tiffcrop.beacon
+cp windranger_build/windranger.out ./tiffcrop.windranger
+
