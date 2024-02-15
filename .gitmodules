@@ -30,3 +30,6 @@
 [submodule "thirdparty/aflgo"]
 	path = thirdparty/aflgo
 	url = https://github.com/aflgo/aflgo.git
+[submodule "thirdparty/WindRanger"]
+	path = thirdparty/WindRanger
+	url = https://github.com/hsh814/WindRanger.git
