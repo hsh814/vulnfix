@@ -2,6 +2,7 @@
 *__pycache__/
 *.pyc
 .DS_Store
+.cache/
 
 # build files
 *.so
@@ -21,6 +22,9 @@ data/*/*/cvcback-runtime/
 data/*/*/conc-runtime/
 data/*/*/afl-runtime/
 data/*/*/source/
+data/*/*/dafl-runtime/
+data/*/*/pacfix/
+data/*/*/repair-out/
 out.tmp
 *.dtrace
 *.decls
@@ -35,6 +39,7 @@ exploit.eps
 
 # vscode
 .vscode/
+.idea/
 
 # build binaries
 cjpeg

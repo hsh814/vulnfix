@@ -30,8 +30,7 @@ pushd dafl_source
   DAFL_SELECTIVE_COV="/home/yuntong/vulnfix/data/libtiff/cve_2016_5321/sparrow-out/bug/slice_func.txt" \
   DAFL_DFG_SCORE="/home/yuntong/vulnfix/data/libtiff/cve_2016_5321/sparrow-out/bug/slice_dfg.txt" \
   ASAN_OPTIONS=detect_leaks=0 CC=/home/yuntong/vulnfix/thirdparty/DAFL/afl-clang-fast CXX=/home/yuntong/vulnfix/thirdparty/DAFL/afl-clang-fast++ \
-  make CFLAGS="-static -fsanitize=address -fsanitize=undefined -g" CXXFLAGS="-static -fsanitize=address -fsanitize=undefined -g" LDFLAGS="-fsanitize=address -fsanitize=undefined" -j10
-
+  make CFLAGS="-static -fsanitize=address -fsanitize=undefined -g -flto -fuse-ld=gold -Wl,-plugin-opt=save-temps" CXXFLAGS="-static -fsanitize=address -fsanitize=undefined -g -flto -fuse-ld=gold -Wl,-plugin-opt=save-temps" LDFLAGS="-fsanitize=address -fsanitize=undefined" -j10
 popd
 
 rm -rf raw_build && mkdir raw_build
