@@ -2,8 +2,8 @@
 rm -rf pacfix
 cp -r source pacfix
 pushd pacfix
-  ./configure
-  make CFLAGS="-fsanitize=float-cast-overflow,address -static -ggdb" CXXFLAGS="-fsanitize=float-cast-overflow,address -static -ggdb" LDFLAGS="-fsanitize=float-cast-overflow,address" -j10 > make.log
+  ../source/configure
+  make CFLAGS="-fsanitize=float-cast-overflow,address -fno-sanitize-recover=all -static -ggdb" CXXFLAGS="-fsanitize=float-cast-overflow,address -fno-sanitize-recover=all -static -ggdb" LDFLAGS="-fsanitize=float-cast-overflow,address -fno-sanitize-recover=all" -j10 > make.log
   # cat make.log | grep tif_dirwrite.c
   pushd libtiff
     if [ -f backup/tif_dirwrite.c ]; then
@@ -11,7 +11,7 @@ pushd pacfix
     fi
     mkdir -p backup
     cp tif_dirwrite.c backup
-     gcc -E -DHAVE_CONFIG_H -I. -fsanitize=float-cast-overflow,address -ggdb -MT tif_dirwrite.lo -MD -MP -MF .deps/tif_dirwrite.Tpo -c tif_dirwrite.c > tif_dirwrite.c.i
+    gcc -E -DHAVE_CONFIG_H -I. -fsanitize=float-cast-overflow,address -fno-sanitize-recover=all -ggdb -MT tif_dirwrite.lo -MD -MP -MF .deps/tif_dirwrite.Tpo -c tif_dirwrite.c > tif_dirwrite.c.i
     cilly --domakeCFG --gcc=/usr/bin/gcc-7 --out=tmp.c tif_dirwrite.c.i
     mv tmp.c tif_dirwrite.c.i.c
     cp tif_dirwrite.c.i.c tif_dirwrite.c
@@ -27,8 +27,10 @@ rm -rf smake_source && mkdir smake_source
 pushd smake_source
   CC=clang CXX=clang++ ../source/configure
   CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake --init
-  CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake CFLAGS="-fsanitize=float-cast-overflow,address -static -ggdb" CXXFLAGS="-fsanitize=float-cast-overflow,address -static -ggdb" LDFLAGS="-fsanitize=float-cast-overflow,address" -j10
+  CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake CFLAGS="-fsanitize=float-cast-overflow,address -fno-sanitize-recover=all -static -ggdb" CXXFLAGS="-fsanitize=float-cast-overflow,address -fno-sanitize-recover=all -static -ggdb" LDFLAGS="-fsanitize=float-cast-overflow,address -fno-sanitize-recover=all" -j10
 popd
+
+dir=/home/yuntong/vulnfix/data/libtiff/cve_2017_7600
 
 rm -rf sparrow-out && mkdir sparrow-out
 /home/yuntong/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \
@@ -47,7 +49,7 @@ pushd dafl_source
   DAFL_SELECTIVE_COV="$dir/sparrow-out/bug/slice_func.txt" \
   DAFL_DFG_SCORE="$dir/sparrow-out/bug/slice_dfg.txt" \
   ASAN_OPTIONS=detect_leaks=0 CC=/home/yuntong/vulnfix/thirdparty/DAFL/afl-clang-fast CXX=/home/yuntong/vulnfix/thirdparty/DAFL/afl-clang-fast++ \
-  make CFLAGS="-fsanitize=float-cast-overflow,address -static -ggdb" CXXFLAGS="-fsanitize=float-cast-overflow,address -static -ggdb" LDFLAGS="-fsanitize=float-cast-overflow,address" -j10
+  make CFLAGS="-fsanitize=float-cast-overflow,address -fno-sanitize-recover=all -static -ggdb" CXXFLAGS="-fsanitize=float-cast-overflow,address -fno-sanitize-recover=all -static -ggdb" LDFLAGS="-fsanitize=float-cast-overflow,address -fno-sanitize-recover=all" -j10
 popd
 
 rm ./tiffcp.instrumented

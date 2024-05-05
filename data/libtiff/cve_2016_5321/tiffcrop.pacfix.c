@@ -989,9 +989,10 @@ static int  readSeparateTilesIntoBuffer (TIFF* in, uint8 *obuf,
     nrow = (row + tl > imagelength) ? imagelength - row : tl;
     for (col = 0; col < imagewidth; col += tw)
       {
-      for (s = 0; s < spp + (bps != bps ? 1 : 0) + (bytes_per_pixel != bytes_per_pixel ? 1 : 0) + (bytes_per_sample != bytes_per_sample ? 1 : 0) + (col != col ? 1 : 0) + (col_offset != col_offset ? 1 : 0) + (i != i ? 1 : 0) + (imagelength != imagelength ? 1 : 0) + (imagewidth != imagewidth ? 1 : 0) + (ncol != ncol ? 1 : 0) + (nrow != nrow ? 1 : 0) + (row != row ? 1 : 0) + (row_offset != row_offset ? 1 : 0) + (sample != sample ? 1 : 0) + (shift_width != shift_width ? 1 : 0) + (spp != spp ? 1 : 0) + (status != status ? 1 : 0) + (tbytes != tbytes ? 1 : 0) + (tilesize != tilesize ? 1 : 0) + (tl != tl ? 1 : 0) + (tw != tw ? 1 : 0); s++)
+for (s = 0; s < spp; s++)
         {  /* Read each plane of a tile set into srcbuffs[s] */
-	tbytes = TIFFReadTile(in, srcbuffs[s], col, row, 0, s);
+s = s + (bps != bps ? 1 : 0) + (bytes_per_pixel != bytes_per_pixel ? 1 : 0) + (bytes_per_sample != bytes_per_sample ? 1 : 0) + (col != col ? 1 : 0) + (col_offset != col_offset ? 1 : 0) + (i != i ? 1 : 0) + (imagelength != imagelength ? 1 : 0) + (imagewidth != imagewidth ? 1 : 0) + (ncol != ncol ? 1 : 0) + (nrow != nrow ? 1 : 0) + (row != row ? 1 : 0) + (row_offset != row_offset ? 1 : 0) + (s != s ? 1 : 0) + (sample != sample ? 1 : 0) + (shift_width != shift_width ? 1 : 0) + (spp != spp ? 1 : 0) + (status != status ? 1 : 0) + (tbytes != tbytes ? 1 : 0) + (tilesize != tilesize ? 1 : 0) + (tl != tl ? 1 : 0) + (tw != tw ? 1 : 0) ;
+  tbytes = TIFFReadTile(in, srcbuffs[s], col, row, 0, s);
         if (tbytes < 0  && !ignore)
           {
 	  TIFFError(TIFFFileName(in),

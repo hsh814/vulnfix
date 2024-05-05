@@ -1,4 +1,4 @@
-binary=/home/yuntong/vulnfix/data/libtiff/cve_2017_7600/source/tools/tiffcp
+binary=/home/yuntong/vulnfix/data/libtiff/cve_2017_7600/tiffcp
 binary-dir=/home/yuntong/vulnfix/data/libtiff/cve_2017_7600/pacfix/tools/tiffcp
 cmd=-i <exploit> out.tmp
 exploit=/home/yuntong/vulnfix/data/libtiff/cve_2017_7600/exploit

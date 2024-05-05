@@ -25,6 +25,7 @@ data/*/*/source/
 data/*/*/dafl-runtime/
 data/*/*/pacfix/
 data/*/*/repair-out/
+runtime-*
 out.tmp
 *.dtrace
 *.decls

@@ -17,7 +17,7 @@ rm -rf sparrow-out && mkdir sparrow-out
 /home/yuntong/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \
 -frontend "cil" -unsound_alloc -unsound_const_string -unsound_recursion -unsound_noreturn_function \
 -unsound_skip_global_array_init 1000 -skip_main_analysis -cut_cyclic_call -unwrap_alloc \
--entry_point "main" -max_pre_iter 10 -slice "bug=valid.c:1181" \
+-entry_point "main" -max_pre_iter 10 -slice "bug=valid.c:1184" \
 ./smake_source/sparrow/xmllint/*.i
 
 rm -rf dafl_source && mkdir dafl_source

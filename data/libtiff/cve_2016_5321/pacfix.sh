@@ -2,14 +2,9 @@
 rm -rf pacfix
 cp -r source pacfix
 pushd pacfix
-  ./configure
+  ../source/configure
   make CFLAGS="-static -fsanitize=address -fsanitize=undefined -g" CXXFLAGS="-static -fsanitize=address -fsanitize=undefined -g" -j10
   pushd tools
-    if [ -f backup/tiffcrop.c ]; then
-      cp backup/tiffcrop.c ./tiffcrop.c
-    fi
-    mkdir -p backup
-    cp tiffcrop.c backup
     gcc -E -DHAVE_CONFIG_H -I. -I../libtiff  -I../libtiff   -static -fsanitize=address -fsanitize=undefined -g -MT tiffcrop.o -MD -MP -MF .deps/tiffcrop.Tpo -c tiffcrop.c > tiffcrop.c.i
     cilly --domakeCFG --gcc=/usr/bin/gcc-7 --out=tmp.c tiffcrop.c.i
     mv tmp.c tiffcrop.c.i.c
