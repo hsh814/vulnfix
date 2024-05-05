@@ -7,23 +7,18 @@ from typing import Union, List, Dict, Tuple, Optional, Set
 import multiprocessing as mp
 import datetime
 date = datetime.datetime.now().strftime("%Y-%m-%d")
+id = date
 
-def execute(cmd: str, dir: str, conf_id: str, out_dir: str, env: dict = None):
+def execute(cmd: str, dir: str, conf_id: str, env: dict = None):
   print(f"Change directory to {dir}")
   print(f"Executing: {cmd}")
   if env is None:
     env = os.environ
   proc = subprocess.run(cmd, shell=True, cwd=dir, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-  log_file = os.path.join(dir, f"{out_dir}/out-{conf_id}.log")
-  os.system(f"rm -rf {out_dir}/crashes {out_dir}/hangs")
   if proc.returncode != 0:
     print("!!!!! Error !!!!")
     try:
       print(proc.stderr.decode("utf-8", errors="ignore"))
-      with open(log_file, "w") as f:
-        f.write(proc.stderr.decode("utf-8", errors="ignore"))
-        f.write("\n\n====================\n\n")
-        f.write(proc.stdout.decode("utf-8", errors="ignore"))
     except Exception as e:
       print(e)
   return proc.returncode
@@ -69,24 +64,24 @@ def analyze(dir: str):
     for r in result:
       f.write(f"{r[0]},{r[1]},{r[2]}\n")
 
+def run_exp(subject: str) -> None:
+  print(f"run {subject}")
+  execute(f"python3 /home/yuntong/vulnfix/src/dafl-run.py run {subject} --id {id}", "/home/yuntong/vulnfix", id)
+
 
 def main(argv: List[str]):
-  dir = "/home/yuntong/vulnfix/data/libtiff/cve_2016_5321/dafl-runtime/2024-02-27"
-  opt = "exp"
-  if len(argv) != 0:
-    opt = argv[0]
-    dir = argv[1]
-  config = list()
-  for r in [0.8, 0.9, 0.95, 0.99, 1.0]:
-    for k in [1]:
-      config.append((r, k))
-  for r in [0.05, 0.1, 0.2, 0.3, 0.5]:
-    for k in [-1]:
-      config.append((r, k))
-  if opt == "exp":
-    run_cmd(opt, dir, config)
-  elif opt == "analyze":
-    analyze(dir)
+  global id
+  id = argv[1]
+  # libtiff, libxml2, zziplib
+  exps = ["cve_2016_5321", "cve_2016_10094", "cve_2012_5134", "cve_2017_5969", "cve_2017_5975"]
+  # libjpeg
+  exps.append("cve_2012_2806")
+  pool = mp.Pool(32)
+  pool.map(run_exp, exps)
+  pool.close()
+  pool.join()
+  print(f"{id} done")
+
 
 if __name__ == "__main__":
-  main(sys.argv[1:])
+  main(sys.argv)

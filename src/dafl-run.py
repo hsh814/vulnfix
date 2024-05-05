@@ -140,6 +140,8 @@ def find_subject(subject_id: str, meta) -> dict:
             return sbj
         if sbj["bug_id"] == subject_id:
             return sbj
+        if subject_id in sbj["bug_id"]:
+            return sbj
     return None
 
 
