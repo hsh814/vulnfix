@@ -22,8 +22,11 @@ def execute(cmd: str, dir: str, out_dir: str, env: dict = None):
     else:
         print_env_str(env)
     proc = subprocess.run(cmd, shell=True, cwd=dir, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    os.system(f"rm -rf {out_dir}/crashes {out_dir}/hangs")
     if proc.returncode != 0:
+        with open(f"{out_dir}/error.log", "wb") as f:
+            f.write(proc.stderr)
+            f.write(b"############")
+            f.write(proc.stdout)
         print(f"!!!!! Error !!!! {cmd}")
         try:
             print(proc.stderr.decode("utf-8", errors="ignore"))
@@ -83,13 +86,13 @@ def run_cmd(subject: dict):
     p_moo = mp.Process(target=execute, args=(cmd, runtime_dir, out_dir, env_moo))
     # execute(cmd, runtime_dir, out_dir, env=env)
 
-    out_dir_dafl = os.path.join(runtime_dir, f"{exp_id}-dafl")
-    cmd_dafl = f"timeout 6h /home/yuntong/vulnfix/thirdparty/DAFL/afl-fuzz -C -t 2000ms -m none -p {config['dfg']} -i {in_dir} -o {out_dir_dafl} -s d -- {default_bin} {prog_cmd} >{runtime_dir}/{exp_id}-dafl.log 2>&1"
-    tmp_dafl = os.path.join(runtime_dir, "tmp-dafl")
-    os.makedirs(tmp_dafl, exist_ok=True)
-    env_dafl = new_env(env, tmp_dafl)
-    # execute(cmd_dafl, runtime_dir, out_dir_dafl, env=env)
-    p_dafl = mp.Process(target=execute, args=(cmd_dafl, runtime_dir, out_dir_dafl, env_dafl))
+    # out_dir_dafl = os.path.join(runtime_dir, f"{exp_id}-dafl")
+    # cmd_dafl = f"timeout 6h /home/yuntong/vulnfix/thirdparty/DAFL/afl-fuzz -C -t 2000ms -m none -p {config['dfg']} -i {in_dir} -o {out_dir_dafl} -s d -- {default_bin} {prog_cmd} >{runtime_dir}/{exp_id}-dafl.log 2>&1"
+    # tmp_dafl = os.path.join(runtime_dir, "tmp-dafl")
+    # os.makedirs(tmp_dafl, exist_ok=True)
+    # env_dafl = new_env(env, tmp_dafl)
+    # # execute(cmd_dafl, runtime_dir, out_dir_dafl, env=env)
+    # p_dafl = mp.Process(target=execute, args=(cmd_dafl, runtime_dir, out_dir_dafl, env_dafl))
 
     out_dir_vert = os.path.join(runtime_dir, f"{exp_id}-vert")
     cmd_vert = f"timeout 6h /home/yuntong/vulnfix/thirdparty/DAFL/afl-fuzz -C -t 2000ms -m none -p {config['dfg']} -i {in_dir} -o {out_dir_vert} -s m -v -- {default_bin} {prog_cmd} >{runtime_dir}/{exp_id}-vert.log 2>&1"
@@ -100,10 +103,10 @@ def run_cmd(subject: dict):
     p_vert = mp.Process(target=execute, args=(cmd_vert, runtime_dir, out_dir_vert, env_vert))
 
     p_moo.start()
-    p_dafl.start()
+    # p_dafl.start()
     p_vert.start()
     p_moo.join()
-    p_dafl.join()
+    # p_dafl.join()
     p_vert.join()
 
 

@@ -3,11 +3,13 @@ import os
 import subprocess
 import time
 import sys
+import argparse
 from typing import Union, List, Dict, Tuple, Optional, Set
 import multiprocessing as mp
 import datetime
 date = datetime.datetime.now().strftime("%Y-%m-%d")
 id = date
+cmd = "run"
 
 def execute(cmd: str, dir: str, conf_id: str, env: dict = None):
   print(f"Change directory to {dir}")
@@ -66,16 +68,27 @@ def analyze(dir: str):
 
 def run_exp(subject: str) -> None:
   print(f"run {subject}")
-  execute(f"python3 /home/yuntong/vulnfix/src/dafl-run.py run {subject} --id {id}", "/home/yuntong/vulnfix", id)
+  run_file = "/home/yuntong/vulnfix/src/dafl-run.py"
+  if cmd == "analyze":
+    run_file = "/home/yuntong/vulnfix/src/dafl-analyze.py"
+  execute(f"python3 {run_file} run {subject} --id {id}", "/home/yuntong/vulnfix", id)
 
 
 def main(argv: List[str]):
+  parser = argparse.ArgumentParser()
+  parser.add_argument("id", help="id for experiment")
+  parser.add_argument("--cmd", help="cmd", choices=["run", "analyze"], default="run")
+  args = parser.parse_args(argv[1:])
+  global cmd
   global id
-  id = argv[1]
+  id = args.id
+  cmd = args.cmd
   # libtiff, libxml2, zziplib
   exps = ["cve_2016_5321", "cve_2016_10094", "cve_2012_5134", "cve_2017_5969", "cve_2017_5975"]
   # libjpeg
   exps.append("cve_2012_2806")
+  # coreutils
+  exps.append("gnubug_25003")
   pool = mp.Pool(32)
   pool.map(run_exp, exps)
   pool.close()
