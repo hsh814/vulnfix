@@ -62,7 +62,8 @@ def new_env(env: dict, dir: str) -> dict:
     result = env.copy()
     result["PACFIX_COV_DIR"] = dir
     return result
-def run_cmd(subject: dict):
+
+def run_cmd_tmp(subject: dict):
     subject_dir = os.path.join(root_dir, "data", subject["subject"], subject["bug_id"])
     runtime_dir = os.path.join(subject_dir, "dafl-runtime")
     config = read_config(os.path.join(subject_dir, "config"))
@@ -70,43 +71,146 @@ def run_cmd(subject: dict):
     if not os.path.exists(in_dir):
         os.makedirs(in_dir)
         os.system(f"cp {config['exploit']} {in_dir}")
-    tmp_moo = os.path.join(runtime_dir, "tmp-moo")
-    os.makedirs(tmp_moo, exist_ok=True)
     env = os.environ.copy()
     env["AFL_NO_UI"] = "1"
     bin = config["binary"].split("/")[-1]
     default_bin = os.path.join(runtime_dir, f"{bin}.instrumented")
     env["PACFIX_COV_EXE"] = os.path.join(runtime_dir, f"{bin}.coverage")
     env["PACFIX_VAL_EXE"] = os.path.join(runtime_dir, f"{bin}.valuation")
-    env_moo = new_env(env, tmp_moo)
-    out_dir = os.path.join(runtime_dir, f"{exp_id}-moo")
     prog_cmd = config["cmd"].replace("<exploit>", "@@")
-    cmd = f"timeout 6h /home/yuntong/vulnfix/thirdparty/DAFL/afl-fuzz -C -t 2000ms -m none -p {config['dfg']} -i {in_dir} -o {out_dir} -s m -- {default_bin} {prog_cmd} >{runtime_dir}/{exp_id}-moo.log 2>&1"
+    # dafl
+    out_dir_dafl = os.path.join(runtime_dir, f"{exp_id}-dafl")
+    cmd_dafl = f"timeout 6h /home/yuntong/vulnfix/thirdparty/DAFL/afl-fuzz -C -t 2000ms -m none -p {config['dfg']} -i {in_dir} -o {out_dir_dafl} -s d -- {default_bin} {prog_cmd} >{runtime_dir}/{exp_id}-dafl.log 2>&1"
+    tmp_dafl = os.path.join(runtime_dir, f"tmp-dafl-{exp_id}")
+    os.makedirs(tmp_dafl, exist_ok=True)
+    env_dafl = new_env(env, tmp_dafl)
+    # execute(cmd_dafl, runtime_dir, out_dir_dafl, env=env)
+    p_dafl = mp.Process(target=execute, args=(cmd_dafl, runtime_dir, out_dir_dafl, env_dafl))
 
+    # vert
+
+    p_dafl.start()
+    p_dafl.join()
+
+def run_dafl(runtime_dir: str, config: dict, opts: str, opt: str) -> mp.Process:
+    tmp_dir = os.path.join(runtime_dir, f"tmp-{opt}-{exp_id}")
+    os.makedirs(tmp_dir, exist_ok=True)
+    env = os.environ.copy()
+    env["AFL_NO_UI"] = "1"
+    bin = config["binary"].split("/")[-1]
+    default_bin = os.path.join(runtime_dir, f"{bin}.instrumented")
+    env["PACFIX_COV_EXE"] = os.path.join(runtime_dir, f"{bin}.coverage")
+    env["PACFIX_VAL_EXE"] = os.path.join(runtime_dir, f"{bin}.valuation")
+    prog_cmd = config["cmd"].replace("<exploit>", "@@")
+    env_final = new_env(env, tmp_dir)
+    in_dir = os.path.join(runtime_dir, "in")
+    out_dir = os.path.join(runtime_dir, f"{exp_id}-{opt}")
+    cmd = f"timeout 6h /home/yuntong/vulnfix/thirdparty/DAFL/afl-fuzz -C -t 2000ms -m none -p {config['dfg']} -i {in_dir} -o {out_dir} {opts} -- {default_bin} {prog_cmd} >{runtime_dir}/{exp_id}-{opt}.log 2>&1"
+    sym_dir = os.path.join(config["collection"], opt)
+    os.unlink(sym_dir)
+    os.symlink(out_dir, sym_dir)
+    return mp.Process(target=execute, args=(cmd, runtime_dir, out_dir, env_final))
+
+
+def run_cmd_exp(subject: dict):
+    subject_dir = os.path.join(root_dir, "data", subject["subject"], subject["bug_id"])
+    runtime_dir = os.path.join(subject_dir, "dafl-runtime")
+    config = read_config(os.path.join(subject_dir, "config"))
+    in_dir = os.path.join(runtime_dir, "vert-in")
+    if not os.path.exists(in_dir):
+        os.makedirs(in_dir)
+        os.system(f"cp {config['exploit']} {in_dir}")
+    env = os.environ.copy()
+    env["AFL_NO_UI"] = "1"
+    bin = config["binary"].split("/")[-1]
+    default_bin = os.path.join(runtime_dir, f"{bin}.instrumented")
+    env["PACFIX_COV_EXE"] = os.path.join(runtime_dir, f"{bin}.coverage")
+    env["PACFIX_VAL_EXE"] = os.path.join(runtime_dir, f"{bin}.valuation")
+    prog_cmd = config["cmd"].replace("<exploit>", "@@")
+
+    # moo
+    tmp_moo = os.path.join(runtime_dir, f"tmp-moo-{exp_id}")
+    os.makedirs(tmp_moo, exist_ok=True)
+    env_moo = new_env(env, tmp_moo)
+    out_dir = os.path.join(runtime_dir, f"{exp_id}-hor")
+    cmd = f"timeout 6h /home/yuntong/vulnfix/thirdparty/DAFL/afl-fuzz -C -t 2000ms -m none -p {config['dfg']} -i {in_dir} -o {out_dir} -s d -y -- {default_bin} {prog_cmd} >{runtime_dir}/{exp_id}-moo.log 2>&1"
     p_moo = mp.Process(target=execute, args=(cmd, runtime_dir, out_dir, env_moo))
     # execute(cmd, runtime_dir, out_dir, env=env)
 
-    # out_dir_dafl = os.path.join(runtime_dir, f"{exp_id}-dafl")
-    # cmd_dafl = f"timeout 6h /home/yuntong/vulnfix/thirdparty/DAFL/afl-fuzz -C -t 2000ms -m none -p {config['dfg']} -i {in_dir} -o {out_dir_dafl} -s d -- {default_bin} {prog_cmd} >{runtime_dir}/{exp_id}-dafl.log 2>&1"
-    # tmp_dafl = os.path.join(runtime_dir, "tmp-dafl")
-    # os.makedirs(tmp_dafl, exist_ok=True)
-    # env_dafl = new_env(env, tmp_dafl)
-    # # execute(cmd_dafl, runtime_dir, out_dir_dafl, env=env)
-    # p_dafl = mp.Process(target=execute, args=(cmd_dafl, runtime_dir, out_dir_dafl, env_dafl))
+    # dafl
+    out_dir_dafl = os.path.join(runtime_dir, f"{exp_id}-one")
+    cmd_dafl = f"timeout 6h /home/yuntong/vulnfix/thirdparty/DAFL/afl-fuzz -C -t 2000ms -m none -p {config['dfg']} -i {in_dir} -o {out_dir_dafl} -s d -v -y -- {default_bin} {prog_cmd} >{runtime_dir}/{exp_id}-dafl.log 2>&1"
+    tmp_dafl = os.path.join(runtime_dir, f"tmp-dafl-{exp_id}")
+    os.makedirs(tmp_dafl, exist_ok=True)
+    env_dafl = new_env(env, tmp_dafl)
+    # execute(cmd_dafl, runtime_dir, out_dir_dafl, env=env)
+    p_dafl = mp.Process(target=execute, args=(cmd_dafl, runtime_dir, out_dir_dafl, env_dafl))
 
+    # vert
     out_dir_vert = os.path.join(runtime_dir, f"{exp_id}-vert")
-    cmd_vert = f"timeout 6h /home/yuntong/vulnfix/thirdparty/DAFL/afl-fuzz -C -t 2000ms -m none -p {config['dfg']} -i {in_dir} -o {out_dir_vert} -s m -v -- {default_bin} {prog_cmd} >{runtime_dir}/{exp_id}-vert.log 2>&1"
-    tmp_vert = os.path.join(runtime_dir, "tmp-vert")
+    cmd_vert = f"timeout 6h /home/yuntong/vulnfix/thirdparty/DAFL/afl-fuzz -C -t 2000ms -m none -p {config['dfg']} -i {in_dir} -o {out_dir_vert} -s d -v -y -z -- {default_bin} {prog_cmd} >{runtime_dir}/{exp_id}-vert.log 2>&1"
+    tmp_vert = os.path.join(runtime_dir, f"tmp-vert-{exp_id}")
     os.makedirs(tmp_vert, exist_ok=True)
     env_vert = new_env(env, tmp_vert)
     # execute(cmd_vert, runtime_dir, out_dir_vert, env=env)
     p_vert = mp.Process(target=execute, args=(cmd_vert, runtime_dir, out_dir_vert, env_vert))
 
     p_moo.start()
-    # p_dafl.start()
+    p_dafl.start()
     p_vert.start()
     p_moo.join()
-    # p_dafl.join()
+    p_dafl.join()
+    p_vert.join()
+
+def run_exp_new(subject: dict):
+    subject_dir = os.path.join(root_dir, "data", subject["subject"], subject["bug_id"])
+    runtime_dir = os.path.join(subject_dir, "dafl-runtime")
+    config = read_config(os.path.join(subject_dir, "config"))
+    in_dir = os.path.join(runtime_dir, "in")
+    collection = os.path.join(root_dir, "tmp", exp_id, subject["subject"] + subject["bug_id"])
+    os.makedirs(collection, exist_ok=True)
+    config["collection"] = collection
+    if not os.path.exists(in_dir):
+        os.makedirs(in_dir)
+        os.system(f"cp {config['exploit']} {in_dir}")
+    # moo
+    p_moo = run_dafl(runtime_dir, config, "-s d", "moo")
+    # dafl
+    p_dafl = run_dafl(runtime_dir, config, "-s d", "dafl")
+    # vert
+    p_vert = run_dafl(runtime_dir, config, "-s m -v -z", "vert")
+
+    p_moo.start()
+    p_dafl.start()
+    p_vert.start()
+    p_moo.join()
+    p_dafl.join()
+    p_vert.join()
+
+
+def run_cmd(subject: dict):
+    subject_dir = os.path.join(root_dir, "data", subject["subject"], subject["bug_id"])
+    runtime_dir = os.path.join(subject_dir, "dafl-runtime")
+    config = read_config(os.path.join(subject_dir, "config"))
+    in_dir = os.path.join(runtime_dir, "in")
+    collection = os.path.join(root_dir, "tmp", exp_id, subject["subject"] + subject["bug_id"])
+    os.makedirs(collection, exist_ok=True)
+    config["collection"] = collection
+    if not os.path.exists(in_dir):
+        os.makedirs(in_dir)
+        os.system(f"cp {config['exploit']} {in_dir}")
+    # moo
+    p_moo = run_dafl(runtime_dir, config, "-s m", "moo")
+    # dafl
+    p_dafl = run_dafl(runtime_dir, config, "-s d", "dafl")
+    # vert
+    p_vert = run_dafl(runtime_dir, config, "-s m -v -z", "vert")
+
+    p_moo.start()
+    p_dafl.start()
+    p_vert.start()
+    p_moo.join()
+    p_dafl.join()
     p_vert.join()
 
 
@@ -151,7 +255,7 @@ def find_subject(subject_id: str, meta) -> dict:
 def main(argv: List[str]):
     parser = argparse.ArgumentParser()
     parser.add_argument("cmd", help="Command to execute",
-                        choices=["run", "rerun", "snapshot", "clean", "kill", "filter", "analyze"])
+                        choices=["run", "tmp", "exp", "analyze"])
     parser.add_argument("subject", help="subject_id")
     parser.add_argument("--id", help="id", default="")
     args = parser.parse_args(argv)
@@ -163,7 +267,12 @@ def main(argv: List[str]):
     global exp_id
     if args.id != "":
         exp_id = args.id
-    run_cmd(subject)
+    if args.cmd == "run":
+        run_cmd(subject)
+    elif args.cmd == "tmp":
+        run_cmd_tmp(subject)
+    elif args.cmd == "exp":
+        run_cmd_exp(subject)
 
 
 if __name__ == "__main__":

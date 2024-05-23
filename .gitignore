@@ -38,6 +38,8 @@ data/coreutils/gnubug_26545/000*
 xaaa.tif
 exploit.eps
 
+tmp/
+
 # vscode
 .vscode/
 .idea/

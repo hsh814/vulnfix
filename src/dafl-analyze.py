@@ -8,6 +8,7 @@ import multiprocessing as mp
 import datetime
 import json
 import argparse
+import sbsv
 
 date = datetime.datetime.now().strftime("%Y-%m-%d")
 root_dir = "/home/yuntong/vulnfix"
@@ -42,8 +43,12 @@ def new_env(env: dict, dir: str) -> dict:
 import pandas as pd
 import matplotlib.pyplot as plt
 
+
 def analyze_vertical(dir: str):
     file = os.path.join(dir, "vertical.log")
+    if not os.path.exists(file):
+        print(f"ERROR: {file} does not exist")
+        return
     
     df = pd.read_csv(file, names=['type', 'is_preserve', 'is_inter', 'is_new_val', 'mut', 'loc'])
     df = df[df['type'] == 'v']
@@ -85,8 +90,8 @@ def analyze_vertical(dir: str):
         df[df['is_new_val'] == 1].groupby(pd.cut(df["loc"], bins=16))['is_new_val'].value_counts().unstack().plot(kind='bar', ax=axes[2])
         axes[2].set_title('loc - is_new_val distribution')
         axes[2].set_ylabel('#')
-
-    df.groupby(pd.cut(df["loc"], bins=16))['loc'].count().plot(kind='bar', ax=axes[3])
+    if not df["loc"].empty:
+        df.groupby(pd.cut(df["loc"], bins=16))['loc'].count().plot(kind='bar', ax=axes[3])
     axes[3].set_title("loc - distribution")
     axes[3].set_xlabel("loc")
     axes[3].set_ylabel("#")
@@ -96,56 +101,100 @@ def analyze_vertical(dir: str):
     plt.savefig(out_file)
 
 
-# def analyze_vertical(dir: str):
-#     file = os.path.join(dir, "vertical.log")
-#     out_file = os.path.join(dir, "out.png")
-#     with open(file, "r") as f:
-#         for line in f.readlines():
-#             line = line.strip()
-#             tokens = line.split(",")
-#             if tokens[0] == "v":
-#                 is_preserve = tokens[1] == "1"
-#                 is_inter = tokens[2] == "1"
-#                 is_new_val = tokens[3] == "1"
-#                 mut = int(tokens[4])
-#                 loc = float(tokens[5])
+def load_dafl_log(unique_log: str) -> dict:
+    parser = sbsv.parser()
+    parser.add_schema("[pacfix] [mem] [neg] [seed: int] [id: int] [hash: int] [time: int] [file: str]")
+    parser.add_schema("[pacfix] [mem] [pos] [seed: int] [id: int] [hash: int] [time: int] [file: str]")
+    parser.add_schema(
+        "[moo] [save] [seed: int] [moo-id: int] [fault: int] [path: bool] [val: int] [file: str] [mut: str] [time: int]")
+    parser.add_schema(
+        "[vertical] [save] [seed: int] [id: int] [dfg-path: int] [cov: int] [prox: int] [adj: float] [mut: str] [file: str] [time: int]")
+    parser.add_schema("[vertical] [dry-run] [id: int] [dfg-path: int] [res: int] [file: str]")
+    parser.add_schema(
+        "[vertical] [valuation] [seed: int] [dfg-path: int] [hash: int] [id: int] [persistent: bool] [time: int]")
+    with open(unique_log, 'r') as f:
+        return parser.load(f)
 
 
+def analyze_dafl(dir: str):
+    unique_log = os.path.join(dir, "unique_dafl.log")
+    if not os.path.exists(unique_log):
+        print(f"ERROR: {unique_log} does not exist")
+        return
+    result = load_dafl_log(unique_log)
+    # print(result["vertical"]["valuation"])
+    path_map = dict()
+    for res in result["vertical"]["valuation"]:
+        dfg_path = res["dfg-path"]
+        hash = res["hash"]
+        if dfg_path not in path_map:
+            path_map[dfg_path] = set()
+        path_map[dfg_path].add(hash)
+    dfg_paths = list(path_map.keys())
+    val_counts = [len(path_map[p]) for p in dfg_paths]
+    print(dfg_paths)
+    print(val_counts)
+    x = range(len(dfg_paths))
+    plt.figure(figsize=(10, 5))
+    plt.bar(x, val_counts, color='blue')
+    plt.xlabel('DFG Path')
+    plt.ylabel('Number of Unique Hashes')
+    plt.title('Number of Unique Hashes per DFG Path')
+    plt.xticks(x)  # Set the x-ticks to match the dfg_paths
+    plt.savefig(os.path.join(dir, "vertical-path.png"))
 
 
-def run_cmd(subject: dict):
+def execute(cmd: str, dir: str):
+    print(f"Change directory to {dir}")
+    print(f"Executing: {cmd}")
+    proc = subprocess.run(cmd, shell=True, cwd=dir, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if proc.returncode != 0:
+        print(f"!!!!! Error !!!! {cmd}")
+        try:
+            print(proc.stderr.decode("utf-8", errors="ignore"))
+        except Exception as e:
+            print(e)
+    return proc.returncode
+
+
+def collect_inputs(runtime_dir: str, dir: str):
+    unique_log = os.path.join(dir, "unique_dafl.log")
+    if not os.path.exists(unique_log):
+        print(f"ERROR: {unique_log} does not exist")
+        return
+    target = os.path.join(runtime_dir, "vert-in")
+    execute(f"rm -r {target}", runtime_dir)
+    os.makedirs(target, exist_ok=True)
+    execute(f"cp in/* {target}", runtime_dir)
+    result = load_dafl_log(unique_log)
+    print(result["vertical"]["dry-run"])
+    print(result["vertical"]["save"])
+    path_filter = set()
+    for save in result["vertical"]["save"]:
+        path = save["dfg-path"]
+        if path in path_filter:
+            continue
+        file = save["file"]
+        path_filter.add(path)
+        execute(f"cp {file} {target}", runtime_dir)
+        print(f"Save {len(path_filter)}")
+
+
+def run_cmd(subject: dict, cmd: str):
     subject_dir = os.path.join(root_dir, "data", subject["subject"], subject["bug_id"])
     runtime_dir = os.path.join(subject_dir, "dafl-runtime")
     config = read_config(os.path.join(subject_dir, "config"))
-    in_dir = os.path.join(runtime_dir, "in")
-    if not os.path.exists(in_dir):
-        os.makedirs(in_dir)
-        os.system(f"cp {config['exploit']} {in_dir}")
-    tmp_moo = os.path.join(runtime_dir, "tmp-moo")
-    os.makedirs(tmp_moo, exist_ok=True)
-    env = os.environ.copy()
-    env["AFL_NO_UI"] = "1"
-    bin = config["binary"].split("/")[-1]
-    default_bin = os.path.join(runtime_dir, f"{bin}.instrumented")
-    env["PACFIX_COV_EXE"] = os.path.join(runtime_dir, f"{bin}.coverage")
-    env["PACFIX_VAL_EXE"] = os.path.join(runtime_dir, f"{bin}.valuation")
-    env_moo = new_env(env, tmp_moo)
-    out_dir = os.path.join(runtime_dir, f"{exp_id}-moo")
-    prog_cmd = config["cmd"].replace("<exploit>", "@@")
-    analyze_vertical(out_dir)
 
-    out_dir_dafl = os.path.join(runtime_dir, f"{exp_id}-dafl")
-    tmp_dafl = os.path.join(runtime_dir, "tmp-dafl")
-    os.makedirs(tmp_dafl, exist_ok=True)
-    env_dafl = new_env(env, tmp_dafl)
-    # analyze_vertical(out_dir_dafl)
-
-    out_dir_vert = os.path.join(runtime_dir, f"{exp_id}-vert")
-    cmd_vert = f"timeout 6h /home/yuntong/vulnfix/thirdparty/DAFL/afl-fuzz -C -t 2000ms -m none -p {config['dfg']} -i {in_dir} -o {out_dir_vert} -s m -v -- {default_bin} {prog_cmd} >{runtime_dir}/{exp_id}-vert.log 2>&1"
-    tmp_vert = os.path.join(runtime_dir, "tmp-vert")
-    os.makedirs(tmp_vert, exist_ok=True)
-    env_vert = new_env(env, tmp_vert)
-    analyze_vertical(out_dir_vert)
+    # ex_list = ["dafl", "moo", "vert"]
+    ex_list = ["hor", "vert", "one"]
+    for ex in ex_list:
+        out_dir = os.path.join(runtime_dir, f"{exp_id}-{ex}")
+        # analyze_vertical(out_dir)
+        if cmd == "collect":
+            collect_inputs(runtime_dir, out_dir)
+            continue
+        analyze_dafl(out_dir)
+        analyze_vertical(out_dir)
 
 
 def read_meta_data():
@@ -168,7 +217,7 @@ def find_subject(subject_id: str, meta) -> dict:
 def main(argv: List[str]):
     parser = argparse.ArgumentParser()
     parser.add_argument("cmd", help="Command to execute",
-                        choices=["run", "rerun", "snapshot", "clean", "kill", "filter", "analyze"])
+                        choices=["run", "collect", "analyze"])
     parser.add_argument("subject", help="subject_id")
     parser.add_argument("--id", help="id", default="")
     args = parser.parse_args(argv)
@@ -180,7 +229,7 @@ def main(argv: List[str]):
     global exp_id
     if args.id != "":
         exp_id = args.id
-    run_cmd(subject)
+    run_cmd(subject, args.cmd)
 
 
 if __name__ == "__main__":
