@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 import subprocess
 import re
-from sys import stdout
+from typing import List
 
 from logger import logger
 from utils import *
@@ -36,8 +36,7 @@ class DanmujiBackend(BackendBase):
         # (1) generate invariants based on passing traces
         # Note: another thing to try is to set lower --conf_limit
         inv_cmd = (values.full_danmuji + " "
-            + values.file_daikon_decl + " " + values.file_daikon_pass_traces + values.file_daikon_fail_traces
-            + values.file_daikon_pass_inv)
+            + values.file_daikon_decl + " " + values.file_daikon_pass_traces + " " + values.file_daikon_fail_traces)
         cp = subprocess.run(inv_cmd, shell=True, encoding='utf-8',
             stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
 
@@ -49,7 +48,7 @@ class DanmujiBackend(BackendBase):
         hypothesis_space = 0
         for i in raw_lines:
             if i.startswith('Hypothesis'):
-                hypothesis_space = i.split(":")[1].strip()
+                hypothesis_space = int(i.split(":")[1].strip())
                 break
         logger.debug(f'Hypothesis space is: {hypothesis_space}')
         inv_lines = [ line for line in raw_lines
@@ -59,7 +58,7 @@ class DanmujiBackend(BackendBase):
         invariants = self.__sanitize_daikon_invariants(invariants)
         invariants = self.__remove_duplicated_invariants(invariants)
 
-        return invariants
+        return invariants, hypothesis_space
 
     def __filter_daikon_invariants(self, invs):
         """
@@ -219,7 +218,7 @@ class DaikonBackend(BackendBase):
     def __init__(self):
         super().__init__()
 
-    def run(self):
+    def run(self) -> List[str]:
         """
         :returns: A list of invariants, a list of variables appeared in invariants.
                 If there is no output, returns two empty lists.
@@ -253,7 +252,7 @@ class DaikonBackend(BackendBase):
 
         return invariants
 
-    def __filter_daikon_invariants(self, invs):
+    def __filter_daikon_invariants(self, invs: List[str]) -> List[str]:
         """
         Some daikon invariants are complicated to turn off from Daikon configs.
         We filter them out here.
@@ -269,7 +268,7 @@ class DaikonBackend(BackendBase):
         return filtered_invs
 
 
-    def __sanitize_daikon_invariants(self, invs):
+    def __sanitize_daikon_invariants(self, invs: List[str]) -> List[str]:
         """
         Daikon output is formatted in java. Here we sanitize them to format that
         can be handled by z3 in python, and also can be use to generat patch in C.
@@ -309,7 +308,7 @@ class DaikonBackend(BackendBase):
 
         return sanitized_invs
 
-    def __remove_duplicated_invariants(self, invs):
+    def __remove_duplicated_invariants(self, invs: List[str]) -> List[str]:
         """
         Daikon can produce semantically equivalent invariants.
         This method detects the duplicates and only keeps one of them.
@@ -371,7 +370,7 @@ class DaikonBackend(BackendBase):
             f.write(fail_res)
 
 
-    def __convert_vars_into_decls(self, vars):
+    def __convert_vars_into_decls(self, vars: List[str]) -> str:
         res = "\n\nppt ..fix_location():::ENTER\n"
         res += "\n\nppt ..fix_location():::EXIT\n"
         res += "  ppt-type point\n"
@@ -450,7 +449,7 @@ class CvcBackend(BackendBase):
         pass
 
 
-    def run(self):
+    def run(self) -> List[str]:
         logger.info('Running cvc5 for inference. This make take a while ...')
         cmd = [values.full_cvc5, "--sygus-arg-relevant", "--sygus-eval-opt",
             "--sygus-grammar-norm", "--sygus-min-grammar",
@@ -476,7 +475,7 @@ class CvcBackend(BackendBase):
         return [inv]
 
 
-    def __sanitize_cvc5_invariant(self, invariant):
+    def __sanitize_cvc5_invariant(self, invariant: str) -> str:
         inv_tokens = invariant.strip().split()
         # change = to ==
         inv_tokens = [ '==' if t == '=' else t for t in inv_tokens ]

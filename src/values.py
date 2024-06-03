@@ -1,5 +1,5 @@
 import os
-from pathlib import Path
+from os.path import join as pjoin
 
 ###########
 # Path definitions
@@ -7,19 +7,22 @@ from pathlib import Path
 
 # dir_root = str(Path(__file__).parent.parent.resolve())
 dir_root = "/home/yuntong/vulnfix"
-dir_runtime = os.path.join(dir_root, "runtime") # set at runtime
-dir_lib = os.path.join(dir_root, "lib")
-dir_thirdparty = os.path.join(dir_root, "thirdparty")
-dir_eusolver = os.path.join(dir_thirdparty, "eusolver")
-dir_eusolver_src = os.path.join(dir_eusolver, "src")
-dir_cvc5 = os.path.join(dir_thirdparty, "cvc5")
-full_cvc5 = os.path.join(dir_cvc5, "build", "bin", "cvc5")
-dir_daikon = os.path.join(dir_thirdparty, "daikon")
-full_daikon = os.path.join(dir_daikon, "daikon.jar")
-dir_danmuji = os.path.join(dir_thirdparty, "danmuji")
-full_danmuji = os.path.join(dir_danmuji, "danmuji")
-dir_afl = os.path.join(dir_thirdparty, "AFL")
-dir_temp = os.path.join(dir_root, "run-temp") # a temp dir to store runtime-generated junk files
+dir_runtime = pjoin(dir_root, "runtime") # set at runtime
+dir_result = pjoin(dir_runtime, "result")
+dir_lib = pjoin(dir_root, "lib")
+dir_thirdparty = pjoin(dir_root, "thirdparty")
+dir_eusolver = pjoin(dir_thirdparty, "eusolver")
+dir_eusolver_src = pjoin(dir_eusolver, "src")
+dir_cvc5 = pjoin(dir_thirdparty, "cvc5")
+full_cvc5 = pjoin(dir_cvc5, "build", "bin", "cvc5")
+dir_daikon = pjoin(dir_thirdparty, "daikon")
+full_daikon = pjoin(dir_daikon, "daikon.jar")
+dir_danmuji = pjoin(dir_thirdparty, "danmuji")
+full_danmuji = pjoin(dir_danmuji, "danmuji.exe")
+dir_afl = pjoin(dir_thirdparty, "AFL")
+dir_temp = pjoin(dir_root, "run-temp") # a temp dir to store runtime-generated junk files)
+dir_dafl = pjoin(dir_thirdparty, "DAFL")
+dir_aflgo = pjoin(dir_thirdparty, "aflgo")
 
 dir_afl_raw_input = ""
 dir_afl_raw_output = ""
@@ -32,7 +35,10 @@ dir_seed_fail = ""
 
 # original and patched binaries
 bin_orig = ""
+bin_instrumented = ""
 bin_afl = ""
+bin_dafl = ""
+bin_aflgo = ""
 bin_snapshot = ""
 bin_mutate = ""
 bin_crash = "" # should crash at crash location with `patch_exit_code`
@@ -47,11 +53,9 @@ file_solver_in = ""
 file_pass_ss_pool = ""
 file_fail_ss_pool = ""
 file_logging = ""
-file_final_patch = ""
-file_result = ""
 
 # daikon-related files
-file_daikon_config = os.path.join(dir_root, "daikon-config")
+file_daikon_config = pjoin(dir_root, "daikon-config")
 file_daikon_feasibility_traces = ""
 file_daikon_pass_traces = ""
 file_daikon_fail_traces = ""
@@ -133,6 +137,10 @@ early_term = True
 concfuzz = False
 # Are we using AFL-only instead of AFL+snapshot fuzzing?
 aflfuzz = False
+# Are we using DAFL-only instead of AFL+snapshot fuzzing?
+daflfuzz = False
+# Are we using AFLGo-only instead of AFL+snapshot fuzzing?
+aflgofuzz = False
 # Are we resetting benchmark instead of running it?
 resetbench = False
 
@@ -142,6 +150,11 @@ backend_choice = ""
 
 # int: total time budget for this VulnFix run
 time_budget = 30
+# int: time budget for each iteration
+cycle = 10
+# float: target error rate calculated by PAC learning
+epsilon = 0.1
+delta = 0.01
 
 # Patch validation
 dir_source = ""
