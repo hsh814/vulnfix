@@ -105,23 +105,114 @@ def load_dafl_log(unique_log: str) -> dict:
     parser = sbsv.parser()
     parser.add_schema("[pacfix] [mem] [neg] [seed: int] [id: int] [hash: int] [time: int] [file: str]")
     parser.add_schema("[pacfix] [mem] [pos] [seed: int] [id: int] [hash: int] [time: int] [file: str]")
-    parser.add_schema(
-        "[moo] [save] [seed: int] [moo-id: int] [fault: int] [path: bool] [val: int] [file: str] [mut: str] [time: int]")
-    parser.add_schema(
-        "[vertical] [save] [seed: int] [id: int] [dfg-path: int] [cov: int] [prox: int] [adj: float] [mut: str] [file: str] [time: int]")
+    parser.add_schema("[moo] [save] [seed: int] [moo-id: int] [fault: int] [path: int] [val: int] [file: str] [mut: str] [time: int]")
+    parser.add_schema("[vertical] [save] [seed: int] [id: int] [dfg-path: int] [cov: int] [prox: int] [adj: float] [mut: str] [file: str] [time: int]")
     parser.add_schema("[vertical] [dry-run] [id: int] [dfg-path: int] [res: int] [file: str]")
-    parser.add_schema(
-        "[vertical] [valuation] [seed: int] [dfg-path: int] [hash: int] [id: int] [persistent: bool] [time: int]")
+    parser.add_schema("[vertical] [valuation] [seed: int] [dfg-path: int] [hash: int] [id: int] [persistent: int] [time: int]")
+    parser.add_schema("[sel] [dafl] [id: int] [time: int]")
+    parser.add_schema("[sel] [vertical] [id: int] [dfg-path: int] [time: int]")
+    parser.add_schema("[sel] [moo] [id: int] [prev: int] [rank: int] [dfg-path: int] [time: int]")
+    parser.add_schema("[moo] [uniq-path] [seed: int] [moo-id: int]")
     with open(unique_log, 'r') as f:
-        return parser.load(f)
+        parser.load(f)
+        return parser
 
 
-def analyze_dafl(dir: str):
+def analyze_dafl(dir: str, out: str, subj: str, ex: str):
     unique_log = os.path.join(dir, "unique_dafl.log")
     if not os.path.exists(unique_log):
         print(f"ERROR: {unique_log} does not exist")
         return
-    result = load_dafl_log(unique_log)
+    parser = load_dafl_log(unique_log)
+    result = parser.get_result()
+
+    seed_time_map = dict()
+    seeds = parser.get_result_in_order(["sel$dafl", "sel$moo", "sel$vertical"])
+    prev_time = 0
+    prev_id = -1
+    for seed in seeds:
+        seed_id = seed["id"]
+        seed_time = seed["time"]
+        if prev_id in seed_time_map:
+            seed_time_map[prev_id] += (seed_time - prev_time) // 1000
+        else:
+            seed_time_map[prev_id] = (seed_time - prev_time) // 1000
+        prev_id = seed_id
+        prev_time = seed_time
+    
+    moo_path_map = dict()
+    for path in result["moo"]["uniq-path"]:
+        seed_id = path["seed"]
+        moo_id = path["moo-id"]
+        if seed_id not in moo_path_map:
+            moo_path_map[seed_id] = 0
+        moo_path_map[seed_id] += 1
+
+    pos_map = dict()
+    neg_map = dict()
+    for res in result["pacfix"]["mem"]["pos"]:
+        seed = res["seed"]
+        if seed not in pos_map:
+            pos_map[seed] = 0
+        pos_map[seed] += 1
+    for res in result["pacfix"]["mem"]["neg"]:
+        seed = res["seed"]
+        if seed not in neg_map:
+            neg_map[seed] = 0
+        neg_map[seed] += 1
+    # Step 2: Prepare data for plotting
+    seeds = sorted(set(pos_map.keys()).union(set(neg_map.keys())))
+    pos_counts = [pos_map.get(seed, 0) for seed in seeds]
+    neg_counts = [neg_map.get(seed, 0) for seed in seeds]
+    time_counts = [seed_time_map.get(seed, 0) for seed in seeds]
+    path_counts = [moo_path_map.get(seed, 0) for seed in seeds]
+
+    # Step 3: Plot data using ordering for x-axis
+    fig, ax1 = plt.subplots()
+
+    bar_width = 0.22
+    index = range(len(seeds))
+
+    # Plot Positive, Negative, and Paths bars on primary y-axis
+    bar1 = ax1.bar(index, pos_counts, bar_width, label='Positive')
+    bar2 = ax1.bar([i + bar_width for i in index], neg_counts, bar_width, label='Negative')
+    bar4 = ax1.bar([i + 2 * bar_width for i in index], path_counts, bar_width, label='Paths')
+
+    ax1.set_xlabel('Seed')
+    ax1.set_ylabel('Count')
+    ax1.set_title('Positive and Negative Seed Counts')
+    ax1.set_xticks([i + bar_width for i in index])
+    ax1.set_xticklabels(seeds, rotation=90)
+    ax1.legend(loc='upper left')
+
+    # Create a secondary y-axis for the Time bar
+    ax2 = ax1.twinx()
+    bar3 = ax2.bar([i + 3 * bar_width for i in index], time_counts, bar_width, label='Time', color='y')
+    ax2.set_ylabel('Time')
+    ax2.set_yscale('log')
+
+    # Combine legends from both y-axes
+    bars = [bar1, bar2, bar4, bar3]
+    ax1.legend(bars, [bar.get_label() for bar in bars], loc='upper left')
+
+    # Add grid to both axes
+    ax1.grid(True)
+    plt.savefig(f"{dir}/seed.png")
+
+
+    plt.clf()
+    plt.xlabel("seed")
+    plt.ylabel("time")
+    time_list = list(seed_time_map.values())
+    time_list.sort()
+    filtered_time_list = [time for time in time_list if time >= 10]
+    mean_time = sum(filtered_time_list) / len(filtered_time_list) if filtered_time_list else 0
+    median_time = filtered_time_list[int(len(filtered_time_list) * 0.5)]
+    print(f"[time-stat] [tot {len(time_list)}] [filter {len(filtered_time_list)}] [mean {mean_time}] [median {median_time}]")
+    plt.plot(range(len(time_list)), time_list, 'bx-')
+    plt.yscale('log')
+    plt.savefig(f"{dir}/time.png")
+
     # print(result["vertical"]["valuation"])
     path_map = dict()
     for res in result["vertical"]["valuation"]:
@@ -132,16 +223,25 @@ def analyze_dafl(dir: str):
         path_map[dfg_path].add(hash)
     dfg_paths = list(path_map.keys())
     val_counts = [len(path_map[p]) for p in dfg_paths]
-    print(dfg_paths)
-    print(val_counts)
-    x = range(len(dfg_paths))
-    plt.figure(figsize=(10, 5))
-    plt.bar(x, val_counts, color='blue')
-    plt.xlabel('DFG Path')
-    plt.ylabel('Number of Unique Hashes')
-    plt.title('Number of Unique Hashes per DFG Path')
-    plt.xticks(x)  # Set the x-ticks to match the dfg_paths
-    plt.savefig(os.path.join(dir, "vertical-path.png"))
+    # print(dfg_paths)
+    # print(val_counts)
+    paths = 0
+    if len(result['moo']['save']) > 1:
+        paths = result['moo']['save'][-1]['moo-id']
+    result = f"[stat] [subj {subj}] [ex {ex}] [id {exp_id}] [neg {len(result['pacfix']['mem']['neg'])}] [pos {len(result['pacfix']['mem']['pos'])}] [paths {paths}]"
+    if out == "":
+        print(result)
+    else:
+        with open(out, "a") as f:
+            f.write(result + "\n")
+    # x = range(len(dfg_paths))
+    # plt.figure(figsize=(10, 5))
+    # plt.bar(x, val_counts, color='blue')
+    # plt.xlabel('DFG Path')
+    # plt.ylabel('Number of Unique Hashes')
+    # plt.title('Number of Unique Hashes per DFG Path')
+    # plt.xticks(x)  # Set the x-ticks to match the dfg_paths
+    # plt.savefig(os.path.join(dir, "vertical-path.png"))
 
 
 def execute(cmd: str, dir: str):
@@ -180,21 +280,21 @@ def collect_inputs(runtime_dir: str, dir: str):
         print(f"Save {len(path_filter)}")
 
 
-def run_cmd(subject: dict, cmd: str):
+def run_cmd(subject: dict, cmd: str, out: str):
     subject_dir = os.path.join(root_dir, "data", subject["subject"], subject["bug_id"])
     runtime_dir = os.path.join(subject_dir, "dafl-runtime")
     config = read_config(os.path.join(subject_dir, "config"))
 
     # ex_list = ["dafl", "moo", "vert"]
-    ex_list = ["hor", "vert", "one"]
+    ex_list = ["moo", "dafl", "vert", "dyn"]
     for ex in ex_list:
         out_dir = os.path.join(runtime_dir, f"{exp_id}-{ex}")
         # analyze_vertical(out_dir)
         if cmd == "collect":
             collect_inputs(runtime_dir, out_dir)
             continue
-        analyze_dafl(out_dir)
-        analyze_vertical(out_dir)
+        analyze_dafl(out_dir, out, subject["subject"] + "/" + subject["bug_id"], ex)
+        # analyze_vertical(out_dir)
 
 
 def read_meta_data():
@@ -220,6 +320,7 @@ def main(argv: List[str]):
                         choices=["run", "collect", "analyze"])
     parser.add_argument("subject", help="subject_id")
     parser.add_argument("--id", help="id", default="")
+    parser.add_argument("--out", help="out-file", default="")
     args = parser.parse_args(argv)
     meta = read_meta_data()
     subject = find_subject(args.subject, meta)
@@ -229,7 +330,7 @@ def main(argv: List[str]):
     global exp_id
     if args.id != "":
         exp_id = args.id
-    run_cmd(subject, args.cmd)
+    run_cmd(subject, args.cmd, args.out)
 
 
 if __name__ == "__main__":
