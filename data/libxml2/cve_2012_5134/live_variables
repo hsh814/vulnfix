@@ -1,3 +1,11 @@
+ctxt->instate
+ctxt->nbentities
+ctxt->options
+ctxt->progressive
+ctxt->replaceEntities
+ent->etype
+ent->owner
+xmlParserMaxDepth
 buf_size
 c
 in_space

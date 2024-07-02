@@ -1,8 +1,17 @@
 #!/bin/bash
+rm -rf source
+git clone https://github.com/vadz/libtiff.git
+mv libtiff source
+pushd source
+  git checkout b28076b
+popd
+
+cp ./source/tools/tiff2pdf.c tiff2pdf.orig.c
+
 rm -rf pacfix
 cp -r source pacfix
 pushd pacfix
-  ../source/configure
+  ./configure
   make CFLAGS="-static -fsanitize=address -fsanitize=undefined -g" CXXFLAGS="-static -fsanitize=address -fsanitize=undefined -g" -j10 > make.log
   # cat make.log | grep tiff2pdf.c
   pushd tools
@@ -12,7 +21,7 @@ pushd pacfix
     cp tiff2pdf.c.i.c tiff2pdf.c
   popd
 popd
-/home/yuntong/pacfix/main.exe -lv_only config
+/home/yuntong/pacfix/main.exe -lv_only 1 config
 
 # manually fix the code
 # python3 /home/yuntong/vulnfix/src/add_lv.py 2900 repair-out/live_variables ./source/tools/tiff2pdf.c 
@@ -24,6 +33,8 @@ pushd smake_source
   CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake --init
   CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake CFLAGS="-static -fsanitize=address -fsanitize=undefined -g" CXXFLAGS="-static -fsanitize=address -fsanitize=undefined -g" -j10
 popd
+
+cp tiff2pdf.orig.c ./source/tools/tiff2pdf.c
 
 rm -rf sparrow-out && mkdir sparrow-out
 /home/yuntong/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \

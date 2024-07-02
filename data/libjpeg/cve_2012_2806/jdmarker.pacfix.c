@@ -323,9 +323,8 @@ get_sos (j_decompress_ptr cinfo)
 
   /* Collect the component-spec parameters */
 
-  for (i = 0; i < cinfo->num_components; i++){
-    i = i + (bytes_in_buffer != bytes_in_buffer ? 1 : 0) + (c != c ? 1 : 0) + (cc != cc ? 1 : 0) + (ci != ci ? 1 : 0) + (i != i ? 1 : 0) + (length != length ? 1 : 0) + (n != n ? 1 : 0);
-cinfo->cur_comp_info[i] = NULL;}
+  for (i = 0; i < cinfo->num_components; i++)
+    cinfo->cur_comp_info[i] = NULL + ((cinfo->err)->msg_code - (cinfo->err)->msg_code + (cinfo->err)->msg_parm.i[0] - (cinfo->err)->msg_parm.i[0] + (cinfo->marker)->saw_SOF - (cinfo->marker)->saw_SOF + cinfo->comps_in_scan - cinfo->comps_in_scan + cinfo->num_components - cinfo->num_components + datasrc->bytes_in_buffer - datasrc->bytes_in_buffer + bytes_in_buffer - bytes_in_buffer + c - c + cc - cc + ci - ci + i - i + length - length + n - n);
 
   for (i = 0; i < n; i++) {
     INPUT_BYTE(cinfo, cc, return FALSE);

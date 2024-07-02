@@ -1,20 +1,36 @@
 #!/bin/bash
+rm -rf source
+git clone https://github.com/libjpeg-turbo/libjpeg-turbo.git
+mv libjpeg-turbo source
+
+pushd source
+  git checkout 4f24016
+  autoreconf -fiv
+popd
+
+cp ./source/jdmarker.c ./jdmarker.orig.c
+cp ./source/jdapimin.c ./jdapimin.orig.c 
+cp ./source/jpeglib.h jpeglib.orig.h
+
+
 rm -rf pacfix
 cp -r source pacfix
 pushd pacfix
-  ../source/configure
+  ./configure
   make CFLAGS="-static -fsanitize=address -fsanitize=undefined -g" CXXFLAGS="-static -fsanitize=address -fsanitize=undefined -g" -j10 > make.log
   # cat make.log | grep jdmarker.c
-  gcc -E -DHAVE_CONFIG_H -I. -I../source -Wall -fsanitize=address -fsanitize=undefined -g -MT jdmarker.lo -MD -MP -MF .deps/jdmarker.Tpo -c jdmarker.c > jdmarker.c.i
+  gcc -E -fno-optimize-sibling-calls -fno-strict-aliasing -fno-asm -std=c99 -DHAVE_CONFIG_H -I. -Wall -fsanitize=address -fsanitize=undefined -g -MT libturbojpeg_la-jdmarker.lo -MD -MP -MF .deps/libturbojpeg_la-jdmarker.Tpo -c jdmarker.c -lm -s > jdmarker.c.i
   cilly --domakeCFG --gcc=/usr/bin/gcc-7 --out=tmp.c jdmarker.c.i
   mv tmp.c jdmarker.c.i.c
   cp jdmarker.c.i.c jdmarker.c
 popd
-/home/yuntong/pacfix/main.exe -lv_only config
+/home/yuntong/pacfix/main.exe -lv_only 1 ./config
 
 # manually fix the code
 # python3 /home/yuntong/vulnfix/src/add_lv.py 327 repair-out/live_variables ./source/jdmarker.c 
 cp jdmarker.pacfix.c ./source/jdmarker.c
+cp jdapimin.pacfix.c ./source/jdapimin.c
+cp jpeglib.pacfix.h ./source/jpeglib.h
 
 
 rm -rf smake_source && mkdir smake_source
@@ -24,11 +40,15 @@ pushd smake_source
   CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake CFLAGS="-static -fsanitize=address -fsanitize=undefined -g" CXXFLAGS="-static -fsanitize=address -fsanitize=undefined -g" -j 10
 popd
 
+cp ./jdmarker.orig.c ./source/jdmarker.c 
+cp ./jdapimin.orig.c ./source/jdapimin.c
+cp ./jpeglib.orig.h ./source/jpeglib.h
+
 rm -rf sparrow-out && mkdir sparrow-out
 /home/yuntong/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \
 -frontend "clang" -unsound_alloc -unsound_const_string -unsound_recursion -unsound_noreturn_function \
 -unsound_skip_global_array_init 1000 -skip_main_analysis -cut_cyclic_call -unwrap_alloc \
--entry_point "get_sos" -max_pre_iter 10 -slice "bug=jdmarker.c:327" \
+-entry_point "main" -max_pre_iter 10 -slice "bug=jdmarker.c:327" \
 ./smake_source/sparrow/djpeg/*.i ./smake_source/sparrow/jdmarker.o.i
 
 rm -rf dafl_source && mkdir dafl_source

@@ -2,15 +2,17 @@
 rm -rf pacfix
 cp -r source pacfix
 pushd pacfix
-  ../source/autogen.sh --disable-silent-rules
+  ./autogen.sh --disable-silent-rules
   make CFLAGS="-static -fsanitize=address -g" CXXFLAGS="-static -fsanitize=address -g" LDFLAGS="-fsanitize=address" LDFLAGS="-fsanitize=address" -j10 > make.log
   # cat make.log | grep valid.c
-  gcc -E -DHAVE_CONFIG_H -I. -I../source -I./include -I../source/include -D_REENTRANT -fsanitize=address -g -MT valid.lo -MD -MP -MF .deps/valid.Tpo -c valid.c > valid.c.i
+  gcc -E -DHAVE_CONFIG_H -I. -I./include -I./include -D_REENTRANT -fsanitize=address -g -MT valid.lo -MD -MP -MF .deps/valid.Tpo -c valid.c > valid.c.i
   cilly --domakeCFG --gcc=/usr/bin/gcc-7 --out=tmp.c valid.c.i
   mv tmp.c valid.c.i.c
   cp valid.c.i.c valid.c
 popd
-/home/yuntong/pacfix/main.exe -lv_only config
+/home/yuntong/pacfix/main.exe -lv_only 1 config
+
+cp ./source/valid.c ./valid.orig.c
 
 # manually fix the code
 # python3 /home/yuntong/vulnfix/src/add_lv.py 4079 repair-out/live_variables ./source/parser.c
@@ -22,6 +24,8 @@ pushd smake_source
   CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake --init
   CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake CFLAGS="-static -fsanitize=address -g" CXXFLAGS="-static -fsanitize=address -g" LDFLAGS="-fsanitize=address" -j10
 popd
+
+cp ./valid.orig.c ./source/valid.c
 
 rm -rf sparrow-out && mkdir sparrow-out
 /home/yuntong/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \

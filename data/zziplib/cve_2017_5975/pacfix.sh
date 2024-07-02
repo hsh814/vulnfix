@@ -2,17 +2,17 @@
 rm -rf pacfix
 cp -r source pacfix
 pushd pacfix
-  ../source/configure
+  ./configure
   make CFLAGS="-static -fsanitize=address -g" CXXFLAGS="-static -fsanitize=address -g" -j10 > make.log
   # cat make.log | grep memdisk.c
   pushd zzip
-    gcc -E -DHAVE_CONFIG_H -I.. -I../../source -static -fsanitize=address -g -MT memdisk.lo -MD -MP -MF .deps/memdisk.Tpo -c memdisk.c > memdisk.c.i
+    gcc -E -DHAVE_CONFIG_H -I../Linux_5.15.0-91-generic_x86_64.d -I..       -static -fsanitize=address -g -MT ../Linux_5.15.0-91-generic_x86_64.d/zzip/memdisk.lo -MD -MP -MF ../Linux_5.15.0-91-generic_x86_64.d/zzip/.deps/memdisk.Tpo -c memdisk.c > memdisk.c.i
     cilly --domakeCFG --gcc=/usr/bin/gcc-7 --out=tmp.c memdisk.c.i
     mv tmp.c memdisk.c.i.c
     cp memdisk.c.i.c memdisk.c
   popd
 popd
-/home/yuntong/pacfix/main.exe -lv_only config
+/home/yuntong/pacfix/main.exe -lv_only 1 config
 
 # manually fix the code
 # python3 /home/yuntong/vulnfix/src/add_lv.py 180 repair-out/live_variables ./source/zzip/memdisk.c

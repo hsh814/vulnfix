@@ -6,13 +6,12 @@ pushd source/
   git checkout 515f23e63c0074ab531bc954f84ca40c6281a724
 popd
 
-cp dwarf2.pacfix.c source/bfd/dwarf2.c
+cp source/bfd/dwarf2.c dwarf2.orig.c
 
 rm -rf pacfix
 cp -r source pacfix
-
 pushd pacfix
-  ASAN_OPTIONS=detect_leaks=0 CC=gcc CXX=g++ CFLAGS="-DFORTIFY_SOURCE=2 -fno-omit-frame-pointer -fsanitize=address -ggdb -Wno-error" CXXFLAGS="$CFLAGS" ../source/configure --disable-shared --disable-gdb --disable-libdecnumber --disable-readline --disable-sim LIBS='-ldl -lutil'
+  ASAN_OPTIONS=detect_leaks=0 CC=gcc CXX=g++ CFLAGS="-DFORTIFY_SOURCE=2 -fno-omit-frame-pointer -fsanitize=address -ggdb -Wno-error" CXXFLAGS="$CFLAGS" ./configure --disable-shared --disable-gdb --disable-libdecnumber --disable-readline --disable-sim LIBS='-ldl -lutil'
   ASAN_OPTIONS=detect_leaks=0 make CFLAGS="-ldl -lutil -fsanitize=address -ggdb -Wno-error" CXXFLAGS="-fsanitize=address -ldl -lutil -ggdb -Wno-error" LDFLAGS=" -ldl -lutil -fsanitize=address" -j 10
   pushd bfd
     gcc -E -fno-optimize-sibling-calls -fno-strict-aliasing -fno-asm -std=c99 -DHAVE_CONFIG_H -I. -I. -I. -I./../include -DHAVE_x86_64_elf64_vec -DHAVE_i386_elf32_vec -DHAVE_iamcu_elf32_vec -DHAVE_x86_64_elf32_vec -DHAVE_i386_aout_linux_vec -DHAVE_i386_pei_vec -DHAVE_x86_64_pei_vec -DHAVE_l1om_elf64_vec -DHAVE_k1om_elf64_vec -DHAVE_elf64_le_vec -DHAVE_elf64_be_vec -DHAVE_elf32_le_vec -DHAVE_elf32_be_vec -DHAVE_plugin_vec -DBINDIR=\"/usr/local/bin\" -W -Wall -Wstrict-prototypes -Wmissing-prototypes -Wshadow -Wstack-usage=262144 -Werror -I./../zlib -ldl -lutil -fsanitize=address -ggdb -Wno-error -MT dwarf2.lo -MD -MP -MF .deps/dwarf2.Tpo -c -DDEBUGDIR=\"/usr/local/lib/debug\" ./dwarf2.c -lm -s > dwarf2.c.i
@@ -21,7 +20,7 @@ pushd pacfix
     cp dwarf2.c.i.c dwarf2.c
   popd
 popd
-/home/yuntong/pacfix/main.exe -lv_only config
+/home/yuntong/pacfix/main.exe -lv_only 1 config
 
 cp dwarf2.pacfix.c source/bfd/dwarf2.c
 
@@ -33,6 +32,8 @@ pushd smake_source
   /home/yuntong/vulnfix/thirdparty/smake/smake --init
   ASAN_OPTIONS=detect_leaks=0 /home/yuntong/vulnfix/thirdparty/smake/smake CFLAGS="-ldl -lutil -fsanitize=address -ggdb -Wno-error" CXXFLAGS="-fsanitize=address -ldl -lutil -ggdb -Wno-error" LDFLAGS=" -ldl -lutil -fsanitize=address" -j 10
 popd
+
+cp dwarf2.orig.c source/bfd/dwarf2.c
 
 rm -rf sparrow-out
 mkdir sparrow-out

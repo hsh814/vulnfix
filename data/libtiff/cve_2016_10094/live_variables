@@ -1,3 +1,10 @@
+t2p->pdf_compression
+t2p->pdf_ojpegdatalength
+t2p->pdf_transcode
+t2p->t2p_error
+t2p->tiff_compression
+t2p->tiff_datasize
+t2p->tiff_fillorder
 bufferoffset
 count
 edge
