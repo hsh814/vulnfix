@@ -2,7 +2,7 @@
 rm -rf pacfix
 cp -r source pacfix
 pushd pacfix
-  ../source/autogen.sh --disable-silent-rules
+  ./autogen.sh --disable-silent-rules
   make CFLAGS="-static -fsanitize=address -g" CXXFLAGS="-static -fsanitize=address -g" LDFLAGS="-fsanitize=address" -j10 > make.log
   # cat make.log | grep parser.c
   gcc -E -DHAVE_CONFIG_H -I. -I../source -I./include -I../source/include -D_REENTRANT -fsanitize=address -g -MT parser.lo -MD -MP -MF .deps/parser.Tpo -c parser.c > parser.c.i
@@ -10,7 +10,9 @@ pushd pacfix
   mv tmp.c parser.c.i.c
   cp parser.c.i.c parser.c
 popd
-/home/yuntong/pacfix/main.exe -lv_only config
+/home/yuntong/pacfix/main.exe -lv_only 1 config
+
+cp ./source/parser.c  ./parser.orig.c 
 
 # manually fix the code
 # python3 /home/yuntong/vulnfix/src/add_lv.py 4079 repair-out/live_variables ./source/parser.c
@@ -22,6 +24,8 @@ pushd smake_source
   CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake --init
   CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake CFLAGS="-static -fsanitize=address -g" CXXFLAGS="-static -fsanitize=address -g" LDFLAGS="-fsanitize=address" -j10
 popd
+
+cp ./parser.orig.c ./source/parser.c  
 
 rm -rf sparrow-out && mkdir sparrow-out
 /home/yuntong/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \

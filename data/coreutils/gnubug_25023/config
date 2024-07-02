@@ -1,11 +1,17 @@
 binary=/home/yuntong/vulnfix/data/coreutils/gnubug_25023/source/src/pr
-cmd=
+binary-dir=/home/yuntong/vulnfix/data/coreutils/gnubug_25023/pacfix/src/pr
+cmd= 
 exploit=/home/yuntong/vulnfix/data/coreutils/gnubug_25023/exploit
 fix-location=pr.c:1239
 crash-location=pr.c:2243
 runtime-dir=/home/yuntong/vulnfix/data/coreutils/gnubug_25023/runtime
+afl-skip-deterministic=false
 input-from-stdin=true
 source-dir=/home/yuntong/vulnfix/data/coreutils/gnubug_25023/source
+instrument-dir=/home/yuntong/vulnfix/data/coreutils/gnubug_25023/pacfix
 fix-file-path=src/pr.c
+crash-file-path=src/pr.c
 fix-line=1238
-build-cmd=make clean && make CFLAGS="-Wno-error -fsanitize=address -fsanitize=undefined -g" CXXFLAGS="-Wno-error -fsanitize=address -fsanitize=undefined -g" -j10
+build-cmd=/home/yuntong/vulnfix/data/coreutils/gnubug_25023/build.sh
+dfg=/home/yuntong/vulnfix/data/coreutils/gnubug_25023/sparrow-out/bug/slice_dfg.txt
+fuzzer=/home/yuntong/vulnfix/thirdparty/DAFL/

@@ -1,3 +1,14 @@
+(table->files + table->num_files)->dir
+(table->files + table->num_files)->size
+(table->files + table->num_files)->time
+*(lh.standard_opcode_lengths + 0)
+*(lh.standard_opcode_lengths + i)
+stash->dwarf_line_size
+table->num_dirs
+table->num_files
+table->num_sequences
+unit->addr_size
+unit->line_offset
 address
 adj_opcode
 amt
@@ -10,9 +21,15 @@ extended_op
 high_pc
 i
 is_stmt
+lh.default_is_stmt
+lh.line_base
 lh.line_range
+lh.maximum_ops_per_insn
 lh.minimum_instruction_length
 lh.opcode_base
+lh.prologue_length
+lh.total_length
+lh.version
 line
 low_pc
 offset_size

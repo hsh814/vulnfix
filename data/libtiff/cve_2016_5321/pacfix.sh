@@ -1,8 +1,17 @@
 #!/bin/bash
+rm -rf source
+git clone https://github.com/vadz/libtiff.git
+mv libtiff source
+pushd source
+  git checkout 0ba5d88
+popd
+
+cp ./source/tools/tiffcrop.c ./tiffcrop.orig.c
+
 rm -rf pacfix
 cp -r source pacfix
 pushd pacfix
-  ../source/configure
+  ./configure
   make CFLAGS="-static -fsanitize=address -fsanitize=undefined -g" CXXFLAGS="-static -fsanitize=address -fsanitize=undefined -g" -j10
   pushd tools
     gcc -E -DHAVE_CONFIG_H -I. -I../libtiff  -I../libtiff   -static -fsanitize=address -fsanitize=undefined -g -MT tiffcrop.o -MD -MP -MF .deps/tiffcrop.Tpo -c tiffcrop.c > tiffcrop.c.i
@@ -11,7 +20,7 @@ pushd pacfix
     cp tiffcrop.c.i.c tiffcrop.c
   popd
 popd
-/home/yuntong/pacfix/main.exe -lv_only config
+/home/yuntong/pacfix/main.exe -lv_only 1 config
 
 # manually fix the code
 # python3 /home/yuntong/vulnfix/src/add_lv.py 992 repair-out/live_variables ./source/tools/tiffcrop.c 
@@ -23,6 +32,8 @@ pushd smake_source
   CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake --init
   CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake CFLAGS="-static -fsanitize=address -fsanitize=undefined -g" CXXFLAGS="-static -fsanitize=address -fsanitize=undefined -g" LDFLAGS="-fsanitize=address -fsanitize=undefined" -j10
 popd
+
+cp ./tiffcrop.orig.c ./source/tools/tiffcrop.c
 
 rm -rf sparrow-out && mkdir sparrow-out
 /home/yuntong/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \
