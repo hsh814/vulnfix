@@ -5,7 +5,7 @@ pushd pacfix
   ./autogen.sh --disable-silent-rules
   make CFLAGS="-static -fsanitize=address -g" CXXFLAGS="-static -fsanitize=address -g" LDFLAGS="-fsanitize=address" -j10 > make.log
   # cat make.log | grep parser.c
-  gcc -E -DHAVE_CONFIG_H -I. -I../source -I./include -I../source/include -D_REENTRANT -fsanitize=address -g -MT parser.lo -MD -MP -MF .deps/parser.Tpo -c parser.c > parser.c.i
+  gcc -E -DHAVE_CONFIG_H -I. -I./include -I./include -D_REENTRANT -fsanitize=address -g -MT parser.lo -MD -MP -MF .deps/parser.Tpo -c parser.c  -lm -s > parser.c.i
   cilly --domakeCFG --gcc=/usr/bin/gcc-7 --out=tmp.c parser.c.i
   mv tmp.c parser.c.i.c
   cp parser.c.i.c parser.c
