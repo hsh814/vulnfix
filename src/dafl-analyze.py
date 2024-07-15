@@ -101,14 +101,15 @@ def analyze_vertical(dir: str):
     plt.savefig(out_file)
 
 
-def load_dafl_log(unique_log: str) -> dict:
+def load_dafl_log(unique_log: str) -> sbsv.parser:
     parser = sbsv.parser()
     parser.add_schema("[pacfix] [mem] [neg] [seed: int] [id: int] [hash: int] [time: int] [file: str]")
     parser.add_schema("[pacfix] [mem] [pos] [seed: int] [id: int] [hash: int] [time: int] [file: str]")
     parser.add_schema("[moo] [save] [seed: int] [moo-id: int] [fault: int] [path: int] [val: int] [file: str] [mut: str] [time: int]")
-    parser.add_schema("[vertical] [save] [seed: int] [id: int] [dfg-path: int] [cov: int] [prox: int] [adj: float] [mut: str] [file: str] [time: int]")
-    parser.add_schema("[vertical] [dry-run] [id: int] [dfg-path: int] [res: int] [file: str]")
+    parser.add_schema("[vertical] [save] [seed: int] [id: int] [dfg-path: int] [cov: int] [prox: int] [adj: float] [mut: str] [file: str] [time: int] [last-loc: int]")
+    parser.add_schema("[vertical] [dry-run] [id: int] [dfg-path: int] [res: int] [file: str] [last-loc: int]")
     parser.add_schema("[vertical] [valuation] [seed: int] [dfg-path: int] [hash: int] [id: int] [persistent: int] [time: int]")
+    parser.add_schema("[vertical] [entry] [seed: int] [entry: int] [dfg-path: int] [hash: int] [crash: bool] [time: int] [last-loc: int]")
     parser.add_schema("[sel] [dafl] [id: int] [time: int]")
     parser.add_schema("[sel] [vertical] [id: int] [dfg-path: int] [time: int]")
     parser.add_schema("[sel] [moo] [id: int] [prev: int] [rank: int] [dfg-path: int] [time: int]")
@@ -284,6 +285,7 @@ def run_cmd(subject: dict, cmd: str, out: str):
     subject_dir = os.path.join(root_dir, "data", subject["subject"], subject["bug_id"])
     runtime_dir = os.path.join(subject_dir, "dafl-runtime")
     config = read_config(os.path.join(subject_dir, "config"))
+    analyze_dafl(os.path.join(subject_dir, "runtime", "afl-out"), out, subject["subject"] + "/" + subject["bug_id"], "pacfix")
 
     # ex_list = ["dafl", "moo", "vert"]
     ex_list = ["moo", "dafl", "vert", "dyn"]
@@ -293,7 +295,7 @@ def run_cmd(subject: dict, cmd: str, out: str):
         if cmd == "collect":
             collect_inputs(runtime_dir, out_dir)
             continue
-        analyze_dafl(out_dir, out, subject["subject"] + "/" + subject["bug_id"], ex)
+        # analyze_dafl(out_dir, out, subject["subject"] + "/" + subject["bug_id"], ex)
         # analyze_vertical(out_dir)
 
 
@@ -313,9 +315,50 @@ def find_subject(subject_id: str, meta) -> dict:
             return sbj
     return None
 
+def analyze_for_pacfix(dir: str, out: str):
+    parser = sbsv.parser()
+    parser.add_schema("[pacfix] [mem] [neg] [seed: int] [id: int] [hash: int] [time: int] [file: str]")
+    parser.add_schema("[pacfix] [mem] [pos] [seed: int] [id: int] [hash: int] [time: int] [file: str]")
+    parser.add_schema("[nuv] [dfg-path: int] [hash: int] [seed: int] [crash: bool] [time: int]")
+    with open(os.path.join(dir, "unique_dafl.log"), "r") as f:
+        result = parser.load(f)
+    if out == "":
+        out_file = sys.stdout
+    else:
+        out_file = open(out, "w")
+    # Analysis
+    value_map = dict()
+    for val in result["pacfix"]["mem"]["pos"]:
+        hash = val["hash"]
+        value_map[hash] = val.data
+    for val in result["pacfix"]["mem"]["neg"]:
+        hash = val["hash"]
+        value_map[hash] = val.data
+    value_count = dict()
+    for val in result["nuv"]:
+        dfg_path = val["dfg-path"]
+        hash = val["hash"]
+        if hash not in value_count:
+            value_count[hash] = 0
+        value_count[hash] += 1
+    for hash, count in value_count.items():
+        if hash not in value_map:
+            sys.stderr.write(f"ERROR: {hash} not found in value_map\n")
+            continue
+        value_info = value_map[hash]
+        value_file = value_info["file"]
+        out_file.write(f"{hash}\t{count}\t{value_file}\n")
+
 
 def main(argv: List[str]):
     parser = argparse.ArgumentParser()
+    if argv[0] == "pacfix":
+        parser.add_argument("dir", help="out directory of DAFL")
+        parser.add_argument("--out", help="output file", default="")
+        args = parser.parse_args(argv[1:])
+        analyze_for_pacfix(args.dir, args.out)
+        return    
+    
     parser.add_argument("cmd", help="Command to execute",
                         choices=["run", "collect", "analyze"])
     parser.add_argument("subject", help="subject_id")
