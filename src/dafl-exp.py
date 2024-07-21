@@ -71,7 +71,7 @@ def run_exp(subject: str) -> None:
   run_file = "/home/yuntong/vulnfix/src/dafl-run.py"
   if cmd == "analyze":
     run_file = "/home/yuntong/vulnfix/src/dafl-analyze.py"
-  execute(f"python3.8 {run_file} run {subject} --id {id}", "/home/yuntong/vulnfix", id)
+  execute(f"python3.8 {run_file} run {subject} --id {id} --out result.txt", "/home/yuntong/vulnfix", id)
 
 
 def main(argv: List[str]):
@@ -88,7 +88,7 @@ def main(argv: List[str]):
   # libjpeg
   exps.append("cve_2012_2806")
   # coreutils
-  exps.append("gnubug_25003")
+  # exps.append("gnubug_25003")
   pool = mp.Pool(32)
   pool.map(run_exp, exps)
   pool.close()
