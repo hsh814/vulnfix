@@ -85,3 +85,4 @@ data/*/*/*.aflgo
 data/*/*/*.beacon
 data/*/*/*.windranger
 data/*/*/*-sparrow
+!data/*/*/seeds/*
