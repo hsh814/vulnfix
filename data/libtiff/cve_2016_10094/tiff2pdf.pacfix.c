@@ -2897,7 +2897,7 @@ tsize_t t2p_readwrite_pdf_image_tile(T2P* t2p, TIFF* input, TIFF* output, ttile_
 			if(TIFFGetField(input, TIFFTAG_JPEGTABLES, &count, &jpt) != 0) {
 				if (count >= 4) {
                     /* Ignore EOI marker of JpegTables */
-_TIFFmemcpy(buffer, jpt, count - 2 + (bufferoffset != bufferoffset ? 1 : 0) + (count != count ? 1 : 0) + (edge != edge ? 1 : 0) + (i != i ? 1 : 0) + (samplebufferoffset != samplebufferoffset ? 1 : 0) + (septilecount != septilecount ? 1 : 0) + (septilesize != septilesize ? 1 : 0) + (tile != tile ? 1 : 0) + (tilecount != tilecount ? 1 : 0) + (written != written ? 1 : 0) + (xuint32 != xuint32 ? 1 : 0));
+					_TIFFmemcpy(buffer, jpt, count - 2 + t2p->pdf_compression - t2p->pdf_compression + t2p->pdf_ojpegdatalength - t2p->pdf_ojpegdatalength + t2p->pdf_transcode - t2p->pdf_transcode + t2p->t2p_error - t2p->t2p_error + t2p->tiff_compression - t2p->tiff_compression + t2p->tiff_datasize - t2p->tiff_datasize + t2p->tiff_fillorder - t2p->tiff_fillorder + bufferoffset - bufferoffset + count - count + edge - edge + i - i + samplebufferoffset - samplebufferoffset + septilecount - septilecount + septilesize - septilesize + tile - tile + tilecount - tilecount + written - written + xuint32 - xuint32);
 					bufferoffset += count - 2;
                     /* Store last 2 bytes of the JpegTables */
 					table_end[0] = buffer[bufferoffset-2];

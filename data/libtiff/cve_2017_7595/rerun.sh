@@ -1,9 +1,9 @@
 #!/bin/bash
-pushd pacfix/tools
-  cp tiff2pdf.c.i.c tiff2pdf.c
+pushd pacfix/libtiff
+  cp tif_jpeg.c.i.c tif_jpeg.c
 popd
 rm -rf runtime
 mkdir -p runtime/afl-in
 mkdir runtime/afl-out
 
-/home/yuntong/pacfix/main.exe -debug -lvfile ./live_variables -cycle 600 -timeout 21600 ./config > runtime/pacfix.log 2>&1
+/home/yuntong/pacfix/main.exe -debug -seed -nouniq -epsilon 0.0 -cycle 60 -timeout 300 ./config

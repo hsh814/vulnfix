@@ -1,9 +1,9 @@
 #!/bin/bash
-pushd pacfix
-  cp jdmarker.c.i.c jdmarker.c
+pushd pacfix/util
+  cp listmp3.c.i.c listmp3.c
 popd
 rm -rf runtime
 mkdir -p runtime/afl-in
 mkdir runtime/afl-out
 
-/home/yuntong/pacfix/main.exe -debug -lvfile ./live_variables -cycle 600 -timeout 21600 ./config > runtime/pacfix.log 2>&1
+/home/yuntong/pacfix/main.exe -debug -epsilon 0.0 -cycle 60 -timeout 300 -seed -nouniq ./config

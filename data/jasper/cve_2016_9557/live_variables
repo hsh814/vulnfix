@@ -1,0 +1,11 @@
+image->clrspc_
+image->maxcmpts_
+jas_image_numfmts
+clrspc
+cmptno
+cmptparm
+cmptparms
+image
+inmem
+numcmpts
+rawsize

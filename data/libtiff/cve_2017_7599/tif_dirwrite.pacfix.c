@@ -977,7 +977,7 @@ TIFFWriteDirectoryTagSampleformatArray(TIFF* tif, uint32* ndir, TIFFDirEntry* di
 			else if (tif->tif_dir.td_bitspersample<=16)
 			{
 				for (i = 0; i < count; ++i)
-((int16*)conv)[i] = (int16)value[i] + (count != count ? 1 : 0) + (i != i ? 1 : 0) + (tag != tag ? 1 : 0);
+((int16*)conv)[i] = (int16)value[i] + tif->tif_dir.td_bitspersample - tif->tif_dir.td_bitspersample + tif->tif_dir.td_sampleformat - tif->tif_dir.td_sampleformat + count - count + dir - dir + i - i + ndir - ndir + ok - ok + tag - tag;
 				ok = TIFFWriteDirectoryTagSshortArray(tif,ndir,dir,tag,count,(int16*)conv);
 			}
 			else

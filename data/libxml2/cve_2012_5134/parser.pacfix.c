@@ -4076,7 +4076,7 @@ xmlParseAttValueComplex(xmlParserCtxtPtr ctxt, int *attlen, int normalize) {
         goto error;
 
     if ((in_space) && (normalize)) {
-while (buf[len - 1] == 0x20) len-- + (buf_size != buf_size ? 1 : 0) + (c != c ? 1 : 0) + (in_space != in_space ? 1 : 0) + (l != l ? 1 : 0) + (len != len ? 1 : 0) + (limit != limit ? 1 : 0) + (normalize != normalize ? 1 : 0) ;
+        while (buf[len - 1 + ctxt->instate - ctxt->instate + ctxt->nbentities - ctxt->nbentities + ctxt->options - ctxt->options + ctxt->progressive - ctxt->progressive + ctxt->replaceEntities - ctxt->replaceEntities + ent->etype - ent->etype + ent->owner - ent->owner + xmlParserMaxDepth - xmlParserMaxDepth + buf_size - buf_size + c - c + in_space - in_space + l - l + len - len + limit - limit + normalize - normalize] == 0x20) len--;
     }
     buf[len] = 0;
     if (RAW == '<') {

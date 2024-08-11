@@ -1,5 +1,5 @@
-binary=/home/yuntong/vulnfix/data/zziplib/cve_2017_5974/source/<parameter-dir>/bins/unzzipcat-mem
-binary-dir=/home/yuntong/vulnfix/data/zziplib/cve_2017_5974/pacfix/bins/unzzipcat-mem
+binary=/home/yuntong/vulnfix/data/zziplib/cve_2017_5974/source/Linux_5.15.0-91-generic_x86_64.d/bins/unzzipcat-mem
+binary-dir=/home/yuntong/vulnfix/data/zziplib/cve_2017_5974/pacfix/Linux_5.15.0-91-generic_x86_64.d/bins/unzzipcat-mem
 cmd=<exploit>
 exploit=/home/yuntong/vulnfix/data/zziplib/cve_2017_5974/exploit
 fix-location=memdisk.c:221
@@ -9,6 +9,7 @@ afl-skip-deterministic=false
 use-raw-size=true
 source-dir=/home/yuntong/vulnfix/data/zziplib/cve_2017_5974/source
 instrument-dir=/home/yuntong/vulnfix/data/zziplib/cve_2017_5974/pacfix
+crash-file-path=zzip/memdisk.c
 fix-file-path=zzip/memdisk.c
 fix-line=221
 dfg=/home/yuntong/vulnfix/data/zziplib/cve_2017_5974/sparrow-out/bug/slice_dfg.txt

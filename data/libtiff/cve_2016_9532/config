@@ -1,10 +1,15 @@
 binary=/home/yuntong/vulnfix/data/libtiff/cve_2016_9532/source/tools/tiffcrop
+binary-dir=/home/yuntong/vulnfix/data/libtiff/cve_2016_9532/pacfix/tools/tiffcrop
 cmd=<exploit> out.tmp
 exploit=/home/yuntong/vulnfix/data/libtiff/cve_2016_9532/exploit
 fix-location=tiffcrop.c:1169
 crash-location=tiffcrop.c:2978
 runtime-dir=/home/yuntong/vulnfix/data/libtiff/cve_2016_9532/runtime
 source-dir=/home/yuntong/vulnfix/data/libtiff/cve_2016_9532/source
+instrument-dir=/home/yuntong/vulnfix/data/libtiff/cve_2016_9532/pacfix
 fix-file-path=tools/tiffcrop.c
+crash-file-path=tools/tiffcrop.c
 fix-line=1169
-build-cmd=make clean && make CFLAGS="-static -fsanitize=address -g" CXXFLAGS="-static -fsanitize=address -g" -j10
+build-cmd=/home/yuntong/vulnfix/data/libtiff/cve_2016_9532/build.sh
+dfg=/home/yuntong/vulnfix/data/libtiff/cve_2016_9532/sparrow-out/bug/slice_dfg.txt
+fuzzer=/home/yuntong/vulnfix/thirdparty/DAFL/

@@ -1,10 +1,15 @@
 binary=/home/yuntong/vulnfix/data/jasper/cve_2016_9557/source/src/appl/imginfo
+binary-dir=/home/yuntong/vulnfix/data/jasper/cve_2016_9557/pacfix/src/appl/imginfo
 cmd=-f <exploit>
 exploit=/home/yuntong/vulnfix/data/jasper/cve_2016_9557/exploit
 fix-location=jas_image.c:162
 crash-location=jas_image.c:162
 runtime-dir=/home/yuntong/vulnfix/data/jasper/cve_2016_9557/runtime
 source-dir=/home/yuntong/vulnfix/data/jasper/cve_2016_9557/source
+instrument-dir=/home/yuntong/vulnfix/data/jasper/cve_2016_9557/pacfix
+crash-file-path=src/libjasper/base/jas_image.c
 fix-file-path=src/libjasper/base/jas_image.c
 fix-line=162
-build-cmd=make clean && make CFLAGS="-static -g -fsanitize=address -fsanitize=undefined" CXXFLAGS="-static -g -fsanitize=address -fsanitize=undefined" LDFLAGS="-fsanitize=address -fsanitize=undefined" -j10
+build-cmd=/home/yuntong/vulnfix/data/jasper/cve_2016_9557/build.sh
+dfg=/home/yuntong/vulnfix/data/jasper/cve_2016_9557/sparrow-out/bug/slice_dfg.txt
+fuzzer=/home/yuntong/vulnfix/thirdparty/DAFL/
