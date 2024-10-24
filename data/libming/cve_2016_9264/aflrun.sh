@@ -1,8 +1,12 @@
 #!/bin/bash
 
-# rm -rf source
-# unzip source.zip
-# mv libming-cc6a386555a2fb13589f92473dd65b289a38d02d source
+rm -rf source
+unzip source.zip
+mv libming-cc6a386555a2fb13589f92473dd65b289a38d02d source
+pushd source
+  git checkout cc6a386
+  ./autogen.sh
+popd
 
 export AFLRUN=/home/yuntong/vulnfix/thirdparty/AFLRun
 rm -rf aflrun_build && mkdir aflrun_build
