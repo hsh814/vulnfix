@@ -82,6 +82,7 @@ data/*/*/aflrun_build
 data/*/*/beacon_build
 data/*/*/windranger_build
 data/*/*/*.instrumented
+data/*/*/*.aflrun
 data/*/*/*.aflgo
 data/*/*/*.beacon
 data/*/*/*.windranger
