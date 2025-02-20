@@ -8,6 +8,7 @@ runtime-dir=/home/yuntong/vulnfix/data/libming/cve_2016_9264/runtime
 instrument-dir=/home/yuntong/vulnfix/data/libming/cve_2016_9264/pacfix
 afl-skip-deterministic=false
 source-dir=/home/yuntong/vulnfix/data/libming/cve_2016_9264/source
+crash-file-path=util/listmp3.c
 fix-file-path=util/listmp3.c
 fix-line=124
 build-cmd=/home/yuntong/vulnfix/data/libming/cve_2016_9264/build.sh

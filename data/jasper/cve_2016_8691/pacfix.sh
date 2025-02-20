@@ -6,36 +6,45 @@ pushd source
   autoreconf -i
 popd
 
+cp ./source/src/libjasper/jpc/jpc_dec.c ./jpc_dec.orig.c
+cp ./jpc_dec.pacfix2.c ./source/src/libjasper/jpc/jpc_dec.c
+cp ./source/src/libjasper/base/jas_image.c jas_image.orig.c
 
 rm -rf pacfix
 cp -r source pacfix
 
 pushd pacfix
-  ../source/configure 
+  ./configure 
   make  CFLAGS="-static -fsanitize=address -g" CXXFLAGS="-static -fsanitize=address -g" -j 10 > make.log
   cat make.log | grep jpc_dec.c
   pushd src/libjasper/jpc
-    gcc -DHAVE_CONFIG_H -I. -I../../../../source/src/libjasper/jpc -I../../../src/libjasper/include/jasper -I../../../../source/src/libjasper/include -fsanitize=address -g -MT jpc_dec.lo -MD -MP -MF .deps/jpc_dec.Tpo -c jpc_dec.c > jpc_dec.c.i
+    gcc -E -DHAVE_CONFIG_H -I. -I../../../src/libjasper/include/jasper -I../../../src/libjasper/include -fsanitize=address -g -MT jpc_dec.lo -MD -MP -MF .deps/jpc_dec.Tpo -c jpc_dec.c  -lm -s > jpc_dec.c.i
     cilly --domakeCFG --gcc=/usr/bin/gcc-7 --out=tmp.c jpc_dec.c.i
     mv tmp.c jpc_dec.c.i.c 
     cp jpc_dec.c.i.c jpc_dec.c
   popd
 popd
-/home/yuntong/pacfix/main.exe -lv_only config
+/home/yuntong/pacfix/main.exe -lv_only 1 config
 
-rm -rf smake_source && mkdir smake_source
-pushd smake_source
-  CC=clang CXX=clang++ ../source/configure
-  CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake --init
-  CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake CFLAGS="-static -fsanitize=address -g" CXXFLAGS="-static -fsanitize=address -g" -j 10
-popd
+#cp jpc_dec.pacfix.c ./source/src/libjasper/jpc/jpc_dec.c
+#cp jas_image.pacfix.c ./source/src/libjasper/base/jas_image.c 
 
-rm -rf sparrow-out && mkdir sparrow-out
-/home/yuntong/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \
--frontend "clang" -unsound_alloc -unsound_const_string -unsound_recursion -unsound_noreturn_function \
--unsound_skip_global_array_init 1000 -skip_main_analysis -cut_cyclic_call -unwrap_alloc \
--entry_point "jpc_dec_process_siz" -max_pre_iter 10 -slice "bug=jpc_dec.c:1193" \
-./smake_source/sparrow/src/appl/imginfo/*.i ./smake_source/sparrow/src/libjasper/jpc/*.i
+#rm -rf smake_source && mkdir smake_source
+#pushd smake_source
+#  CC=clang CXX=clang++ ../source/configure
+#  CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake --init
+#  CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake CFLAGS="-static -fsanitize=address -g" CXXFLAGS="-static -fsanitize=address -g" -j 10
+#popd
+
+cp jpc_dec.pacfix2.c  ./source/src/libjasper/jpc/jpc_dec.c
+cp jas_image.orig.c ./source/src/libjasper/base/jas_image.c 
+
+#rm -rf sparrow-out && mkdir sparrow-out
+#/home/yuntong/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \
+#-frontend "clang" -unsound_alloc -unsound_const_string -unsound_recursion -unsound_noreturn_function \
+#-unsound_skip_global_array_init 1000 -skip_main_analysis -cut_cyclic_call -unwrap_alloc \
+#-entry_point "main" -max_pre_iter 10 -slice "bug=jpc_dec.c:1195" \
+#./smake_source/sparrow/src/appl/imginfo/*.i ./smake_source/sparrow/src/libjasper/jpc/*.i ./smake_source/sparrow/src/libjasper/base/*.i
 
 rm -rf dafl_source && mkdir dafl_source
 pushd dafl_source
@@ -50,10 +59,11 @@ pushd dafl_source
   make CFLAGS="-static -fsanitize=address -g" CXXFLAGS="-static -fsanitize=address -g" -j 10
 popd
 
-rm -rf raw_build && mkdir raw_build
-pushd raw_build
-  ../source/configure 
-  make  CFLAGS="-static -fsanitize=address -g" CXXFLAGS="-static -fsanitize=address -g" -j 10
-popd
+#rm -rf raw_build && mkdir raw_build
+#pushd raw_build
+#  ../source/configure 
+#  make  CFLAGS="-static -fsanitize=address -g" CXXFLAGS="-static -fsanitize=address -g" -j 10
+#popd
 
 cp dafl_source/src/appl/imginfo ./imginfo.instrumented
+

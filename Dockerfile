@@ -102,7 +102,7 @@ RUN ln -s /usr/lib/llvm-12/include/llvm-c /usr/include/llvm-c
 
 # build DAFL
 WORKDIR /home/yuntong/vulnfix/thirdparty/DAFL
-RUN make && cd llvm_mode && make
+RUN git checkout feature/moo && make && cd llvm_mode && make
 
 # build sparrow
 WORKDIR /home/yuntong/vulnfix/thirdparty/sparrow

@@ -100,7 +100,7 @@ echo -e "${YELLOW}$0${OFF}: build finished."
 
 
 # STEP (7): build AFLGo
-pushd $AFLGO
+pushd $ROOT/thirdparty/aflgo
     make clean all
     pushd llvm_mode
         make clean all

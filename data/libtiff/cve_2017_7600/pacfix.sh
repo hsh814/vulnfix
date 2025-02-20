@@ -1,8 +1,11 @@
 #!/bin/bash
+cp tif_dirwrite.pacfix2.c ./source/libtiff/tif_dirwrite.c
+cp ./source/libtiff/tif_dirwrite.c tif_dirwrite.orig.c
+
 rm -rf pacfix
 cp -r source pacfix
 pushd pacfix
-  ../source/configure
+  ./configure
   make CFLAGS="-fsanitize=float-cast-overflow,address -fno-sanitize-recover=all -static -ggdb" CXXFLAGS="-fsanitize=float-cast-overflow,address -fno-sanitize-recover=all -static -ggdb" LDFLAGS="-fsanitize=float-cast-overflow,address -fno-sanitize-recover=all" -j10 > make.log
   # cat make.log | grep tif_dirwrite.c
   pushd libtiff
@@ -17,7 +20,7 @@ pushd pacfix
     cp tif_dirwrite.c.i.c tif_dirwrite.c
   popd
 popd
-/home/yuntong/pacfix/main.exe -lv_only config
+/home/yuntong/pacfix/main.exe -lv_only 1 config
 
 # manually fix the code
 # python3 /home/yuntong/vulnfix/src/add_lv.py 994 repair-out/live_variables ./source/libtiff/tif_dirwrite.c
@@ -29,6 +32,8 @@ pushd smake_source
   CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake --init
   CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake CFLAGS="-fsanitize=float-cast-overflow,address -fno-sanitize-recover=all -static -ggdb" CXXFLAGS="-fsanitize=float-cast-overflow,address -fno-sanitize-recover=all -static -ggdb" LDFLAGS="-fsanitize=float-cast-overflow,address -fno-sanitize-recover=all" -j10
 popd
+
+cp tif_dirwrite.orig.c ./source/libtiff/tif_dirwrite.c
 
 dir=/home/yuntong/vulnfix/data/libtiff/cve_2017_7600
 
@@ -54,7 +59,6 @@ popd
 
 rm ./tiffcp.instrumented
 cp dafl_source/tools/tiffcp ./tiffcp.instrumented
-cp ./tiffcp.instrumented ./dafl-runtime/tiffcp.instrumented
 
 # AFL_NO_UI=1 timeout 12h /home/yuntong/vulnfix/thirdparty/DAFL/afl-fuzz -C -t 2000ms -m none -i ./in -p /home/yuntong/vulnfix/data/libtiff/cve_2017_7600/sparrow-out/bug/slice_dfg.txt -o 2024-04-04-test -- ./tiffcp.instrumented -i @@ out.tmp
 # AFL_NO_UI=1 timeout 12h /home/yuntong/vulnfix/thirdparty/DAFL/afl-fuzz -C -t 2000ms -m none -i ./in -p /home/yuntong/vulnfix/data/libtiff/cve_2017_7600/sparrow-out/bug/slice_dfg.txt -o 2024-04-04-k -k 0 -r 0.1 -- ./tiffcp.instrumented -i @@ out.tmp

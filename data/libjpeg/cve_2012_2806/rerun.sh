@@ -2,8 +2,8 @@
 pushd pacfix
   cp jdmarker.c.i.c jdmarker.c
 popd
-rm -rf runtime
-mkdir -p runtime/afl-in
-mkdir runtime/afl-out
+# rm -rfruntime
+# mkdir -p runtime/afl-in
+# mkdir runtime/afl-out
 
-/home/yuntong/pacfix/main.exe -debug -lvfile ./live_variables -cycle 600 -timeout 21600 ./config > runtime/pacfix.log 2>&1
+/home/yuntong/pacfix/main.exe -synth_only -debug -seed -nouniq -epsilon 0.0 -lvfile ./live_variables -cycle 60 -timeout 300 ./config

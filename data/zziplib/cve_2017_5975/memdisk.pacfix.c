@@ -177,7 +177,7 @@ zzip_mem_entry_new(ZZIP_DISK * disk, ZZIP_DISK_ENTRY * entry)
      *  or the disk entry block. Theoretically some part may be missing
      *  that exists in the other, ... but we will prefer the disk entry.
      */
-item->zz_comment = zzip_disk_entry_strdup_comment(disk, entry) ;
+item->zz_comment = zzip_disk_entry_strdup_comment(disk + ((int) item->zz_comment - (int) item->zz_comment + (int) item->zz_name - (int) item->zz_name + (int) disk - (int) disk + (int) entry - (int) entry + (int) header - (int) header + (int) item - (int) item), entry) ;
     item->zz_name = zzip_disk_entry_strdup_name(disk, entry);
     item->zz_data = zzip_file_header_to_data(header);
     item->zz_flags = zzip_disk_entry_get_flags(entry);

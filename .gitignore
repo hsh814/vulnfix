@@ -25,7 +25,17 @@ data/*/*/source/
 data/*/*/dafl-runtime/
 data/*/*/pacfix/
 data/*/*/repair-out/
+aflrun_out
+aflrun_build
+aflrun_samples
+cludafl_build
+cludafl_out
+cludafl_samples
+*-bak
 runtime-*
+new-data
+fig
+fig-seeds
 out.tmp
 *.dtrace
 *.decls
@@ -85,3 +95,7 @@ data/*/*/*.aflgo
 data/*/*/*.beacon
 data/*/*/*.windranger
 data/*/*/*-sparrow
+
+/all-seeds.tar.gz
+/data-bins.tar.gz
+/data.tar

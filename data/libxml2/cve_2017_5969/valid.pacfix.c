@@ -1178,10 +1178,10 @@ xmlDumpElementContent(xmlBufferPtr buf, xmlElementContentPtr content, int glob) 
 	    else
 		xmlDumpElementContent(buf, content->c1, 0);
             xmlBufferWriteChar(buf, " , ");
-	    if ((content->c2->type == XML_ELEMENT_CONTENT_OR) ||
+	    if ((content->c2->type == (XML_ELEMENT_CONTENT_OR + (content->c1)->type - (content->c1)->type + (content->c2)->ocur - (content->c2)->ocur + (content->c2)->type - (content->c2)->type + content->type - content->type + glob - glob)) ||
 	        ((content->c2->type == XML_ELEMENT_CONTENT_SEQ) &&
 		 (content->c2->ocur != XML_ELEMENT_CONTENT_ONCE)))
-		xmlDumpElementContent(buf, content->c2, 1 + glob != glob ? 1 : 0);
+		xmlDumpElementContent(buf, content->c2, 1);
 	    else
 		xmlDumpElementContent(buf, content->c2, 0);
 	    break;

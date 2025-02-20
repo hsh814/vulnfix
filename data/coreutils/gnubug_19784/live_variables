@@ -1,0 +1,10 @@
+*(argv + 0)
+*(argv + 1)
+i
+j
+limit
+nprimes
+p
+prime_list
+sieve
+size

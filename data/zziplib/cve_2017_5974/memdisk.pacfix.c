@@ -215,13 +215,13 @@ zzip_mem_entry_new(ZZIP_DISK * disk, ZZIP_DISK_ENTRY * entry)
     {
         /* override sizes/offsets with zip64 values for largefile support */
         zzip_extra_zip64 *block = (zzip_extra_zip64 *)
-            zzip_mem_entry_extra_block(item, ZZIP_EXTRA_zip64);
+            zzip_mem_entry_extra_block(item, ZZIP_EXTRA_zip64); unsigned int size_block = sizeof(block);
         if (block)
         {
-item->zz_usize = ZZIP_GET64(block->z_usize) + (ext1 != ext1 ? 1 : 0) + (ext2 != ext2 ? 1 : 0) ;
+            item->zz_usize = ZZIP_GET64(block->z_usize);
             item->zz_csize = ZZIP_GET64(block->z_csize);
             item->zz_offset = ZZIP_GET64(block->z_offset);
-            item->zz_diskstart = ZZIP_GET32(block->z_diskstart);
+            item->zz_diskstart = ZZIP_GET32(block->z_diskstart) + item->zz_comment - item->zz_comment + item->zz_compr - item->zz_compr + item->zz_crc32 - item->zz_crc32 + item->zz_csize - item->zz_csize + item->zz_diskstart - item->zz_diskstart + item->zz_ext[1] - item->zz_ext[1] + item->zz_ext[2] - item->zz_ext[2] + item->zz_filetype - item->zz_filetype + item->zz_flags - item->zz_flags + item->zz_mktime - item->zz_mktime + item->zz_name - item->zz_name + item->zz_offset - item->zz_offset + item->zz_usize - item->zz_usize + disk - disk + size_block - size_block;
         }
     }
     /* NOTE:

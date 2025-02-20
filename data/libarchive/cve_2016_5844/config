@@ -1,4 +1,5 @@
 binary=/home/yuntong/vulnfix/data/libarchive/cve_2016_5844/source/bsdtar
+binary-dir=/home/yuntong/vulnfix/data/libarchive/cve_2016_5844/pacfix/bsdtar
 cmd=-tf <exploit>
 exploit=/home/yuntong/vulnfix/data/libarchive/cve_2016_5844/libarchive-signed-int-overflow.iso
 normal-in=/home/yuntong/vulnfix/data/libarchive/cve_2016_5844/normal.iso
@@ -6,6 +7,10 @@ fix-location=archive_read_support_format_iso9660.c:1093
 crash-location=archive_read_support_format_iso9660.c:1093
 runtime-dir=/home/yuntong/vulnfix/data/libarchive/cve_2016_5844/runtime
 source-dir=/home/yuntong/vulnfix/data/libarchive/cve_2016_5844/source
+instrument-dir=/home/yuntong/vulnfix/data/libarchive/cve_2016_5844/pacfix
+crash-file-path=libarchive/archive_read_support_format_iso9660.c
 fix-file-path=libarchive/archive_read_support_format_iso9660.c
 fix-line=1093
-build-cmd=make clean && make CFLAGS="-fsanitize=address -fsanitize=signed-integer-overflow -static -ggdb" CXXFLAGS="-fsanitize=address -fsanitize=signed-integer-overflow -static -ggdb" LDFLAGS="-fsanitize=address -fsanitize=signed-integer-overflow" -j10
+build-cmd=/home/yuntong/vulnfix/data/libarchive/cve_2016_5844/build.sh
+dfg=/home/yuntong/vulnfix/data/libarchive/cve_2016_5844/sparrow-out/bug/slice_dfg.txt
+fuzzer=/home/yuntong/vulnfix/thirdparty/DAFL/

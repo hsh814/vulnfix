@@ -2,18 +2,19 @@
 rm -rf pacfix
 cp -r source pacfix
 pushd pacfix
-  ../source/configure
+  ./configure
   make CFLAGS="-static -fsanitize=address -g" CXXFLAGS="-static -fsanitize=address -g" -j10 > make.log
   # cat make.log | grep memdisk.c
   pushd zzip
-    gcc -E -DHAVE_CONFIG_H -I.. -I../../source -static -fsanitize=address -g -MT memdisk.lo -MD -MP -MF .deps/memdisk.Tpo -c memdisk.c > memdisk.c.i
+    gcc -E -DHAVE_CONFIG_H -I../Linux_5.15.0-91-generic_x86_64.d -I..       -static -fsanitize=address -g -MT ../Linux_5.15.0-91-generic_x86_64.d/zzip/memdisk.lo -MD -MP -MF ../Linux_5.15.0-91-generic_x86_64.d/zzip/.deps/memdisk.Tpo -c memdisk.c > memdisk.c.i
     cilly --domakeCFG --gcc=/usr/bin/gcc-7 --out=tmp.c memdisk.c.i
     mv tmp.c memdisk.c.i.c
     cp memdisk.c.i.c memdisk.c
   popd
 popd
-/home/yuntong/pacfix/main.exe -lv_only config
+/home/yuntong/pacfix/main.exe -lv_only 1 config
 
+cp ./source/zzip/memdisk.c memdisk.orig.c
 # manually fix the code
 # python3 /home/yuntong/vulnfix/src/add_lv.py 180 repair-out/live_variables ./source/zzip/memdisk.c
 cp memdisk.pacfix.c ./source/zzip/memdisk.c
@@ -24,6 +25,8 @@ pushd smake_source
   CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake --init
   CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake CFLAGS="-static -fsanitize=address -g" CXXFLAGS="-static -fsanitize=address -g" -j10
 popd
+
+cp memdisk.orig.c ./source/zzip/memdisk.c
 
 rm -rf sparrow-out && mkdir sparrow-out
 /home/yuntong/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \

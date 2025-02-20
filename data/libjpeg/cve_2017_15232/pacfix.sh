@@ -1,28 +1,43 @@
 #!/bin/bash
 rm -rf source
-git clone https://github.com/libjpeg-turbo/libjpeg-turbo.git source
+unzip source.zip
+mv libjpeg-turbo-32120054c224d1911ebe33dc664c0f730a7782b2 source 
 pushd source
-  git checkout 3212005
   autoreconf -i
 popd
+
+cp jdpostct.pacfix.c  ./source/jdpostct.c 
+cp ./source/jdpostct.c jdpostct.orig.c 
+cp ./source/jquant1.c jquant1.orig.c 
+cp ./source/jdmainct.c ./jdmainct.orig.c
+cp ./source/jdapistd.c ./jdapistd.orig.c
+cp ./source/jdmainct.h ./jdmainct.orig.h
+
 
 rm -rf pacfix
 cp -r source pacfix
 pushd pacfix
-  ../source/configure
-  make CFLAGS="-static -fsanitize=address -fsanitize=undefined -g" CXXFLAGS="-static -fsanitize=address -fsanitize=undefined -g" -j10 > make.log
+  ./configure
+  make CFLAGS="-static -fsanitize=address -fsanitize=undefined -g" CXXFLAGS="-static -fsanitize=address -fsanitize=undefined -g" -j10
   # cat make.log | grep jdpostct.c
-  gcc -E -DHAVE_CONFIG_H -I. -I../source -Wall -fsanitize=address -fsanitize=undefined -g -MT jdmarker.lo -MD -MP -MF .deps/jdmarker.Tpo -c jdmarker.c > jdmarker.c.i
-  cilly --domakeCFG --gcc=/usr/bin/gcc-7 --out=tmp.c jdmarker.c.i
-  mv tmp.c jdmarker.c.i.c
-  cp jdmarker.c.i.c jdmarker.c
+  gcc -E -DHAVE_CONFIG_H -I. -Wall -fsanitize=address -fsanitize=undefined -g -MT jdpostct.lo -MD -MP -MF .deps/jdpostct.Tpo -c jdpostct.c > jdpostct.c.i
+  cilly --domakeCFG --gcc=/usr/bin/gcc-7 --out=tmp.c jdpostct.c.i
+  mv tmp.c jdpostct.c.i.c
+  cp jdpostct.c.i.c jdpostct.c
+  gcc -E -DHAVE_CONFIG_H -I. -Wall -fsanitize=address -fsanitize=undefined -g -MT jquant1.lo -MD -MP -MF .deps/jquant1.Tpo -c jquant1.c > jquant1.c.i
+  cilly --domakeCFG --gcc=/usr/bin/gcc-7 --out=tmp.c jquant1.c.i
+  mv tmp.c jquant1.c.i.c
+  cp jquant1.c.i.c jquant1.c
 popd
-/home/yuntong/pacfix/main.exe -lv_only config
+/home/yuntong/pacfix/main.exe -lv_only 1 config
 
 # manually fix the code
 # python3 /home/yuntong/vulnfix/src/add_lv.py 327 repair-out/live_variables ./source/jdmarker.c 
-cp jdmarker.pacfix.c ./source/jdmarker.c
-
+cp jquant1.pacfix.c ./source/jquant1.c
+cp ./jdpostct.pacfix2.c  ./source/jdpostct.c 
+cp ./jdmainct.pacfix.c ./source/jdmainct.c 
+cp ./jdapistd.pacfix.c ./source/jdapistd.c 
+cp ./jdmainct.pacfix.h ./source/jdmainct.h 
 
 rm -rf smake_source && mkdir smake_source
 pushd smake_source
@@ -31,22 +46,30 @@ pushd smake_source
   CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake CFLAGS="-static -fsanitize=address -fsanitize=undefined -g" CXXFLAGS="-static -fsanitize=address -fsanitize=undefined -g" -j 10
 popd
 
+cp ./jdpostct.orig.c  ./source/jdpostct.c 
+cp jquant1.orig.c ./source/jquant1.c
+cp ./jdmainct.orig.c ./source/jdmainct.c 
+cp ./jdapistd.orig.c ./source/jdapistd.c 
+cp ./jdmainct.orig.h ./source/jdmainct.h 
+
 rm -rf sparrow-out && mkdir sparrow-out
 /home/yuntong/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \
 -frontend "clang" -unsound_alloc -unsound_const_string -unsound_recursion -unsound_noreturn_function \
 -unsound_skip_global_array_init 1000 -skip_main_analysis -cut_cyclic_call -unwrap_alloc \
--entry_point "get_sos" -max_pre_iter 10 -slice "bug=jdmarker.c:327" \
-./smake_source/sparrow/djpeg/*.i ./smake_source/sparrow/jdmarker.o.i
+-entry_point "main" -max_pre_iter 10 -slice "bug=jquant1.c:536" \
+./smake_source/sparrow/djpeg/*.i ./smake_source/sparrow/jquant1.o.i \
+./smake_source/sparrow/jdpostct.o.i ./smake_source/sparrow/jdapistd.o.i \
+./smake_source/sparrow/jdmainct.o.i
 
 rm -rf dafl_source && mkdir dafl_source
 pushd dafl_source
-  DAFL_SELECTIVE_COV="/home/yuntong/vulnfix/data/libjpeg/cve_2012_2806/sparrow-out/bug/slice_func.txt" \
-  DAFL_DFG_SCORE="/home/yuntong/vulnfix/data/libjpeg/cve_2012_2806/sparrow-out/bug/slice_dfg.txt" \
+  DAFL_SELECTIVE_COV="/home/yuntong/vulnfix/data/libjpeg/cve_2017_15232/sparrow-out/bug/slice_func.txt" \
+  DAFL_DFG_SCORE="/home/yuntong/vulnfix/data/libjpeg/cve_2017_15232/sparrow-out/bug/slice_dfg.txt" \
   ASAN_OPTIONS=detect_leaks=0 CC=/home/yuntong/vulnfix/thirdparty/DAFL/afl-clang-fast CXX=/home/yuntong/vulnfix/thirdparty/DAFL/afl-clang-fast++ \
   ../source/configure
 
-  DAFL_SELECTIVE_COV="/home/yuntong/vulnfix/data/libjpeg/cve_2012_2806/sparrow-out/bug/slice_func.txt" \
-  DAFL_DFG_SCORE="/home/yuntong/vulnfix/data/libjpeg/cve_2012_2806/sparrow-out/bug/slice_dfg.txt" \
+  DAFL_SELECTIVE_COV="/home/yuntong/vulnfix/data/libjpeg/cve_2017_15232/sparrow-out/bug/slice_func.txt" \
+  DAFL_DFG_SCORE="/home/yuntong/vulnfix/data/libjpeg/cve_2017_15232/sparrow-out/bug/slice_dfg.txt" \
   ASAN_OPTIONS=detect_leaks=0 CC=/home/yuntong/vulnfix/thirdparty/DAFL/afl-clang-fast CXX=/home/yuntong/vulnfix/thirdparty/DAFL/afl-clang-fast++ \
   make CFLAGS="-static -fsanitize=address -fsanitize=undefined -g" CXXFLAGS="-static -fsanitize=address -fsanitize=undefined -g" -j 10
 popd
@@ -54,4 +77,5 @@ popd
 cp dafl_source/djpeg ./djpeg.instrumented
 
 # AFL_NO_UI=1 timeout 12h /home/yuntong/vulnfix/thirdparty/DAFL/afl-fuzz -C -t 2000ms -m none -i ./in -p /home/yuntong/vulnfix/data/libtiff/cve_2016_5321/sparrow-out/bug/slice_dfg.txt -o 2024-04-04-test -- ./tiffcrop.instrumented @@ /tmp/out.tmp
+
 

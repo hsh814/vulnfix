@@ -1,3 +1,8 @@
+(cinfo->err)->msg_code
+(cinfo->err)->msg_parm.i[0]
+cinfo->comps_in_scan
+cinfo->num_components
+datasrc->bytes_in_buffer
 bytes_in_buffer
 c
 cc

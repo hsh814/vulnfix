@@ -46,7 +46,7 @@ rm -rf sparrow-out && mkdir sparrow-out
 
 rm -rf dafl_source && mkdir dafl_source
 pushd dafl_source
-  DAFL_SELECTIVE_COV="/home/yuntong/vulnfix/data/coreutils/gnubug_25003/sparrow-out/bug/slice_func.txt" \
+  FORCE_UNSAFE_CONFIGURE=1 DAFL_SELECTIVE_COV="/home/yuntong/vulnfix/data/coreutils/gnubug_25003/sparrow-out/bug/slice_func.txt" \
   DAFL_DFG_SCORE="/home/yuntong/vulnfix/data/coreutils/gnubug_25003/sparrow-out/bug/slice_dfg.txt" \
   ASAN_OPTIONS=detect_leaks=0 CC=/home/yuntong/vulnfix/thirdparty/DAFL/afl-clang-fast CXX=/home/yuntong/vulnfix/thirdparty/DAFL/afl-clang-fast++ \
   ../source/configure

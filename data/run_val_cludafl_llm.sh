@@ -1,0 +1,72 @@
+#!/bin/bash
+
+subjects=(
+    # "binutils/cve_2017_6965"
+    # "binutils/cve_2017_14745"
+    # "binutils/cve_2017_15025"
+    # "coreutils/gnubug_19784"
+    # "coreutils/gnubug_25003"
+    # "coreutils/gnubug_25023"
+    # "coreutils/gnubug_26545"
+    # "jasper/cve_2016_8691"
+    # "jasper/cve_2016_9557"
+    # "libjpeg/cve_2012_2806"
+    # "libjpeg/cve_2017_15232"
+    # "libming/cve_2016_9264"
+    # "libtiff/bugzilla_2633"
+    # "libtiff/cve_2016_5321"
+    # "libtiff/cve_2016_9532"
+    # "libtiff/cve_2016_10094"
+    # "libtiff/cve_2017_7595"
+    # "libtiff/cve_2017_7599"
+    # "libtiff/cve_2017_7600"
+    # "libtiff/cve_2017_7601"
+    "libxml2/cve_2012_5134"
+    "libxml2/cve_2016_1838"
+    "libxml2/cve_2016_1839"
+    "libxml2/cve_2017_5969"
+    # "zziplib/cve_2017_5974"
+    # "zziplib/cve_2017_5975"
+    # "zziplib/cve_2017_5976"
+)
+# subjects=("coreutils/gnubug_25003")
+# subjects=("libjpeg/cve_2017_15232" "libxml2/cve_2016_1839" "libtiff/cve_2016_9532")
+array=(
+      # "cludafl-reset-0" "cludafl-reset-1" "cludafl-reset-2" "cludafl-reset-3" "cludafl-reset-4" "cludafl-reset-5" "cludafl-reset-6" "cludafl-reset-7" "cludafl-reset-8" "cludafl-reset-9" "cludafl-reset-10"
+      # "dafl-1" "dafl-2" "dafl-3" "dafl-4" "dafl-5" "dafl-6" "dafl-7" "dafl-8" "dafl-9" "dafl-10"
+      "cludafl-llm-1" "cludafl-llm-2" "cludafl-llm-3" "cludafl-llm-4" "cludafl-llm-5" #"cludafl-llm-6" "cludafl-llm-7" "cludafl-llm-8" "cludafl-llm-9" "cludafl-llm-10"
+)
+for subject in "${subjects[@]}"; do
+  (
+    echo "Running AFLRun get_val.py for $subject"
+    mkdir -p $subject/cludafl_samples
+    for i in "${array[@]}"; do
+    (
+      echo "Starting get_val_cludafl.py $i for $subject"
+      python3 get_val_cludafl.py $subject $i
+      echo "get_val_cludafl.py $i for $subject has completed."
+    )
+    done
+    echo "All get_val.py for $subject have completed."
+    # Run pacfix: run sequentially
+    pushd $subject
+      for i in "${array[@]}"; do
+      (
+        echo "Start pacfix $i for $subject"
+        rm -rf runtime/afl-out/memory
+        mkdir -p runtime/afl-out/memory/neg
+        mkdir -p runtime/afl-out/memory/pos
+        rsync -az cludafl_samples/out-$i/ runtime/afl-out/memory/
+        ./rerun.sh
+        mv runtime/pacfix.log cludafl_samples/pacfix-$i.log
+        echo "pacfix $i for $subject has completed."
+      )
+      done
+    popd
+    echo "All pacfix for $subject have completed."
+  ) &
+done
+
+wait
+
+echo "All subjects have completed."

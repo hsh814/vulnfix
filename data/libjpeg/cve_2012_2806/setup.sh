@@ -1,12 +1,12 @@
 #!/bin/bash
-rm -rf source
-git clone https://github.com/libjpeg-turbo/libjpeg-turbo.git
-mv libjpeg-turbo source
+# rm -rf source
+# git clone https://github.com/libjpeg-turbo/libjpeg-turbo.git
+# mv libjpeg-turbo source
 
-pushd source
-  git checkout 4f24016
-  autoreconf -fiv
-popd
+# pushd source
+#   git checkout 4f24016
+#   autoreconf -fiv
+# popd
 
 rm -rf smake_source && mkdir smake_source
 pushd smake_source

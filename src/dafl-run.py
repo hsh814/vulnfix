@@ -107,7 +107,9 @@ def run_dafl(runtime_dir: str, config: dict, opts: str, opt: str) -> mp.Process:
     out_dir = os.path.join(runtime_dir, f"{exp_id}-{opt}")
     cmd = f"timeout 6h /home/yuntong/vulnfix/thirdparty/DAFL/afl-fuzz -C -t 2000ms -m none -p {config['dfg']} -i {in_dir} -o {out_dir} {opts} -- {default_bin} {prog_cmd} >{runtime_dir}/{exp_id}-{opt}.log 2>&1"
     sym_dir = os.path.join(config["collection"], opt)
-    os.unlink(sym_dir)
+    print(f"Create symlink {sym_dir} -> {out_dir}")
+    if os.path.exists(sym_dir):
+        os.unlink(sym_dir)
     os.symlink(out_dir, sym_dir)
     return mp.Process(target=execute, args=(cmd, runtime_dir, out_dir, env_final))
 
@@ -167,7 +169,7 @@ def run_exp_new(subject: dict):
     runtime_dir = os.path.join(subject_dir, "dafl-runtime")
     config = read_config(os.path.join(subject_dir, "config"))
     in_dir = os.path.join(runtime_dir, "in")
-    collection = os.path.join(root_dir, "tmp", exp_id, subject["subject"] + subject["bug_id"])
+    collection = os.path.join(root_dir, "tmp", exp_id, subject["subject"] + "_" + subject["bug_id"])
     os.makedirs(collection, exist_ok=True)
     config["collection"] = collection
     if not os.path.exists(in_dir):
@@ -193,25 +195,27 @@ def run_cmd(subject: dict):
     runtime_dir = os.path.join(subject_dir, "dafl-runtime")
     config = read_config(os.path.join(subject_dir, "config"))
     in_dir = os.path.join(runtime_dir, "in")
-    collection = os.path.join(root_dir, "tmp", exp_id, subject["subject"] + subject["bug_id"])
+    collection = os.path.join(root_dir, "tmp", exp_id, subject["subject"] + "_" + subject["bug_id"])
     os.makedirs(collection, exist_ok=True)
     config["collection"] = collection
     if not os.path.exists(in_dir):
         os.makedirs(in_dir)
         os.system(f"cp {config['exploit']} {in_dir}")
+    
+    p_list = list()
     # moo
-    p_moo = run_dafl(runtime_dir, config, "-s m", "moo")
+    p_list.append(run_dafl(runtime_dir, config, "-s m", "moo"))
     # dafl
-    p_dafl = run_dafl(runtime_dir, config, "-s d", "dafl")
+    p_list.append(run_dafl(runtime_dir, config, "-s d", "dafl"))
     # vert
-    p_vert = run_dafl(runtime_dir, config, "-s m -v -z", "vert")
+    p_list.append(run_dafl(runtime_dir, config, "-s m -v", "vert"))
+    # dyn
+    p_list.append(run_dafl(runtime_dir, config, "-s m -z", "dyn"))
 
-    p_moo.start()
-    p_dafl.start()
-    p_vert.start()
-    p_moo.join()
-    p_dafl.join()
-    p_vert.join()
+    for p in p_list:
+        p.start()
+    for p in p_list:
+        p.join()
 
 
 def analyze(dir: str):
@@ -258,6 +262,7 @@ def main(argv: List[str]):
                         choices=["run", "tmp", "exp", "analyze"])
     parser.add_argument("subject", help="subject_id")
     parser.add_argument("--id", help="id", default="")
+    parser.add_argument("--out", help="not used", default="")
     args = parser.parse_args(argv)
     meta = read_meta_data()
     subject = find_subject(args.subject, meta)

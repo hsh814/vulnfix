@@ -1,0 +1,4 @@
+# environment variables:
+AFL_NO_UI=1
+# command line:
+'/home/yuntong/vulnfix/thirdparty/AFLRun/afl-fuzz' '-i' 'in' '-o' 'aflrun-out' '-C' './imginfo.aflrun' '-f' '@@'

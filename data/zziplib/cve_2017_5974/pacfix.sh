@@ -1,4 +1,7 @@
 #!/bin/bash
+cp memdisk.pacfix2.c ./source/zzip/memdisk.c
+cp ./source/zzip/memdisk.c memdisk.orig.c
+
 rm -rf pacfix
 cp -r source pacfix
 pushd pacfix
@@ -12,7 +15,7 @@ pushd pacfix
     cp memdisk.c.i.c memdisk.c
   popd
 popd
-/home/yuntong/pacfix/main.exe -lv_only config
+/home/yuntong/pacfix/main.exe -lv_only 1 config
 
 # manually fix the code
 # python3 /home/yuntong/vulnfix/src/add_lv.py 221 repair-out/live_variables ./source/zzip/memdisk.c
@@ -24,6 +27,8 @@ pushd smake_source
   CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake --init
   CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake CFLAGS="-static -fsanitize=address -g" CXXFLAGS="-static -fsanitize=address -g" -j10
 popd
+
+cp memdisk.orig.c ./source/zzip/memdisk.c
 
 rm -rf sparrow-out && mkdir sparrow-out
 /home/yuntong/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \
