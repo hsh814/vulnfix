@@ -49,6 +49,7 @@ xaaa.tif
 exploit.eps
 
 tmp/
+seed_parallel/
 
 # vscode
 .vscode/

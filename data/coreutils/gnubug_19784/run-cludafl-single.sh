@@ -6,8 +6,11 @@ fi
 SUFFIX="$1"
 TARGET_DIR="/home/yuntong/vulnfix/data/coreutils/gnubug_19784"
 SEED_DIR="${TARGET_DIR}/seed/"
+SEED_DIR="${SEED_DIR_OVERRIDE:-$SEED_DIR}"
 
-AFL_CMD="timeout 24h /home/yuntong/vulnfix/thirdparty/CLUDAFL/afl-fuzz"
+TIMEOUT="24h"
+TIMEOUT="${TIMEOUT_OVERRIDE:-$TIMEOUT}"
+AFL_CMD="timeout $TIMEOUT /home/yuntong/vulnfix/thirdparty/CLUDAFL/afl-fuzz"
 AFL_OPTS_COMMON="-t 2000+ -m none -d -s mab"
 AFL_OPTS_COMMON="${AFL_OPTS_COMMON_OVERRIDE:-$AFL_OPTS_COMMON}"
 AFL_INPUT_DIR="./in"
@@ -27,6 +30,7 @@ mkdir -p $PACFIX_COV_DIR
 
 input_dir=$SEED_DIR
 output_dir="${TARGET_DIR}/cludafl_out/out-${SUFFIX}"
+output_dir="${OUTPUT_DIR_OVERRIDE:-$output_dir}"
 rm -rf $output_dir
 $AFL_CMD $AFL_OPTS_COMMON -p $AFL_PROG -i "$input_dir"  -o "$output_dir" -- "$INSTRUMENTED_PROG"
 
