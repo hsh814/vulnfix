@@ -44,11 +44,11 @@ def execute(cmd: str, dir: str, env: Dict[str, str], opt: str, exp: str):
   log_out(f"{exp},{end - start}\n")
   # if log_dir == "exp":
   #   collect_result(meta)
-  log_out(stdout.decode('utf-8', errors='ignore'))
   if proc.returncode != 0:
     print(f"Failed to execute: {cmd}")
     try:
       log_out(f"Failed to execute: {cmd}")
+      log_out(stdout.decode('utf-8', errors='ignore'))
       log_out(stderr.decode('utf-8', errors='ignore'))
     except Exception as e:
       print(e)
