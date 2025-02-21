@@ -10,6 +10,7 @@ import time
 import datetime
 import sbsv
 import argparse
+import shutil
 import psutil
 
 ROOT_DIR = "/home/yuntong/vulnfix"
@@ -31,7 +32,7 @@ def execute(cmd: str, dir: str, env: Dict[str, str], opt: str, exp: str):
   print(f"Executing: {cmd}")
   start = time.time()
   timeout = 12 * 3600 + 600 # 12 hours + 10 minutes for analysis
-  proc = subprocess.Popen(cmd, shell=True, cwd=dir, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  proc = subprocess.Popen(cmd, shell=True, cwd=dir, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   try:
     stdout, stderr = proc.communicate(timeout=timeout)
   except subprocess.TimeoutExpired:
@@ -43,11 +44,12 @@ def execute(cmd: str, dir: str, env: Dict[str, str], opt: str, exp: str):
   log_out(f"{exp},{end - start}\n")
   # if log_dir == "exp":
   #   collect_result(meta)
+  log_out(stdout.decode('utf-8', errors='ignore'))
   if proc.returncode != 0:
     print(f"Failed to execute: {cmd}")
     try:
       log_out(f"Failed to execute: {cmd}")
-      log_out(stderr.decode("utf-8", ignore_errors=True))
+      log_out(stderr.decode('utf-8', errors='ignore'))
     except Exception as e:
       print(e)
     return False
@@ -90,7 +92,7 @@ def run_cmd(opt: str, subject: str, exp_name: str):
     new_seed_dir = os.path.join(subject_dir, "seed_parallel", f"{index}")
     if not os.path.exists(new_seed_dir):
       os.makedirs(new_seed_dir, exist_ok=True)
-      os.link(os.path.join(seed_dir, file), os.path.join(new_seed_dir, file))
+      shutil.copy(os.path.join(seed_dir, file), os.path.join(new_seed_dir, file))
     new_output_dir = os.path.join(subject_dir, "cludafl_out", exp_name, f"{index}")
     env = os.environ.copy()
     env["SEED_DIR_OVERRIDE"] = new_seed_dir
@@ -99,7 +101,8 @@ def run_cmd(opt: str, subject: str, exp_name: str):
     env["TIMEOUT_OVERRIDE"] = "12h"
     cmd = f"./run-cludafl-single.sh {exp_name}-{index}"
     index += 1
-    args_list.append((cmd, subject_dir, env, opt, f"{exp_name}-{index}"))
+    log_out(f"SEED_DIR_OVERRIDE=\"{new_seed_dir}\" AFL_OPTS_COMMON_OVERRIDE=\"{env['AFL_OPTS_COMMON_OVERRIDE']}\" OUTPUT_DIR_OVERRIDE=\"{new_output_dir}\" TIMEOUT_OVERRIDE=\"{env['TIMEOUT_OVERRIDE']}\" {cmd}")
+    args_list.append((cmd, subject_dir, env, opt, f"{exp_name}/{index}"))
   print(f"Total {opt}: {len(args_list)}")
   pool.map(execute_wrapper, args_list)
   pool.close()
@@ -109,8 +112,8 @@ def run_cmd(opt: str, subject: str, exp_name: str):
 def main(argv: List[str]):
   parser = argparse.ArgumentParser(description="Run symvass experiments")
   parser.add_argument("cmd", type=str, help="Command to run", choices=["run"])
-  parser.add_argument("subject", type=str, help="Subject to run")
   parser.add_argument("exp_name", type=str, help="Extra arguments")
+  parser.add_argument("subject", type=str, help="Subject to run")
   args = parser.parse_args(argv)
   run_cmd(args.cmd, args.subject, args.exp_name)
 
