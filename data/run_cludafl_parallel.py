@@ -32,13 +32,13 @@ def execute(cmd: str, dir: str, env: Dict[str, str], opt: str, exp: str):
   print(f"Executing: {cmd}")
   start = time.time()
   timeout = 12 * 3600 + 600 # 12 hours + 10 minutes for analysis
-  proc = subprocess.Popen(cmd, shell=True, cwd=dir, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  proc = subprocess.Popen(cmd, shell=True, cwd=dir, env=env)
   try:
-    stdout, stderr = proc.communicate(timeout=timeout)
+    proc.communicate(timeout=timeout)
   except subprocess.TimeoutExpired:
     log_out(f"Timeout: {cmd} - kill pid {proc.pid}")
     kill_proc_tree(proc.pid)
-    stdout, stderr = proc.communicate()
+    proc.communicate()
   finally:
     end = time.time()
   log_out(f"{exp},{end - start}\n")
@@ -48,8 +48,6 @@ def execute(cmd: str, dir: str, env: Dict[str, str], opt: str, exp: str):
     print(f"Failed to execute: {cmd}")
     try:
       log_out(f"Failed to execute: {cmd}")
-      log_out(stdout.decode('utf-8', errors='ignore'))
-      log_out(stderr.decode('utf-8', errors='ignore'))
     except Exception as e:
       print(e)
     return False
