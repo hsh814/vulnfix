@@ -14,7 +14,7 @@ subjects=(
     # "libjpeg/cve_2017_15232"
     # "libming/cve_2016_9264"
     # "libtiff/bugzilla_2633"
-    "libtiff/cve_2016_5321"
+    # "libtiff/cve_2016_5321"
     # "libtiff/cve_2016_9532"
     # "libtiff/cve_2016_10094"
     # "libtiff/cve_2017_7595"
@@ -32,27 +32,27 @@ subjects=(
 export CLUDAFL="/home/yuntong/vulnfix/thirdparty/CLUDAFL"
 # subjects=("libjpeg/cve_2017_15232" "libxml2/cve_2016_1839" "libtiff/cve_2016_9532")
 
-# array=("cludafl-reset-8" "cludafl-reset-9" "cludafl-reset-10")
+array=("cludafl-par-1" "cludafl-par-2" "cludafl-par-3" "cludafl-par-4" "cludafl-par-5" "cludafl-par-6" "cludafl-par-7" "cludafl-par-8" "cludafl-par-9" "cludafl-par-10")
 # array=("cludafl-llm-6" "cludafl-llm-7" "cludafl-llm-8" "cludafl-llm-9" "cludafl-llm-10")
 #  "cludafl-reset-2" "cludafl-reset-3" "cludafl-reset-4" "cludafl-reset-5" "cludafl-reset-6" "cludafl-reset-7" "cludafl-reset-8" "cludafl-reset-9" "cludafl-reset-10"
 for subject in "${subjects[@]}"; do
   (
     echo "Running AFLRun run-aflrun-single.sh for $subject"
     # i="cludafl-reset-min"
-    # for i in "${array[@]}"; do
-    # (
+    for i in "${array[@]}"; do
+    (
       export AFL_OPTS_COMMON_OVERRIDE="-t 2000+ -m none -d -s dafl -v"
       echo "Starting fuzzer $i for $subject"
-      python3 ./run_cludafl_parallel.py run cludafl-par-1 $subject
+      python3 ./run_cludafl_parallel.py run $i $subject
       # pushd $subject
       #   mkdir -p cludafl_out
       #   ./run-cludafl-single.sh "$i"
       # popd
       echo "Fuzzer $i for $subject has completed."
-    # ) &
-    # done
+    )
+    done
     # wait
-    # echo "All fuzzers for $subject have completed."
+    echo "All fuzzers for $subject have completed."
   ) &
 done
 
