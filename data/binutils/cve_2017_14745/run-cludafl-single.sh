@@ -34,6 +34,6 @@ input_dir=$SEED_DIR
 output_dir="${TARGET_DIR}/cludafl_out/out-${SUFFIX}"
 output_dir="${OUTPUT_DIR_OVERRIDE:-$output_dir}"
 rm -rf $output_dir
-$AFL_CMD $AFL_OPTS_COMMON -i "$input_dir" -o "$output_dir" -- "$INSTRUMENTED_PROG" -D @@
+$AFL_CMD $AFL_OPTS_COMMON -p $AFL_PROG -i "$input_dir" -o "$output_dir" -- "$INSTRUMENTED_PROG" -D @@
 
 echo "Run Completed."

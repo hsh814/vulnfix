@@ -34,7 +34,7 @@ output_dir="${OUTPUT_DIR_OVERRIDE:-$output_dir}"
 
 rm -rf $output_dir
 
-$AFL_CMD $AFL_OPTS_COMMON -i "$input_dir" -o "$output_dir" -- "$INSTRUMENTED_PROG" -A -a -l -S -s --special-syms --synthetic --with-symbol-versions @@
+$AFL_CMD $AFL_OPTS_COMMON  -p $AFL_PROG  -i "$input_dir" -o "$output_dir" -- "$INSTRUMENTED_PROG" -A -a -l -S -s --special-syms --synthetic --with-symbol-versions @@
 
 
 echo "Run Completed."
