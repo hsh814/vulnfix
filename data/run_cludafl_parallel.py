@@ -58,8 +58,8 @@ def execute(cmd: str, cwd: str, env: Dict[str, str], opt: str, exp: str) -> bool
     proc.communicate(timeout=timeout)
   except subprocess.TimeoutExpired:
     log_out(f"Timeout: {cmd} - Terminating process group for PID {proc.pid}")
-    kill_process_group(proc)
-    proc.communicate()
+    # kill_process_group(proc)
+    # proc.communicate()
   finally:
     end_time = time.time()
 
