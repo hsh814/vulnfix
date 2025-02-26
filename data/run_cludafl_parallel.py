@@ -25,12 +25,12 @@ subjects = [
   # "coreutils/gnubug_19784",
   # "coreutils/gnubug_25003",
   # "coreutils/gnubug_25023",
-  "coreutils/gnubug_26545",
-  "jasper/cve_2016_8691",
-  "jasper/cve_2016_9557",
-  "libjpeg/cve_2012_2806",
-  "libjpeg/cve_2017_15232",
-  "libming/cve_2016_9264",
+  # "coreutils/gnubug_26545",
+  # "jasper/cve_2016_8691",
+  # "jasper/cve_2016_9557",
+  # "libjpeg/cve_2012_2806",
+  # "libjpeg/cve_2017_15232",
+  # "libming/cve_2016_9264",
   # "libtiff/bugzilla_2633",
   # "libtiff/cve_2016_5321",
   # "libtiff/cve_2016_9532",
@@ -54,7 +54,7 @@ experiments = [
   "cludafl-par-7", "cludafl-par-8", "cludafl-par-9", 
   "cludafl-par-10"
 ]
-experiments = ["cludafl-test-1", "cludafl-test-2"]
+# experiments = ["cludafl-test-1", "cludafl-test-2"]
 
 def log_out(msg: str):
   print(msg, file=sys.stderr)
