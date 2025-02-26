@@ -18,32 +18,53 @@ ROOT_DIR = "/home/yuntong/vulnfix"
 def log_out(msg: str):
   print(msg, file=sys.stderr)
 
-def kill_proc_tree(pid: int, including_parent: bool = True):
-  parent = psutil.Process(pid)
-  children = parent.children(recursive=True)
-  for child in children:
-    child.kill()
-  psutil.wait_procs(children, timeout=5)
-  if including_parent:
-    parent.kill()
-    parent.wait(5)
+def kill_process_group(proc: subprocess.Popen, timeout: int = 5):
+  """
+  Terminates the entire process group associated with the subprocess.
+  It sends a SIGTERM to allow a graceful shutdown and escalates to SIGKILL if needed.
+  """
+  try:
+    # Send SIGTERM to the process group.
+    os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
+  except Exception as e:
+    print(f"Error sending SIGTERM to group: {e}")
+  
+  # Wait for the process group to exit gracefully.
+  start_time = time.time()
+  while time.time() - start_time < timeout:
+    if proc.poll() is not None:
+      break
+    time.sleep(0.1)
+  else:
+    try:
+      # Escalate to SIGKILL if the process does not exit.
+      os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
+    except Exception as e:
+      print(f"Error sending SIGKILL to group: {e}")
 
-def execute(cmd: str, dir: str, env: Dict[str, str], opt: str, exp: str):
+def execute(cmd: str, cwd: str, env: Dict[str, str], opt: str, exp: str) -> bool:
+  """
+  Executes a command in a specified directory and environment.
+  It isolates the command in its own process group and attempts a graceful shutdown on timeout.
+  """
   print(f"Executing: {cmd}")
-  start = time.time()
-  timeout = 12 * 3600 + 600 # 12 hours + 10 minutes for analysis
-  proc = subprocess.Popen(cmd, shell=True, cwd=dir, env=env)
+  start_time = time.time()
+  timeout = 3600 * 12 + 600 # Timeout in seconds; 12h + 10m
+
+  # Start the subprocess in a new process group.
+  proc = subprocess.Popen(cmd, shell=True, cwd=cwd, env=env, preexec_fn=os.setsid)
+
   try:
     proc.communicate(timeout=timeout)
   except subprocess.TimeoutExpired:
-    log_out(f"Timeout: {cmd} - kill pid {proc.pid}")
-    kill_proc_tree(proc.pid)
+    log_out(f"Timeout: {cmd} - Terminating process group for PID {proc.pid}")
+    kill_process_group(proc)
     proc.communicate()
   finally:
-    end = time.time()
-  log_out(f"{exp},{end - start}\n")
-  # if log_dir == "exp":
-  #   collect_result(meta)
+    end_time = time.time()
+
+  log_out(f"{exp},{end_time - start_time}\n")
+
   if proc.returncode != 0:
     print(f"Failed to execute: {cmd}")
     try:
