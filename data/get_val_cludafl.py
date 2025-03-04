@@ -148,10 +148,10 @@ def create_directory(dir_path):
 
 if __name__ == "__main__":
     initialize()
-    out_dir = os.path.join(base_path, "cludafl_out", f"out-{out_postfix}", "memory", "input")
+    out_dir = os.path.join(base_path, "cludafl_out", f"{out_postfix}", "memory", "input")
     aflrun_tc = get_testcases(out_dir) # ("/home/yuntong/vulnfix/data/binutils/cve_2017_15025/seed")
     # pacfuzz_tc = get_testcases(base_path + "/dafl2_all/inputs")
-    sample_dir = os.path.join(base_path, "cludafl_samples", f"out-{out_postfix}")
+    sample_dir = os.path.join(base_path, "cludafl_samples", f"{out_postfix}")
     create_directory(sample_dir)
     create_directory(os.path.join(sample_dir, "pos"))
     create_directory(os.path.join(sample_dir, "neg"))
