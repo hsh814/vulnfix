@@ -18,7 +18,7 @@ import signal
 ROOT_DIR = "/home/yuntong/vulnfix"
 
 subjects = [
-  "binutils/cve_2017_6965",
+  # "binutils/cve_2017_6965",
   # "binutils/cve_2017_14745",
   # "binutils/cve_2017_15025",
   # "coreutils/gnubug_19784",
@@ -54,7 +54,7 @@ experiments = [
   # "cludafl-par-7", "cludafl-par-8", "cludafl-par-9", 
   # "cludafl-par-10"
 ]
-experiments = ["cludafl-par-1"]
+# experiments = ["cludafl-par-1"]
 
 def log_out(msg: str):
   print(msg, file=sys.stderr)
