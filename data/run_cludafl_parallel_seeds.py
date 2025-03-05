@@ -85,7 +85,7 @@ class FuzzProcess:
     if os.path.exists(os.path.join(self.out_dir, "memory", "input")):
       files = os.listdir(os.path.join(self.out_dir, "memory", "input"))
       log_out(f"{self.index} Output files: {len(files)}")
-      return len(files)
+      return 0 #len(files)
     return 0
   
   def poll(self) -> Optional[int]:
@@ -118,6 +118,7 @@ def start_fuzzer_for_seed(seed: str, index: int, subject_dir: str, exp_name: str
 
 def run_fuzzers_for_subject(subject: str, exp_name: str, cores: int, monitor_timeout: int = 3600, global_timeout: int = 3600 * 24 * 3):
   subject_dir = os.path.join(ROOT_DIR, "data", subject)
+  os.makedirs(os.path.join(subject_dir, "cludafl_out", exp_name), exist_ok=True)
   seed_dir = os.path.join(subject_dir, "seed")
   seed_queue = list()
   for file in sorted(os.listdir(seed_dir)):
