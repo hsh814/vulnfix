@@ -55,7 +55,24 @@ original_files = {
     "sparrow-out",
     "temp",
     "txt",
+    "cludafl_out",
+    "cludafl_samples",
+    "pacfuzz_samples",
+    "pacfix_val",
+    "cludafl-runtime",
+    "dafl2_all",
 }
+
+def remove_all_files(dir: str):
+    files = os.listdir(dir)
+    for file in files:
+        full = os.path.join(dir, file)
+        if not os.path.isdir(full):
+            os.remove(full)
+
+remove_all_files("/")
+remove_all_files("/home/yuntong/vulnfix/data/coreutils")
+
 
 files = os.listdir("/home/yuntong/vulnfix/data/coreutils/gnubug_26545")
 remove_count = 0
@@ -68,4 +85,9 @@ for file in files:
         continue
     remove_count += 1
     print(f"{remove_count}/{total}) Removing {file.encode('utf-8', errors='replace').decode('utf-8')}")
-    os.remove(full)
+    try:
+        os.remove(os.fsencode(full))
+    except FileNotFoundError:
+        pass
+    except Exception as e:
+        print(e)
