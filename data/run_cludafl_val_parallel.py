@@ -114,33 +114,34 @@ def find_num(dir: str, prefix: str) -> int:
       break
   return result
 
-def run_cmd(opt: str, subject: str, exp_name: str, pool: mpp.Pool):
+def run_cmd(opt: str, subject: str):
   subject_dir = os.path.join(ROOT_DIR, "data", subject)
-  exp_dir = os.path.join(subject_dir, "cludafl_out", exp_name)
-  seed_dir = os.path.join(subject_dir, "seed")
-  dirs = sorted(os.listdir(exp_dir))
-  index = 0
-  # Make new dir
-  new_dir = os.path.join(exp_dir, "memory", "input")
-  os.makedirs(new_dir, exist_ok=True)
-  for dir in dirs:
-    if dir == "memory":
-      continue
-    exp_res_dir = os.path.join(exp_dir, dir, "cludafl", "seeds")
-    if not os.path.exists(exp_res_dir):
-      continue
-    files = sorted(os.listdir(exp_res_dir))
-    for file in files:
-      shutil.copy(os.path.join(exp_res_dir, file), os.path.join(new_dir, f"{dir}-{file}"))
-  cmd = f"python3 {ROOT_DIR}/data/get_val_cludafl.py {subject} {exp_name}"
-  pool.apply_async(execute, args=(cmd, subject_dir, os.environ.copy(), opt, f"{exp_name}"))
+  for exp_name in experiments:
+    exp_dir = os.path.join(subject_dir, "cludafl_out", exp_name)
+    seed_dir = os.path.join(subject_dir, "seed")
+    dirs = sorted(os.listdir(exp_dir))
+    index = 0
+    # Make new dir
+    new_dir = os.path.join(exp_dir, "memory", "input")
+    os.makedirs(new_dir, exist_ok=True)
+    for dir in dirs:
+      if dir == "memory":
+        continue
+      exp_res_dir = os.path.join(exp_dir, dir, "cludafl", "seeds")
+      if not os.path.exists(exp_res_dir):
+        continue
+      files = sorted(os.listdir(exp_res_dir))
+      for file in files:
+        shutil.copy(os.path.join(exp_res_dir, file), os.path.join(new_dir, f"{dir}-{file}"))
+    cmd = f"python3 {ROOT_DIR}/data/get_val_cludafl.py {subject} {exp_name}"
+    execute(cmd, subject_dir, os.environ.copy(), opt, f"{exp_name}")
   
-def run_subjects(exp_name: str, cores: int):
-  with mpp.Pool(processes=cores) as pool:
-    for subject in subjects:
-      run_cmd("run", subject, exp_name, pool)
-    pool.close()
-    pool.join()
+def run_subjects(cores: int):
+  pool = mp.Pool(processes=cores)
+  for subject in subjects:
+    pool.apply_async(run_cmd, args=("run", subject))
+  pool.close()
+  pool.join()
 
 def run_cmd_for_pacfix(subject: str):
   subject_dir = os.path.join(ROOT_DIR, "data", subject)
@@ -160,10 +161,6 @@ def run_pacfix(cores: int):
     pool.apply_async(run_cmd_for_pacfix, args=(subject,))
   pool.close()
   pool.join()
-
-def run_experiments(cores: int):
-  for exp in experiments:
-    run_subjects(exp, cores)
   
 
 def main(argv: List[str]):
@@ -173,7 +170,7 @@ def main(argv: List[str]):
   # parser.add_argument("subject", type=str, help="Subject to run")
   parser.add_argument("--cores", "-j", type=int, help="Number of cores to use", default=150)
   args = parser.parse_args(argv)
-  # run_experiments(args.cores)
+  run_subjects(args.cores)
   run_pacfix(args.cores)
 
 if __name__ == "__main__":
