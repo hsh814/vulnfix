@@ -85,7 +85,7 @@ class FuzzProcess:
     if os.path.exists(os.path.join(self.out_dir, "memory", "input")):
       files = os.listdir(os.path.join(self.out_dir, "memory", "input"))
       log_out(f"{self.index} Output files: {len(files)}")
-      return 0 #len(files)
+      return len(files)
     return 0
   
   def poll(self) -> Optional[int]:
@@ -116,13 +116,23 @@ def start_fuzzer_for_seed(seed: str, index: int, subject_dir: str, exp_name: str
   log_out(f"SEED_DIR_OVERRIDE=\"{new_seed_dir}\" AFL_OPTS_COMMON_OVERRIDE=\"{env['AFL_OPTS_COMMON_OVERRIDE']}\" OUTPUT_DIR_OVERRIDE=\"{new_output_dir}\" TIMEOUT_OVERRIDE=\"{env['TIMEOUT_OVERRIDE']}\" {cmd}")
   return cmd, subject_dir, env, exp_name, f"{index}"
 
+def get_seeds(subject: str) -> List[str]:
+  subject_dir = os.path.join(ROOT_DIR, "data", subject)
+  seed_dir = os.path.join(subject_dir, "seed")
+  seed_queue = list()
+  for file in sorted(os.listdir(seed_dir)):
+    if file.startswith("exploit"): # exploit files first
+      seed_queue.append(os.path.join(seed_dir, file))
+  # TODO: Fetch files from seed-collection
+  for file in sorted(os.listdir(seed_dir)):
+    seed_queue.append(os.path.join(seed_dir, file))
+  return seed_queue
+
 def run_fuzzers_for_subject(subject: str, exp_name: str, cores: int, monitor_timeout: int = 3600, global_timeout: int = 3600 * 24 * 3):
   subject_dir = os.path.join(ROOT_DIR, "data", subject)
   os.makedirs(os.path.join(subject_dir, "cludafl_out", exp_name), exist_ok=True)
   seed_dir = os.path.join(subject_dir, "seed")
-  seed_queue = list()
-  for file in sorted(os.listdir(seed_dir)):
-    seed_queue.append(os.path.join(seed_dir, file))
+  seed_queue = get_seeds(subject)
   index = 0
   active_slots: Dict[int, FuzzProcess] = dict()
   for slot in range(min(cores, len(seed_queue))):
