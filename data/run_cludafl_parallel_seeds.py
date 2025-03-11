@@ -65,6 +65,8 @@ class FuzzProcess:
   start_time: float
   proc: subprocess.Popen
   index: int
+  prev_output: int
+  prev_monitor_secondary: float
   
   def __init__(self, cmd: str, cwd: str, env: Dict[str, str], exp: str, out_dir: str, index: int):
     self.cmd = cmd
@@ -75,24 +77,43 @@ class FuzzProcess:
     self.start_time = time.time()
     self.proc = subprocess.Popen(cmd, shell=True, cwd=cwd, env=env, start_new_session=True)
     self.index = index
+    self.prev_output = 0
+    self.prev_monitor_secondary = 0
     log_out(f"Started {index} from {self.cmd} with PID {self.proc.pid}")
   
   def timespan(self) -> float:
     return time.time() - self.start_time
   
   def check_output(self) -> int:
-    # For now, just choose random number
+    if self.prev_output > 0:
+      return self.prev_output
     if os.path.exists(os.path.join(self.out_dir, "memory", "input")):
       files = os.listdir(os.path.join(self.out_dir, "memory", "input"))
-      log_out(f"{self.index} Output files: {len(files)}")
-      return len(files)
+      self.prev_output = len(files)
+      log_out(f"{self.index} Output files: {self.prev_output}")
+      return self.prev_output
     return 0
+  
+  def check_output_secondary(self, timespan: float) -> bool:
+    if self.prev_monitor_secondary > 0:
+      if time.time() - self.prev_monitor_secondary < timespan:
+        return True
+    if os.path.exists(os.path.join(self.out_dir, "memory", "input")):
+      files = os.listdir(os.path.join(self.out_dir, "memory", "input"))
+      log_out(f"{self.index} Output files: {self.prev_output} -> {len(files)}")
+      result = self.prev_output < len(files)
+      self.prev_output = len(files)
+      self.prev_monitor_secondary = time.time()
+      return result
+    return False
   
   def poll(self) -> Optional[int]:
     return self.proc.poll()
   
   def kill(self):
     try:
+      if self.poll() is not None:
+        return
       os.killpg(os.getpgid(self.proc.pid), signal.SIGTERM)
       time.sleep(5)
       if self.poll() is None:
@@ -128,7 +149,7 @@ def get_seeds(subject: str) -> List[str]:
     seed_queue.append(os.path.join(seed_dir, file))
   return seed_queue
 
-def run_fuzzers_for_subject(subject: str, exp_name: str, cores: int, monitor_timeout: int = 3600, global_timeout: int = 3600 * 24 * 3):
+def run_fuzzers_for_subject(subject: str, exp_name: str, cores: int, monitor_timeout: int = 3600, secondary_monitor_timeout: int = 3 * 3600, default_timeout: int = 12 * 3600, global_timeout: int = 3600 * 24 * 3):
   subject_dir = os.path.join(ROOT_DIR, "data", subject)
   os.makedirs(os.path.join(subject_dir, "cludafl_out", exp_name), exist_ok=True)
   seed_dir = os.path.join(subject_dir, "seed")
@@ -145,6 +166,7 @@ def run_fuzzers_for_subject(subject: str, exp_name: str, cores: int, monitor_tim
   check_interval = 10
   global_start = time.time()
   while active_slots:
+    removed_slots = list()
     for slot, fp in active_slots.items():
       if time.time() - global_start > global_timeout:
         log_out(f"Global timeout: {fp.cmd} - Terminating process group for PID {fp.proc.pid}")
@@ -157,6 +179,17 @@ def run_fuzzers_for_subject(subject: str, exp_name: str, cores: int, monitor_tim
           log_out(f"Monitor kill (no output): {fp.cmd} - Terminating process group for PID {fp.proc.pid}")
           fp.kill()
           time.sleep(5)
+      
+      if fp.timespan() > secondary_monitor_timeout:
+        if not fp.check_output_secondary(secondary_monitor_timeout):
+          log_out(f"Secondary monitor kill (no output): {fp.cmd} - Terminating process group for PID {fp.proc.pid}")
+          fp.kill()
+          time.sleep(5)
+      
+      if fp.timespan() > default_timeout:
+        log_out(f"Timeout kill: {fp.cmd} - Terminating process group for PID {fp.proc.pid}")
+        fp.kill()
+        time.sleep(5)
 
       if fp.poll() is not None:
         if len(seed_queue) > 0:
@@ -167,15 +200,16 @@ def run_fuzzers_for_subject(subject: str, exp_name: str, cores: int, monitor_tim
           active_slots[slot] = fp
           index += 1
         else:
-          del active_slots[slot]
-    
+          removed_slots.append(slot)
+    for slot in removed_slots:
+      del active_slots[slot]
     time.sleep(check_interval)
   
 
 def run_subjects(exp_name: str, cores: int):
   cores_per_subject = cores // len(subjects)
   for subject in subjects:
-    run_fuzzers_for_subject(subject, exp_name, cores_per_subject, monitor_timeout=3600, global_timeout=3 * 24 * 3600)
+    run_fuzzers_for_subject(subject, exp_name, cores_per_subject)
 
 def main(argv: List[str]):
   parser = argparse.ArgumentParser(description="Run symvass experiments")
@@ -184,7 +218,7 @@ def main(argv: List[str]):
   # parser.add_argument("subject", type=str, help="Subject to run")
   parser.add_argument("--cores", "-j", type=int, help="Number of cores to use", default=150)
   args = parser.parse_args(argv)
-  run_subjects("cludafl-seed-test", args.cores)
+  run_subjects("cludafl-seed-clustering", args.cores)
 
 if __name__ == "__main__":
   main(sys.argv[1:])
