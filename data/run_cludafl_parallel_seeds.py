@@ -14,9 +14,11 @@ import argparse
 import shutil
 import psutil
 import signal
+import queue
 
 ROOT_DIR = "/home/yuntong/vulnfix"
 OUT_FILE = "/home/yuntong/vulnfix/fig/log.log"
+SEED_COLLECTION_DIR = "/home/yuntong/seed-collection"
 
 subjects = [
   # "binutils/cve_2017_6965",
@@ -145,8 +147,10 @@ def get_seeds(subject: str) -> List[str]:
     if file.startswith("exploit"): # exploit files first
       seed_queue.append(os.path.join(seed_dir, file))
   # TODO: Fetch files from seed-collection
-  for file in sorted(os.listdir(seed_dir)):
-    seed_queue.append(os.path.join(seed_dir, file))
+  with open(os.path.join(SEED_COLLECTION_DIR, "rank", subject, "rank.csv"), "r") as f:
+    for line in f.readlines():
+      file = line.strip().split("\t")[0]
+      seed_queue.append(file)
   return seed_queue
 
 def run_fuzzers_for_subject(subject: str, exp_name: str, cores: int, monitor_timeout: int = 3600, secondary_monitor_timeout: int = 3 * 3600, default_timeout: int = 12 * 3600, global_timeout: int = 3600 * 24 * 3):
