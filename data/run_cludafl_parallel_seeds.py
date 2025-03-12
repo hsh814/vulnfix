@@ -147,10 +147,14 @@ def get_seeds(subject: str) -> List[str]:
     if file.startswith("exploit"): # exploit files first
       seed_queue.append(os.path.join(seed_dir, file))
   # TODO: Fetch files from seed-collection
-  with open(os.path.join(SEED_COLLECTION_DIR, "rank", subject, "rank.csv"), "r") as f:
-    for line in f.readlines():
-      file = line.strip().split("\t")[0]
-      seed_queue.append(file)
+  rank_file = os.path.join(SEED_COLLECTION_DIR, "rank", subject, "rank.csv")
+  if os.path.exists(rank_file):
+    with open(rank_file, "r") as f:
+      for line in f.readlines():
+        file = line.strip().split("\t")[0]
+        seed_queue.append(file)
+  else:
+    log_out(f"Rank file not found!!!: {rank_file}")
   return seed_queue
 
 def run_fuzzers_for_subject(subject: str, exp_name: str, cores: int, monitor_timeout: int = 3600, secondary_monitor_timeout: int = 3 * 3600, default_timeout: int = 12 * 3600, global_timeout: int = 3600 * 24 * 3):
@@ -208,12 +212,26 @@ def run_fuzzers_for_subject(subject: str, exp_name: str, cores: int, monitor_tim
     for slot in removed_slots:
       del active_slots[slot]
     time.sleep(check_interval)
-  
+
+def run_subject_with_handling(subject, exp_name, cores_per_subject):
+  try:
+    log_out(f"Starting subject {subject} with {cores_per_subject} cores")
+    run_fuzzers_for_subject(subject, exp_name, cores_per_subject)
+  except Exception as e:
+    log_out(f"Error running subject {subject}: {str(e)}")
+    raise
 
 def run_subjects(exp_name: str, cores: int):
   cores_per_subject = cores // len(subjects)
-  for subject in subjects:
-    run_fuzzers_for_subject(subject, exp_name, cores_per_subject)
+  args = [(subject, exp_name, cores_per_subject) for subject in subjects]
+
+  try:
+    pool = mp.Pool(processes=len(subjects))
+    pool.starmap(run_subject_with_handling, args)
+    pool.close()
+    pool.join()
+  except KeyboardInterrupt:
+    log_out("Keyboard interrupt received. Terminating all processes...")
 
 def main(argv: List[str]):
   parser = argparse.ArgumentParser(description="Run symvass experiments")
