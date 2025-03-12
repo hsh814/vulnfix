@@ -36,12 +36,12 @@ subjects = [
   # "coreutils/gnubug_19784",
   # "coreutils/gnubug_25003",
   # "coreutils/gnubug_25023",
-  # "coreutils/gnubug_26545",
-  # "jasper/cve_2016_8691",
-  # "jasper/cve_2016_9557",
-  # "libjpeg/cve_2012_2806",
-  # "libjpeg/cve_2017_15232",
-  # "libming/cve_2016_9264",
+  "coreutils/gnubug_26545",
+  "jasper/cve_2016_8691",
+  "jasper/cve_2016_9557",
+  "libjpeg/cve_2012_2806",
+  "libjpeg/cve_2017_15232",
+  "libming/cve_2016_9264",
   # "libtiff/bugzilla_2633",
   # "libtiff/cve_2016_5321",
   # "libtiff/cve_2016_9532",
@@ -200,7 +200,7 @@ def run_fuzzers_for_subject(subject: str, exp_name: str, cores: int, monitor_tim
   subject_dir = os.path.join(ROOT_DIR, "data", subject)
   os.makedirs(os.path.join(subject_dir, "cludafl_out", exp_name), exist_ok=True)
   seed_dir = os.path.join(subject_dir, "seed")
-  seed_queue = get_seeds(subject)[:20]
+  seed_queue = get_seeds(subject)
   index = 0
   active_slots: Dict[int, FuzzProcess] = dict()
   for slot in range(min(cores, len(seed_queue))):
