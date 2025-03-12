@@ -15,10 +15,19 @@ import shutil
 import psutil
 import signal
 import queue
+import logging
+from logging.handlers import RotatingFileHandler
 
 ROOT_DIR = "/home/yuntong/vulnfix"
 OUT_FILE = "/home/yuntong/vulnfix/fig/log.log"
 SEED_COLLECTION_DIR = "/home/yuntong/seed-collection"
+LOG_FILE = "/home/yuntong/vulnfix/data/log/parallel_seeds.log"
+os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
+logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(message)s")
+file_handler = RotatingFileHandler(LOG_FILE, maxBytes=100*1024*1024, backupCount=5)
+file_handler.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
+logging.getLogger().addHandler(file_handler)
+logging.warning("Starting parallel seed experiment")
 
 subjects = [
   # "binutils/cve_2017_6965",
@@ -57,8 +66,10 @@ subjects = [
 
 def log_out(msg: str):
   print(msg, file=sys.stderr)
+  logging.info(msg)
 
 class FuzzProcess:
+  subject: str
   cmd: str
   cwd: str
   env: Dict[str, str]
@@ -70,7 +81,8 @@ class FuzzProcess:
   prev_output: int
   prev_monitor_secondary: float
   
-  def __init__(self, cmd: str, cwd: str, env: Dict[str, str], exp: str, out_dir: str, index: int):
+  def __init__(self, subject: str, cmd: str, cwd: str, env: Dict[str, str], exp: str, out_dir: str, index: int):
+    self.subject = subject
     self.cmd = cmd
     self.cwd = cwd
     self.env = env
@@ -92,7 +104,7 @@ class FuzzProcess:
     if os.path.exists(os.path.join(self.out_dir, "memory", "input")):
       files = os.listdir(os.path.join(self.out_dir, "memory", "input"))
       self.prev_output = len(files)
-      log_out(f"{self.index} Output files: {self.prev_output}")
+      log_out(f"{self.subject} {self.index} Output files: {self.prev_output}")
       return self.prev_output
     return 0
   
@@ -102,7 +114,7 @@ class FuzzProcess:
         return True
     if os.path.exists(os.path.join(self.out_dir, "memory", "input")):
       files = os.listdir(os.path.join(self.out_dir, "memory", "input"))
-      log_out(f"{self.index} Output files: {self.prev_output} -> {len(files)}")
+      log_out(f"{self.subject} {self.index} Output files: {self.prev_output} -> {len(files)}")
       result = self.prev_output < len(files)
       self.prev_output = len(files)
       self.prev_monitor_secondary = time.time()
@@ -116,12 +128,39 @@ class FuzzProcess:
     try:
       if self.poll() is not None:
         return
-      os.killpg(os.getpgid(self.proc.pid), signal.SIGTERM)
-      time.sleep(5)
-      if self.poll() is None:
-        os.killpg(os.getpgid(self.proc.pid), signal.SIGKILL)
+      log_out(f"{self.subject} {self.index} Terminating process group for PID {self.proc.pid}")
+      # Find all child processes using psutil
+      try:
+        parent = psutil.Process(self.proc.pid)
+        children = parent.children(recursive=True)
+        
+        for child in reversed(children):
+          try:
+            child.terminate()
+          except (psutil.NoSuchProcess, psutil.AccessDenied):
+            pass
+                
+        # Wait for termination
+        time.sleep(5)
+        
+        # Send SIGKILL to any remaining processes
+        for child in reversed(children):
+            try:
+              if child.is_running():
+                child.kill()
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+              pass
+                
+        # Finally kill the parent if still running
+        if self.poll() is None:
+          os.killpg(os.getpgid(self.proc.pid), signal.SIGKILL)
+      
+              
+      except Exception as e:
+        log_out(f"{self.subject} {self.index} Error in process cleanup: {e}")
+            
     except Exception as e:
-      log_out(e)
+      log_out(f"{self.subject} {self.index} Kill error: {e}")
 
 def start_fuzzer_for_seed(seed: str, index: int, subject_dir: str, exp_name: str, seed_dir: str, seed_parallel_dir: str):
   new_seed_dir = os.path.join(seed_parallel_dir, f"{index}")
@@ -161,14 +200,14 @@ def run_fuzzers_for_subject(subject: str, exp_name: str, cores: int, monitor_tim
   subject_dir = os.path.join(ROOT_DIR, "data", subject)
   os.makedirs(os.path.join(subject_dir, "cludafl_out", exp_name), exist_ok=True)
   seed_dir = os.path.join(subject_dir, "seed")
-  seed_queue = get_seeds(subject)
+  seed_queue = get_seeds(subject)[:20]
   index = 0
   active_slots: Dict[int, FuzzProcess] = dict()
   for slot in range(min(cores, len(seed_queue))):
     seed = seed_queue.pop(0)
     cmd, cwd, env, opt, exp = start_fuzzer_for_seed(seed, index, subject_dir, exp_name, seed_dir, os.path.join(subject_dir, "seed_parallel"))
     time.sleep(1)
-    fp = FuzzProcess(cmd, cwd, env, exp, env["OUTPUT_DIR_OVERRIDE"], index)
+    fp = FuzzProcess(subject, cmd, cwd, env, exp, env["OUTPUT_DIR_OVERRIDE"], index)
     active_slots[slot] = fp
     index += 1
   check_interval = 10
@@ -177,25 +216,25 @@ def run_fuzzers_for_subject(subject: str, exp_name: str, cores: int, monitor_tim
     removed_slots = list()
     for slot, fp in active_slots.items():
       if time.time() - global_start > global_timeout:
-        log_out(f"Global timeout: {fp.cmd} - Terminating process group for PID {fp.proc.pid}")
+        log_out(f"Global timeout: {fp.subject} {fp.index} - Terminating process group for PID {fp.proc.pid} time {fp.timespan()}")
         fp.kill()
         time.sleep(5)
 
       if fp.timespan() > monitor_timeout:
         output_num = fp.check_output()
         if output_num == 0:
-          log_out(f"Monitor kill (no output): {fp.cmd} - Terminating process group for PID {fp.proc.pid}")
+          log_out(f"Monitor kill (no output): {fp.subject} {fp.index} - Terminating process group for PID {fp.proc.pid} time {fp.timespan()}")
           fp.kill()
           time.sleep(5)
       
       if fp.timespan() > secondary_monitor_timeout:
         if not fp.check_output_secondary(secondary_monitor_timeout):
-          log_out(f"Secondary monitor kill (no output): {fp.cmd} - Terminating process group for PID {fp.proc.pid}")
+          log_out(f"Secondary monitor kill (no output): {fp.subject} {fp.index}- Terminating process group for PID {fp.proc.pid} time {fp.timespan()}")
           fp.kill()
           time.sleep(5)
       
       if fp.timespan() > default_timeout:
-        log_out(f"Timeout kill: {fp.cmd} - Terminating process group for PID {fp.proc.pid}")
+        log_out(f"Timeout kill: {fp.subject} {fp.index} - Terminating process group for PID {fp.proc.pid} time {fp.timespan()}")
         fp.kill()
         time.sleep(5)
 
@@ -204,7 +243,7 @@ def run_fuzzers_for_subject(subject: str, exp_name: str, cores: int, monitor_tim
           seed = seed_queue.pop(0)
           log_out(f"Seed {fp.index} finished, starting new seed {seed} with {index}")
           cmd, cwd, env, opt, exp = start_fuzzer_for_seed(seed, index, subject_dir, exp_name, seed_dir, os.path.join(subject_dir, "seed_parallel"))
-          fp = FuzzProcess(cmd, cwd, env, exp, env["OUTPUT_DIR_OVERRIDE"], index)
+          fp = FuzzProcess(subject, cmd, cwd, env, exp, env["OUTPUT_DIR_OVERRIDE"], index)
           active_slots[slot] = fp
           index += 1
         else:
@@ -232,6 +271,9 @@ def run_subjects(exp_name: str, cores: int):
     pool.join()
   except KeyboardInterrupt:
     log_out("Keyboard interrupt received. Terminating all processes...")
+    pool.terminate()
+    pool.join()
+    
 
 def main(argv: List[str]):
   parser = argparse.ArgumentParser(description="Run symvass experiments")
