@@ -47,14 +47,14 @@ subjects = [
   # "zziplib/cve_2017_5976"
 ]
 
-experiments = [
-  "cludafl-par-1", "cludafl-par-2", "cludafl-par-3", 
-  "cludafl-par-4", "cludafl-par-5", 
-  # "cludafl-par-6", 
-  # "cludafl-par-7", "cludafl-par-8", "cludafl-par-9", 
-  # "cludafl-par-10"
-]
-# experiments = ["cludafl-par-1"]
+# experiments = [
+#   "cludafl-par-1", "cludafl-par-2", "cludafl-par-3", 
+#   "cludafl-par-4", "cludafl-par-5", 
+#   "cludafl-par-6", 
+#   "cludafl-par-7", "cludafl-par-8", "cludafl-par-9", 
+#   "cludafl-par-10"
+# ]
+experiments = ["cludafl-seed-clustering"]
 
 def log_out(msg: str):
   print(msg, file=sys.stderr)
@@ -117,6 +117,9 @@ def find_num(dir: str, prefix: str) -> int:
 def run_cmd(opt: str, subject: str):
   subject_dir = os.path.join(ROOT_DIR, "data", subject)
   for exp_name in experiments:
+    cludafl_out_seeds_dir = os.path.join(ROOT_DIR, "data", "cludafl_out_seeds", exp_name, subject)
+    os.system(f"rm -rf {cludafl_out_seeds_dir}")
+    os.makedirs(cludafl_out_seeds_dir, exist_ok=True)
     exp_dir = os.path.join(subject_dir, "cludafl_out", exp_name)
     seed_dir = os.path.join(subject_dir, "seed")
     dirs = sorted(os.listdir(exp_dir))
@@ -133,6 +136,7 @@ def run_cmd(opt: str, subject: str):
       files = sorted(os.listdir(exp_res_dir))
       for file in files:
         shutil.copy(os.path.join(exp_res_dir, file), os.path.join(new_dir, f"{dir}-{file}"))
+        shutil.copy(os.path.join(exp_res_dir, file), os.path.join(cludafl_out_seeds_dir, f"{dir}-{file}"))
     cmd = f"python3 {ROOT_DIR}/data/get_val_cludafl.py {subject} {exp_name}"
     execute(cmd, subject_dir, os.environ.copy(), opt, f"{exp_name}")
   
