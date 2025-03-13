@@ -36,12 +36,12 @@ subjects = [
   # "coreutils/gnubug_19784",
   # "coreutils/gnubug_25003",
   # "coreutils/gnubug_25023",
-  "coreutils/gnubug_26545",
-  "jasper/cve_2016_8691",
-  "jasper/cve_2016_9557",
-  "libjpeg/cve_2012_2806",
-  "libjpeg/cve_2017_15232",
-  "libming/cve_2016_9264",
+  # "coreutils/gnubug_26545",
+  # "jasper/cve_2016_8691",
+  # "jasper/cve_2016_9557",
+  # "libjpeg/cve_2012_2806",
+  # "libjpeg/cve_2017_15232",
+  # "libming/cve_2016_9264",
   # "libtiff/bugzilla_2633",
   # "libtiff/cve_2016_5321",
   # "libtiff/cve_2016_9532",
@@ -164,6 +164,7 @@ class FuzzProcess:
 
 def start_fuzzer_for_seed(seed: str, index: int, subject_dir: str, exp_name: str, seed_dir: str, seed_parallel_dir: str):
   new_seed_dir = os.path.join(seed_parallel_dir, f"{index}")
+  os.system(f"rm -rf {new_seed_dir}")
   if not os.path.exists(new_seed_dir):
     os.makedirs(new_seed_dir, exist_ok=True)
     log_out(f"Created new seed directory: {new_seed_dir}")
