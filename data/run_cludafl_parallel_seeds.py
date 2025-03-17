@@ -30,12 +30,12 @@ logging.getLogger().addHandler(file_handler)
 logging.warning("Starting parallel seed experiment")
 
 subjects = [
-  # "binutils/cve_2017_6965",
-  # "binutils/cve_2017_14745",
-  # "binutils/cve_2017_15025",
-  # "coreutils/gnubug_19784",
-  # "coreutils/gnubug_25003",
-  # "coreutils/gnubug_25023",
+  "binutils/cve_2017_6965",
+  "binutils/cve_2017_14745",
+  "binutils/cve_2017_15025",
+  "coreutils/gnubug_19784",
+  "coreutils/gnubug_25003",
+  "coreutils/gnubug_25023",
   # "coreutils/gnubug_26545",
   # "jasper/cve_2016_8691",
   # "jasper/cve_2016_9557",
@@ -240,7 +240,7 @@ def run_fuzzers_for_subject(subject: str, exp_name: str, cores: int, monitor_tim
         time.sleep(5)
 
       if fp.poll() is not None:
-        if len(seed_queue) > 0:
+        if len(seed_queue) > 0 and time.time() - global_start < global_timeout:
           seed = seed_queue.pop(0)
           log_out(f"Seed {fp.index} finished, starting new seed {seed} with {index}")
           cmd, cwd, env, opt, exp = start_fuzzer_for_seed(seed, index, subject_dir, exp_name, seed_dir, os.path.join(subject_dir, "seed_parallel"))
