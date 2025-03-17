@@ -62,6 +62,7 @@ for d in dirs:
             result_for_ranking[cur_seed]=target_reached_inputs
     
     sorted_rank=sorted(result_for_ranking.items(),key=lambda x:x[1],reverse=True)
+    print(f'Ranking for {d}: {len(sorted_rank)}')
     ranking[d]=[x[0] for x in sorted_rank]
 
 with open('seed_result.json','w') as f:
