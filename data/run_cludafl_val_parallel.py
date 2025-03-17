@@ -130,20 +130,23 @@ def run_cmd(opt: str, subject: str):
     for dir in dirs:
       if dir == "memory":
         continue
-      exp_res_dir = os.path.join(exp_dir, dir, "cludafl", "seeds")
+      exp_res_dir = os.path.join(exp_dir, dir, "memory", "input")
       if not os.path.exists(exp_res_dir):
         continue
       files = sorted(os.listdir(exp_res_dir))
       for file in files:
         shutil.copy(os.path.join(exp_res_dir, file), os.path.join(new_dir, f"{dir}-{file}"))
-        shutil.copy(os.path.join(seed_dir, file), os.path.join(cludafl_out_seeds_dir, f"{dir}-{file}"))
+        shutil.copy(os.path.join(exp_res_dir, file), os.path.join(cludafl_out_seeds_dir, f"{dir}-{file}"))
       queue_dir = os.path.join(exp_dir, dir, "queue")
       if not os.path.exists(queue_dir):
+        print(f"Queue dir not found: {queue_dir}")
         continue
       files = sorted(os.listdir(queue_dir))
       for file in files:
-        # shutil.copy(os.path.join(queue_dir, file), os.path.join(new_dir, f"{dir}-q-{file}"))
-        shutil.copy(os.path.join(exp_res_dir, file), os.path.join(cludafl_out_seeds_dir, f"{dir}-q-{file}"))
+        if os.path.isfile(os.path.join(queue_dir, file)):
+          # shutil.copy(os.path.join(queue_dir, file), os.path.join(new_dir, f"{dir}-q-{file}"))
+          shutil.copy(os.path.join(queue_dir, file), os.path.join(cludafl_out_seeds_dir, f"{dir}-q-{file}"))
+          print(f"Copying {file} to {cludafl_out_seeds_dir} ({dir}-q-{file})")
     cmd = f"python3 {ROOT_DIR}/data/get_val_cludafl.py {subject} {exp_name}"
     execute(cmd, subject_dir, os.environ.copy(), opt, f"{exp_name}")
   
