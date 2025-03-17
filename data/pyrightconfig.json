@@ -1,0 +1,18 @@
+{
+    "exclude": [
+        "all-seeds",
+        "binutils",
+        "coreutils",
+        "jasper",
+        "libarchive",
+        "libjpeg",
+        "libming",
+        "libtiff",
+        "libxml2",
+        "potrace",
+        "zziplib",
+        "cludafl_out_seeds",
+        "log",
+        "seeds"
+    ]
+}
