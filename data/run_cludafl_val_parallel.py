@@ -66,7 +66,7 @@ def execute(cmd: str, cwd: str, env: Dict[str, str], opt: str, exp: str) -> bool
   """
   print(f"Executing: {cmd}")
   start_time = time.time()
-  timeout = 3600 * 12 + 600 # Timeout in seconds; 12h + 10m
+  timeout = 3600 * 24 + 600 # Timeout in seconds; 12h + 10m
 
   # Start the subprocess in a new process group.
   proc = subprocess.Popen(cmd, shell=True, cwd=cwd, env=env, preexec_fn=os.setpgrp)
