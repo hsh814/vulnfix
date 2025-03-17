@@ -31,12 +31,14 @@ dirs=['binutils/cve_2017_6965',
 ]
 
 result=dict()
+ranking=dict()
 for d in dirs:
     if not os.path.exists(os.path.join(PATH, d,'cludafl_out')) or not os.path.exists(os.path.join(PATH, d,'cludafl_out','cludafl-seed-clustering')):
         # Not run in this server
         continue
     print(f'Processing {d}')
     result[d]=dict()
+    result_for_ranking=dict()
     cur_path=os.path.join(PATH, d,'cludafl_out','cludafl-seed-clustering')
     for res_dir in os.listdir(cur_path):
         if res_dir=='memory': continue
@@ -56,6 +58,13 @@ for d in dirs:
             'target_reached_crashed': target_reached_inputs_crashed,
             'target_reached_uncrashed': target_reached_inputs_uncrashed,
         }
+        result_for_ranking[cur_seed]=target_reached_inputs
+    
+    sorted_rank=sorted(result_for_ranking.items(),key=lambda x:x[1],reverse=True)
+    ranking[d]=[x[0] for x in sorted_rank]
 
-with open('seed_rank.json','w') as f:
+with open('seed_result.json','w') as f:
     f.write(json.dumps(result,indent=4))
+
+with open('seed_ranking.json','w') as f:
+    f.write(json.dumps(ranking,indent=4))
