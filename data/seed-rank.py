@@ -58,7 +58,8 @@ for d in dirs:
             'target_reached_crashed': target_reached_inputs_crashed,
             'target_reached_uncrashed': target_reached_inputs_uncrashed,
         }
-        result_for_ranking[cur_seed]=target_reached_inputs
+        if target_reached_inputs>0:
+            result_for_ranking[cur_seed]=target_reached_inputs
     
     sorted_rank=sorted(result_for_ranking.items(),key=lambda x:x[1],reverse=True)
     ranking[d]=[x[0] for x in sorted_rank]
