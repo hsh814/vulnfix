@@ -142,7 +142,7 @@ def run_cmd(opt: str, subject: str):
         continue
       files = sorted(os.listdir(queue_dir))
       for file in files:
-        shutil.copy(os.path.join(queue_dir, file), os.path.join(new_dir, f"{dir}-q-{file}"))
+        # shutil.copy(os.path.join(queue_dir, file), os.path.join(new_dir, f"{dir}-q-{file}"))
         shutil.copy(os.path.join(exp_res_dir, file), os.path.join(cludafl_out_seeds_dir, f"{dir}-q-{file}"))
     cmd = f"python3 {ROOT_DIR}/data/get_val_cludafl.py {subject} {exp_name}"
     execute(cmd, subject_dir, os.environ.copy(), opt, f"{exp_name}")
