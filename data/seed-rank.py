@@ -39,14 +39,15 @@ for d in dirs:
     result[d]=dict()
     cur_path=os.path.join(PATH, d,'cludafl_out','cludafl-seed-clustering')
     for res_dir in os.listdir(cur_path):
+        if res_dir=='memory': continue
         cur_seed_dir=os.path.join(cur_path,res_dir,'queue')
         cur_seed=None
-        for cs in cur_seed_dir:
+        for cs in os.listdir(cur_seed_dir):
             if cs.startswith('id:000000'):
                 cur_seed=cs.split(':')[2]
                 break
         if cur_seed is None:
-            raise ValueError(f'Cannot find initial seed name for {res_dir}')
+            raise ValueError(f'Cannot find initial seed name for {d}/{res_dir}')
         target_reached_inputs=len(os.listdir(os.path.join(cur_path,res_dir,'memory','input')))
         target_reached_inputs_crashed=len(os.listdir(os.path.join(cur_path,res_dir,'memory','neg')))
         target_reached_inputs_uncrashed=target_reached_inputs-target_reached_inputs_crashed
