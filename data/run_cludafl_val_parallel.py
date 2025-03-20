@@ -72,7 +72,7 @@ def execute(cmd: str, cwd: str, env: Dict[str, str], opt: str, exp: str) -> bool
   proc = subprocess.Popen(cmd, shell=True, cwd=cwd, env=env, preexec_fn=os.setpgrp)
 
   try:
-    proc.communicate(timeout=timeout)
+    proc.communicate()
   except subprocess.TimeoutExpired:
     log_out(f"Timeout: {cmd} - Terminating process group for PID {proc.pid}")
     os.killpg(proc.pid, signal.SIGTERM)  # Graceful termination
