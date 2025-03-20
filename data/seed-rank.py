@@ -4,7 +4,8 @@ import os
 PATH='/home/yuntong/vulnfix/data'
 
 dirs=['binutils/cve_2017_6965',
-#   'binutils/cve_2017_15025',
+  'binutils/cve_2017_15025',
+  'binutils/cve_2017_14745',
     'coreutils/gnubug_19784',
     'coreutils/gnubug_25003',
     'coreutils/gnubug_25023',
@@ -40,6 +41,7 @@ for d in dirs:
     result[d]=dict()
     result_for_ranking=dict()
     cur_path=os.path.join(PATH, d,'cludafl_out','cludafl-seed-clustering')
+    total_reached_inputs=0
     for res_dir in os.listdir(cur_path):
         if res_dir=='memory': continue
         cur_seed_dir=os.path.join(cur_path,res_dir,'queue')
@@ -58,11 +60,13 @@ for d in dirs:
             'target_reached_crashed': target_reached_inputs_crashed,
             'target_reached_uncrashed': target_reached_inputs_uncrashed,
         }
+        total_reached_inputs+=target_reached_inputs
         if target_reached_inputs>0:
             result_for_ranking[cur_seed]=target_reached_inputs
     
     sorted_rank=sorted(result_for_ranking.items(),key=lambda x:x[1],reverse=True)
     print(f'Ranking for {d}: {len(sorted_rank)}')
+    print(f'Total target reached inputs for {d}: {total_reached_inputs}')
     ranking[d]=[x[0] for x in sorted_rank]
 
 with open('seed_result.json','w') as f:
