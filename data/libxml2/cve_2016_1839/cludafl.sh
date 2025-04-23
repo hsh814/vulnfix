@@ -29,6 +29,7 @@ eval $(opam env --switch=default)
 # python3 $VULNFIX_HOME/vulnfix/src/add_lv.py 4079 repair-out/live_variables ./source/parser.c
 cp dict.pacfix.c ./source/dict.c
 
+echo Running smake...
 rm -rf smake_source && cp -R source smake_source
 pushd smake_source
   CC=clang CXX=clang++ ./autogen.sh
@@ -38,12 +39,17 @@ popd
 
 cp dict.orig.c ./source/dict.c
 
+echo smake finished!
+
 rm -rf sparrow-out && mkdir sparrow-out
+echo Running sparrow...
 $VULNFIX_HOME/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \
 -frontend "cil" -unsound_alloc -unsound_const_string -unsound_recursion -unsound_noreturn_function \
 -unsound_skip_global_array_init 1000 -skip_main_analysis -cut_cyclic_call -unwrap_alloc \
 -entry_point "main" -max_pre_iter 10 -slice "bug=dict.c:285" \
 ./smake_source/sparrow/xmllint/*.i
+
+echo sparrow finished!
 
 rm -rf dafl_source && cp -R source dafl_source
 pushd dafl_source

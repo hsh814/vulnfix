@@ -28,6 +28,7 @@ cp dwarf2.pacfix.c source/bfd/dwarf2.c
 
 rm -rf smake_source
 mkdir smake_source
+echo Running smake...
 pushd smake_source
   # Build with Smake
   ASAN_OPTIONS=detect_leaks=0 CC=clang CXX=clang++ CMAKE_EXPORT_COMPILE_COMMANDS=1 CFLAGS="-DFORTIFY_SOURCE=2 -fno-omit-frame-pointer -fsanitize=address -ggdb -Wno-error" CXXFLAGS="$CFLAGS" ../source/configure --disable-shared --disable-gdb --disable-libdecnumber --disable-readline --disable-sim LIBS='-ldl -lutil'
@@ -35,8 +36,11 @@ pushd smake_source
   ASAN_OPTIONS=detect_leaks=0 $VULNFIX_HOME/vulnfix/thirdparty/smake/smake CFLAGS="-ldl -lutil -fsanitize=address -ggdb -Wno-error" CXXFLAGS="-fsanitize=address -ldl -lutil -ggdb -Wno-error" LDFLAGS=" -ldl -lutil -fsanitize=address" -j 10
 popd
 
+echo smake finished!
+
 rm -rf sparrow-out
 mkdir sparrow-out
+echo Running sparrow...
 # Run Sparrow
 $VULNFIX_HOME/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \
 -frontend "cil" -unsound_alloc -unsound_const_string -unsound_recursion -unsound_noreturn_function \
@@ -44,8 +48,11 @@ $VULNFIX_HOME/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \
 -entry_point "main" -max_pre_iter 10 -slice "bug=dwarf2.c:2441" \
 ./smake_source/sparrow/binutils/nm-new/*.i
 
+echo sparrow finished!
+
 rm -rf dafl_source
 mkdir dafl_source
+echo Building with DAFL...
 pushd dafl_source
   # Run DAFL Instrumentation
   DAFL_SELECTIVE_COV="$VULNFIX_HOME/vulnfix/data/binutils/cve_2017_15025/sparrow-out/bug/slice_func.txt" \

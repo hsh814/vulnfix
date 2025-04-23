@@ -18,7 +18,7 @@ eval $(opam env --switch=default)
 # cp -r source pacfix
 # pushd pacfix
 #   export FORCE_UNSAFE_CONFIGURE=1 && ./configure
-#   make  CFLAGS="-Wno-error -fsanitize=address -g -I${VULNFIX_HOME}/vulnfix/thirdparty/AFL/experimental -DAFL_HOME=\"${VULNFIX_HOME}\"" src/make-prime-list 
+#   make  CFLAGS="-Wno-error -fsanitize=address -g -I${VULNFIX_HOME}/vulnfix/thirdparty/AFL/experimental -DAFL_HOME=\\\"${VULNFIX_HOME}\\\"" src/make-prime-list 
 #   pushd src
 #     gcc -E -DAFL_HOME=\"${VULNFIX_HOME}\" -fno-optimize-sibling-calls -fno-strict-aliasing -fno-asm -std=c99 -DHAVE_CONFIG_H -I. -I../lib -I${VULNFIX_HOME}/vulnfix/thirdparty/AFL/experimental ./make-prime-list.c  -lm -s > make-prime-list.c.i
 #     cilly --domakeCFG --gcc=/usr/bin/gcc-7 --out=tmp.c make-prime-list.c.i
@@ -32,18 +32,22 @@ cp make-prime-list.pacfix.c source/src/make-prime-list.c
 
 rm -rf smake_source
 mkdir smake_source
+echo Running smake...
 pushd smake_source
   # Build with Smake
   export FORCE_UNSAFE_CONFIGURE=1 && ../source/configure
   $VULNFIX_HOME/vulnfix/thirdparty/smake/smake --init
-  $VULNFIX_HOME/vulnfix/thirdparty/smake/smake  CFLAGS="-Wno-error -fsanitize=address -g -I${VULNFIX_HOME}/vulnfix/thirdparty/AFL/experimental -DAFL_HOME=\"${VULNFIX_HOME}\"" \
+  $VULNFIX_HOME/vulnfix/thirdparty/smake/smake  CFLAGS="-Wno-error -fsanitize=address -g -I${VULNFIX_HOME}/vulnfix/thirdparty/AFL/experimental -DAFL_HOME=\\\"${VULNFIX_HOME}\\\"" \
   src/make-prime-list
 popd
 
 cp ./make-prime-list.orig.c ./source/src/make-prime-list.c 
 
+echo smake finished!
+
 rm -rf sparrow-out
 mkdir sparrow-out
+echo Running sparrow...
 # Run Sparrow
 $VULNFIX_HOME/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \
 -frontend "clang" -unsound_alloc -unsound_const_string -unsound_recursion -unsound_noreturn_function \
@@ -51,8 +55,11 @@ $VULNFIX_HOME/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \
 -entry_point "main" -max_pre_iter 10 -slice "bug=make-prime-list.c:218" \
 ./smake_source/sparrow/src/*.i
 
+echo sparrow finished!
+
 rm -rf dafl_source
 mkdir dafl_source
+echo Building with DAFL...
 pushd dafl_source
   # Run DAFL Instrumentation
   DAFL_SELECTIVE_COV="$VULNFIX_HOME/vulnfix/data/binutils/cve_2017_15025/sparrow-out/bug/slice_func.txt" \
@@ -63,7 +70,7 @@ pushd dafl_source
   DAFL_SELECTIVE_COV="$VULNFIX_HOME/vulnfix/data/coreutils/gnubug_19784/sparrow-out/bug/slice_func.txt" \
   DAFL_DFG_SCORE="$VULNFIX_HOME/vulnfix/data/coreutils/gnubug_19784/sparrow-out/bug/slice_dfg.txt" \
   ASAN_OPTIONS=detect_leaks=0 CC=$VULNFIX_HOME/vulnfix/thirdparty/CLUDAFL/afl-clang-fast CXX=$VULNFIX_HOME/vulnfix/thirdparty/CLUDAFL/afl-clang-fast++ \
-  make CFLAGS="-Wno-error -fsanitize=address -g -I${VULNFIX_HOME}/vulnfix/thirdparty/AFL/experimental -DAFL_HOME=\"${VULNFIX_HOME}\"" src/make-prime-list
+  make CFLAGS="-Wno-error -fsanitize=address -g -I${VULNFIX_HOME}/vulnfix/thirdparty/AFL/experimental -DAFL_HOME=\\\"${VULNFIX_HOME}\\\"" src/make-prime-list
 popd
 
 rm -rf cludafl-runtime && mkdir cludafl-runtime

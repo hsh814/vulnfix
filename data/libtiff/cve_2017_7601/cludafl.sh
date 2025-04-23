@@ -28,6 +28,7 @@ cp tif_write.pacfix.c source/libtiff/tif_write.c
 cp tiffiop.pacfix.h source/libtiff/tiffiop.h
 
 rm -rf smake_source && mkdir smake_source
+echo Running smake...
 pushd smake_source
   CC=clang CXX=clang++ ../source/configure
   CC=clang CXX=clang++ $VULNFIX_HOME/vulnfix/thirdparty/smake/smake --init
@@ -37,14 +38,20 @@ cp tif_jpeg.orig.c source/libtiff/tif_jpeg.c
 cp tif_write.orig.c source/libtiff/tif_write.c 
 cp tiffiop.orig.h source/libtiff/tiffiop.h
 
+echo smake finished!
+
 rm -rf sparrow-out && mkdir sparrow-out
+echo Running sparrow...
 $VULNFIX_HOME/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \
 -frontend "cil" -unsound_alloc -unsound_const_string -unsound_recursion -unsound_noreturn_function \
 -unsound_skip_global_array_init 1000 -skip_main_analysis -cut_cyclic_call -unwrap_alloc \
 -entry_point "main" -max_pre_iter 10 -slice "bug=tif_jpeg.c:1646" \
 ./smake_source/sparrow/tools/tiffcp/*.i
 
+echo sparrow finished!
+
 rm -rf dafl_source && mkdir dafl_source
+echo Building with DAFL...
 pushd dafl_source
   DAFL_SELECTIVE_COV="$VULNFIX_HOME/vulnfix/data/libtiff/cve_2017_7601/sparrow-out/bug/slice_func.txt" \
   DAFL_DFG_SCORE="$VULNFIX_HOME/vulnfix/data/libtiff/cve_2017_7601/sparrow-out/bug/slice_dfg.txt" \

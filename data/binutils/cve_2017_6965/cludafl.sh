@@ -38,6 +38,7 @@ cp ./elfcomm.dug.c ./source/binutils/elfcomm.c
 
 rm -rf smake_source
 mkdir smake_source
+echo Running smake...
 pushd smake_source
   # Build with Smake
   ASAN_OPTIONS=detect_leaks=0 CC=gcc CXX=g++ CMAKE_EXPORT_COMPILE_COMMANDS=1 CFLAGS="-DFORTIFY_SOURCE=2 -fstack-protector-all -fsanitize=undefined,address -fno-omit-frame-pointer -ggdb -Wno-error" ../source/configure --disable-shared --disable-gdb --disable-libdecnumber --disable-readline --disable-sim LIBS='-ldl -lutil'
@@ -45,8 +46,11 @@ pushd smake_source
   ASAN_OPTIONS=detect_leaks=0 $VULNFIX_HOME/vulnfix/thirdparty/smake/smake CFLAGS="-ldl -lutil -fsanitize=address -fsanitize=undefined -g" CXXFLAGS="-fsanitize=address -fsanitize=undefined -ldl -lutil -g" LDFLAGS=" -ldl -lutil -fsanitize=address -fsanitize=undefined" -j10
 popd
 
+echo smake finished!
+
 rm -rf sparrow-out
 mkdir sparrow-out
+echo Running sparrow...
 
 # Run Sparrow
 $VULNFIX_HOME/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \
@@ -58,8 +62,11 @@ $VULNFIX_HOME/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \
 cp ./readelf.orig.c ./source/binutils/readelf.c
 cp ./elfcomm.orig.c ./source/binutils/elfcomm.c
 
+echo sparrow finished!
+
 rm -rf dafl_source
 mkdir dafl_source
+echo Building with DAFL...
 pushd dafl_source
   # Run DAFL Instrumentation
   DAFL_SELECTIVE_COV="$VULNFIX_HOME/vulnfix/data/binutils/cve_2017_6965/sparrow-out/bug/slice_func.txt" \

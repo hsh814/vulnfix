@@ -34,6 +34,7 @@ cp elf-bfd.pacfix.h ./source/bfd/elf-bfd.h
 
 rm -rf smake_source
 mkdir smake_source
+echo Running smake...
 pushd smake_source
   # Build with Smake
   ASAN_OPTIONS=detect_leaks=0 CC=gcc CXX=g++ CFLAGS="-DFORTIFY_SOURCE=2 -fstack-protector-all -fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer -g -Wno-error" CXXFLAGS="$CFLAGS" ../source/configure --disable-shared --disable-gdb --disable-libdecnumber --disable-readline --disable-sim LIBS='-ldl -lutil'
@@ -45,8 +46,11 @@ cp elf64-x86-64.orig.c source/bfd/elf64-x86-64.c
 cp objdump.orig.c source/binutils/objdump.c
 cp elf-bfd.orig.h ./source/bfd/elf-bfd.h
 
+echo smake finished!
+
 rm -rf sparrow-out
 mkdir sparrow-out
+echo Running sparrow...
 # Run Sparrow
 $VULNFIX_HOME/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \
 -frontend "clang" -unsound_alloc -unsound_const_string -unsound_recursion -unsound_noreturn_function \
@@ -54,8 +58,11 @@ $VULNFIX_HOME/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \
 -entry_point "main" -max_pre_iter 10 -slice "bug=elf64-x86-64.c:6635" \
 ./smake_source/sparrow/binutils/objdump/*.i 
 
+echo sparrow finished!
+
 rm -rf dafl_source
 mkdir dafl_source
+echo Building with DAFL...
 pushd dafl_source
   # Run DAFL Instrumentation
   DAFL_SELECTIVE_COV="$VULNFIX_HOME/vulnfix/data/binutils/cve_2017_14745/sparrow-out/bug/slice_func.txt" \

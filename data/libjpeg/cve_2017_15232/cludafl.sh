@@ -41,6 +41,7 @@ cp ./jdapistd.pacfix.c ./source/jdapistd.c
 cp ./jdmainct.pacfix.h ./source/jdmainct.h 
 
 rm -rf smake_source && mkdir smake_source
+echo Running smake...
 pushd smake_source
   CC=clang CXX=clang++ ../source/configure
   CC=clang CXX=clang++ $VULNFIX_HOME/vulnfix/thirdparty/smake/smake --init
@@ -53,7 +54,10 @@ cp ./jdmainct.orig.c ./source/jdmainct.c
 cp ./jdapistd.orig.c ./source/jdapistd.c 
 cp ./jdmainct.orig.h ./source/jdmainct.h 
 
+echo smake finished!
+
 rm -rf sparrow-out && mkdir sparrow-out
+echo Running sparrow...
 $VULNFIX_HOME/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \
 -frontend "clang" -unsound_alloc -unsound_const_string -unsound_recursion -unsound_noreturn_function \
 -unsound_skip_global_array_init 1000 -skip_main_analysis -cut_cyclic_call -unwrap_alloc \
@@ -62,7 +66,10 @@ $VULNFIX_HOME/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \
 ./smake_source/sparrow/jdpostct.o.i ./smake_source/sparrow/jdapistd.o.i \
 ./smake_source/sparrow/jdmainct.o.i
 
+echo sparrow finished!
+
 rm -rf dafl_source && mkdir dafl_source
+echo Building with DAFL...
 pushd dafl_source
   DAFL_SELECTIVE_COV="$VULNFIX_HOME/vulnfix/data/libjpeg/cve_2017_15232/sparrow-out/bug/slice_func.txt" \
   DAFL_DFG_SCORE="$VULNFIX_HOME/vulnfix/data/libjpeg/cve_2017_15232/sparrow-out/bug/slice_dfg.txt" \

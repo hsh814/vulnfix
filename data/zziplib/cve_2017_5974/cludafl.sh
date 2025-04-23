@@ -32,6 +32,7 @@ eval $(opam env --switch=default)
 cp memdisk.pacfix.c ./source/zzip/memdisk.c
 
 rm -rf smake_source && mkdir smake_source
+echo Running smake...
 pushd smake_source
   CC=clang CXX=clang++ ../source/configure
   CC=clang CXX=clang++ $VULNFIX_HOME/vulnfix/thirdparty/smake/smake --init
@@ -40,14 +41,20 @@ popd
 
 cp memdisk.orig.c ./source/zzip/memdisk.c
 
+echo smake finished!
+
 rm -rf sparrow-out && mkdir sparrow-out
+echo Running sparrow...
 $VULNFIX_HOME/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \
 -frontend "cil" -unsound_alloc -unsound_const_string -unsound_recursion -unsound_noreturn_function \
 -unsound_skip_global_array_init 1000 -skip_main_analysis -cut_cyclic_call -unwrap_alloc \
 -entry_point "main" -max_pre_iter 10 -slice "bug=memdisk.c:224" \
 ./smake_source/sparrow/bins/unzzipcat-mem/*.i
 
+echo sparrow finished!
+
 rm -rf dafl_source && mkdir dafl_source
+echo Building with DAFL...
 pushd dafl_source
   DAFL_SELECTIVE_COV="$VULNFIX_HOME/vulnfix/data/zziplib/cve_2017_5974/sparrow-out/bug/slice_func.txt" \
   DAFL_DFG_SCORE="$VULNFIX_HOME/vulnfix/data/zziplib/cve_2017_5974/sparrow-out/bug/slice_dfg.txt" \

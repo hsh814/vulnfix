@@ -22,8 +22,8 @@ eval $(opam env --switch=default)
 # cp -r source pacfix
 # pushd pacfix
 #   FORCE_UNSAFE_CONFIGURE=1 ../source/configure --disable-silent-rules
-#   make  CFLAGS="-Wno-error -fsanitize=address -fsanitize=undefined -g -I${VULNFIX_HOME}/vulnfix/thirdparty/AFL/experimental -DAFL_HOME=\"${VULNFIX_HOME}\"" \
-#   CXXFLAGS="-Wno-error -fsanitize=address -fsanitize=undefined -g -I${VULNFIX_HOME}/vulnfix/thirdparty/AFL/experimental -DAFL_HOME=\"${VULNFIX_HOME}\"" -j 10 > make.log
+#   make  CFLAGS="-Wno-error -fsanitize=address -fsanitize=undefined -g -I${VULNFIX_HOME}/vulnfix/thirdparty/AFL/experimental -DAFL_HOME=\\\"${VULNFIX_HOME}\\\"" \
+#   CXXFLAGS="-Wno-error -fsanitize=address -fsanitize=undefined -g -I${VULNFIX_HOME}/vulnfix/thirdparty/AFL/experimental -DAFL_HOME=\\\"${VULNFIX_HOME}\\\"" -j 10 > make.log
 #   cat make.log | grep split.c
 #   gcc -E -I. -I../source -I./lib  -Ilib -I../source/lib -Isrc -I../source/src -I${VULNFIX_HOME}/vulnfix/thirdparty/AFL/experimental -DAFL_HOME=\"${VULNFIX_HOME}\" -Werror -fno-common -W -Wabi -Waddress -Waggressive-loop-optimizations -Wall -Wattributes -Wbad-function-cast -Wbool-compare -Wbuiltin-macro-redefined -Wcast-align -Wchar-subscripts -Wchkp -Wclobbered -Wcomment -Wcomments -Wcoverage-mismatch -Wcpp -Wdate-time -Wdeprecated -Wdeprecated-declarations -Wdesignated-init -Wdisabled-optimization -Wdiscarded-array-qualifiers -Wdiscarded-qualifiers -Wdiv-by-zero -Wdouble-promotion -Wduplicated-cond -Wempty-body -Wendif-labels -Wenum-compare -Wextra -Wformat-contains-nul -Wformat-extra-args -Wformat-security -Wformat-signedness -Wformat-y2k -Wformat-zero-length -Wframe-address -Wfree-nonheap-object -Whsa -Wignored-attributes -Wignored-qualifiers -Wimplicit -Wimplicit-function-declaration -Wimplicit-int -Wincompatible-pointer-types -Winit-self -Wint-conversion -Wint-to-pointer-cast -Winvalid-memory-model -Winvalid-pch -Wjump-misses-init -Wlogical-not-parentheses -Wmain -Wmaybe-uninitialized -Wmemset-transposed-args -Wmisleading-indentation -Wmissing-braces -Wmissing-declarations -Wmissing-field-initializers -Wmissing-include-dirs -Wmissing-parameter-type -Wmissing-prototypes -Wmultichar -Wnarrowing -Wnonnull -Wnonnull-compare -Wnull-dereference -Wodr -Wold-style-declaration -Wold-style-definition -Wopenmp-simd -Woverflow -Woverlength-strings -Woverride-init -Wpacked -Wpacked-bitfield-compat -Wparentheses -Wpointer-arith -Wpointer-sign -Wpointer-to-int-cast -Wpragmas -Wreturn-local-addr -Wreturn-type -Wscalar-storage-order -Wsequence-point -Wshadow -Wshift-count-negative -Wshift-count-overflow -Wshift-negative-value -Wsizeof-array-argument -Wsizeof-pointer-memaccess -Wstrict-aliasing -Wstrict-overflow -Wstrict-prototypes -Wsuggest-attribute=const -Wsuggest-attribute=noreturn -Wsuggest-attribute=pure -Wsuggest-final-methods -Wsuggest-final-types -Wswitch -Wswitch-bool -Wsync-nand -Wtautological-compare -Wtrampolines -Wtrigraphs -Wuninitialized -Wunknown-pragmas -Wunused -Wunused-but-set-parameter -Wunused-but-set-variable -Wunused-function -Wunused-label -Wunused-local-typedefs -Wunused-macros -Wunused-parameter -Wunused-result -Wunused-value -Wunused-variable -Wvarargs -Wvariadic-macros -Wvector-operation-performance -Wvolatile-register-var -Wwrite-strings -Warray-bounds=2 -Wnormalized=nfc -Wshift-overflow=2 -Wunused-const-variable=2 -Wno-sign-compare -Wno-type-limits -Wno-unused-parameter -Wno-format-nonliteral -Wlogical-op -fdiagnostics-show-option -funit-at-a-time -Wno-error -fsanitize=address -fsanitize=undefined -g -MT src/split.o -MD -MP -MF $depbase.Tpo -c src/split.c > split.c.i
 #   cilly --domakeCFG --gcc=/usr/bin/gcc-7 --out=tmp.c split.c.i
@@ -34,22 +34,29 @@ eval $(opam env --switch=default)
 
 
 rm -rf smake_source && mkdir smake_source
+echo Running smake...
 pushd smake_source
   export FORCE_UNSAFE_CONFIGURE=1 && CC=clang CXX=clang++ ../source/configure
   CC=clang CXX=clang++ $VULNFIX_HOME/vulnfix/thirdparty/smake/smake --init
   CC=clang CXX=clang++ $VULNFIX_HOME/vulnfix/thirdparty/smake/smake \
-  CFLAGS="-Wno-error -fsanitize=address -fsanitize=undefined -g -I${VULNFIX_HOME}/vulnfix/thirdparty/AFL/experimental -DAFL_HOME=\"${VULNFIX_HOME}\"" \
-  CXXFLAGS="-Wno-error -fsanitize=address -fsanitize=undefined -g -I${VULNFIX_HOME}/vulnfix/thirdparty/AFL/experimental -DAFL_HOME=\"${VULNFIX_HOME}\"" -j 10
+  CFLAGS="-Wno-error -fsanitize=address -fsanitize=undefined -g -I${VULNFIX_HOME}/vulnfix/thirdparty/AFL/experimental -DAFL_HOME=\\\"${VULNFIX_HOME}\\\"" \
+  CXXFLAGS="-Wno-error -fsanitize=address -fsanitize=undefined -g -I${VULNFIX_HOME}/vulnfix/thirdparty/AFL/experimental -DAFL_HOME=\\\"${VULNFIX_HOME}\\\"" -j 10
 popd
 
+echo smake finished!
+
 rm -rf sparrow-out && mkdir sparrow-out
+echo Running sparrow...
 $VULNFIX_HOME/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \
 -frontend "clang" -unsound_alloc -unsound_const_string -unsound_recursion -unsound_noreturn_function \
 -unsound_skip_global_array_init 1000 -skip_main_analysis -cut_cyclic_call -unwrap_alloc \
 -entry_point "main" -max_pre_iter 10 -slice "bug=split.c:988" \
 ./smake_source/sparrow/src/split/*.i
 
+echo sparrow finished!
+
 rm -rf dafl_source && mkdir dafl_source
+echo Building with DAFL...
 pushd dafl_source
   FORCE_UNSAFE_CONFIGURE=1 DAFL_SELECTIVE_COV="$VULNFIX_HOME/vulnfix/data/coreutils/gnubug_25003/sparrow-out/bug/slice_func.txt" \
   DAFL_DFG_SCORE="$VULNFIX_HOME/vulnfix/data/coreutils/gnubug_25003/sparrow-out/bug/slice_dfg.txt" \
@@ -59,8 +66,8 @@ pushd dafl_source
   DAFL_SELECTIVE_COV="$VULNFIX_HOME/vulnfix/data/coreutils/gnubug_25003/sparrow-out/bug/slice_func.txt" \
   DAFL_DFG_SCORE="$VULNFIX_HOME/vulnfix/data/coreutils/gnubug_25003/sparrow-out/bug/slice_dfg.txt" \
   ASAN_OPTIONS=detect_leaks=0 CC=$VULNFIX_HOME/vulnfix/thirdparty/CLUDAFL/afl-clang-fast CXX=$VULNFIX_HOME/vulnfix/thirdparty/CLUDAFL/afl-clang-fast++ \
-  make CFLAGS="-Wno-error -fsanitize=address -fsanitize=undefined -g -I${VULNFIX_HOME}/vulnfix/thirdparty/AFL/experimental -DAFL_HOME=\"${VULNFIX_HOME}\"" \
-  CXXFLAGS="-Wno-error -fsanitize=address -fsanitize=undefined -g -I${VULNFIX_HOME}/vulnfix/thirdparty/AFL/experimental -DAFL_HOME=\"${VULNFIX_HOME}\"" -j 10
+  make CFLAGS="-Wno-error -fsanitize=address -fsanitize=undefined -g -I${VULNFIX_HOME}/vulnfix/thirdparty/AFL/experimental -DAFL_HOME=\\\"${VULNFIX_HOME}\\\"" \
+  CXXFLAGS="-Wno-error -fsanitize=address -fsanitize=undefined -g -I${VULNFIX_HOME}/vulnfix/thirdparty/AFL/experimental -DAFL_HOME=\\\"${VULNFIX_HOME}\\\"" -j 10
 popd
 
 rm -rf cludafl-runtime && mkdir cludafl-runtime

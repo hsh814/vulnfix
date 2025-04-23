@@ -22,6 +22,7 @@ eval $(opam env --switch=default)
 cp tiff2ps.pacfix.c ./source/tools/tiff2ps.c
 
 rm -rf smake_source && mkdir smake_source
+echo Running smake...
 pushd smake_source
  CC=clang CXX=clang++ ../source/configure
  CC=clang CXX=clang++ $VULNFIX_HOME/vulnfix/thirdparty/smake/smake --init
@@ -30,14 +31,20 @@ popd
 
 cp tiff2ps.orig.c ./source/tools/tiff2ps.c
 
+echo smake finished!
+
 rm -rf sparrow-out && mkdir sparrow-out
+echo Running sparrow...
 $VULNFIX_HOME/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \
 -frontend "clang" -unsound_alloc -unsound_const_string -unsound_recursion -unsound_noreturn_function \
 -unsound_skip_global_array_init 1000 -skip_main_analysis -cut_cyclic_call -unwrap_alloc \
 -entry_point "main" -max_pre_iter 10 -slice "bug=tiff2ps.c:2470" \
 ./smake_source/sparrow/tools/tiff2ps/*.i
 
+echo sparrow finished!
+
 rm -rf dafl_source && mkdir dafl_source
+echo Building with DAFL...
 pushd dafl_source
   DAFL_SELECTIVE_COV="$VULNFIX_HOME/vulnfix/data/libtiff/bugzilla_2633/sparrow-out/bug/slice_func.txt" \
   DAFL_DFG_SCORE="$VULNFIX_HOME/vulnfix/data/libtiff/bugzilla_2633/sparrow-out/bug/slice_dfg.txt" \
