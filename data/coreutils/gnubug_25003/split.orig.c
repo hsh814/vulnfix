@@ -1281,12 +1281,12 @@ parse_chunk (uintmax_t *k_units, uintmax_t *n_units, char *slash)
     }
 }
 
-#include "/home/yuntong/vulnfix/thirdparty/AFL/experimental/argv_fuzzing/argv-fuzz-inl.h"
+#include "argv_fuzzing/argv-fuzz-inl.h"
 
 int
 main (int argc, char **argv)
 {
-AFL_INIT_SET02("./split", "/home/yuntong/vulnfix/data/coreutils/gnubug_25003/dummy");
+AFL_INIT_SET02("./split", AFL_HOME "/vulnfix/data/coreutils/gnubug_25003/dummy");
   enum Split_type split_type = type_undef;
   size_t in_blk_size = 0;	/* optimal block size of input file device */
   size_t page_size = getpagesize ();

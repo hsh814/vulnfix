@@ -26,7 +26,7 @@ this program.  If not, see http://www.gnu.org/licenses/.  */
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
-#include "/home/yuntong/vulnfix/thirdparty/AFL/experimental/argv_fuzzing/argv-fuzz-inl.h"
+#include "argv_fuzzing/argv-fuzz-inl.h"
 
 /* Deactivate config.h's "rpl_"-prefixed definitions of these symbols.  */
 #undef fclose

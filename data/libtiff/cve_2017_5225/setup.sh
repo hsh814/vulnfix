@@ -1,7 +1,7 @@
 #!/bin/bash
 
 commit_id=393881d
-dir=/home/yuntong/vulnfix/data/libtiff/cve_2017_5225
+dir=$VULNFIX_HOME/vulnfix/data/libtiff/cve_2017_5225
 
 rm -rf source
 git clone https://github.com/vadz/libtiff.git
@@ -13,12 +13,12 @@ popd
 rm -rf smake_source && mkdir smake_source
 pushd smake_source
   CC=clang CXX=clang++ ../source/configure
-  CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake --init
-  CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake CFLAGS="-static -fsanitize=address -g" CXXFLAGS="-static -fsanitize=address -g" LDFLAGS="-fsanitize=address" -j10
+  CC=clang CXX=clang++ $VULNFIX_HOME/vulnfix/thirdparty/smake/smake --init
+  CC=clang CXX=clang++ $VULNFIX_HOME/vulnfix/thirdparty/smake/smake CFLAGS="-static -fsanitize=address -g" CXXFLAGS="-static -fsanitize=address -g" LDFLAGS="-fsanitize=address" -j10
 popd
 
 rm -rf sparrow-out && mkdir sparrow-out
-/home/yuntong/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \
+$VULNFIX_HOME/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \
 -frontend "cil" -unsound_alloc -unsound_const_string -unsound_recursion -unsound_noreturn_function \
 -unsound_skip_global_array_init 1000 -skip_main_analysis -cut_cyclic_call -unwrap_alloc \
 -entry_point "main" -max_pre_iter 10 -slice "bug=tiffcp.c:1090" \
@@ -28,12 +28,12 @@ rm -rf dafl_source && mkdir dafl_source
 pushd dafl_source
   DAFL_SELECTIVE_COV="$dir/sparrow-out/bug/slice_func.txt" \
   DAFL_DFG_SCORE="$dir/sparrow-out/bug/slice_dfg.txt" \
-  ASAN_OPTIONS=detect_leaks=0 CC=/home/yuntong/vulnfix/thirdparty/DAFL/afl-clang-fast CXX=/home/yuntong/vulnfix/thirdparty/DAFL/afl-clang-fast++ \
+  ASAN_OPTIONS=detect_leaks=0 CC=$VULNFIX_HOME/vulnfix/thirdparty/DAFL/afl-clang-fast CXX=$VULNFIX_HOME/vulnfix/thirdparty/DAFL/afl-clang-fast++ \
   CMAKE_EXPORT_COMPILE_COMMANDS=1 ../source/configure
 
   DAFL_SELECTIVE_COV="$dir/sparrow-out/bug/slice_func.txt" \
   DAFL_DFG_SCORE="$dir/sparrow-out/bug/slice_dfg.txt" \
-  ASAN_OPTIONS=detect_leaks=0 CC=/home/yuntong/vulnfix/thirdparty/DAFL/afl-clang-fast CXX=/home/yuntong/vulnfix/thirdparty/DAFL/afl-clang-fast++ \
+  ASAN_OPTIONS=detect_leaks=0 CC=$VULNFIX_HOME/vulnfix/thirdparty/DAFL/afl-clang-fast CXX=$VULNFIX_HOME/vulnfix/thirdparty/DAFL/afl-clang-fast++ \
   make CFLAGS="-static -fsanitize=address -g" CXXFLAGS="-static -fsanitize=address -g" LDFLAGS="-fsanitize=address" -j10
 popd
 

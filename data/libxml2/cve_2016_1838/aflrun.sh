@@ -3,7 +3,7 @@ rm -rf source
 unzip source
 mv libxml2-cbb271655cadeb8dbb258a64701d9a3a0c4835b4 source
 
-export AFLRUN=/home/yuntong/vulnfix/thirdparty/AFLRun
+export AFLRUN=$VULNFIX_HOME/vulnfix/thirdparty/AFLRun
 rm -rf aflrun_build && mkdir aflrun_build
 pushd aflrun_build
   mkdir temp

@@ -4,8 +4,8 @@ git clone https://github.com/coreutils/coreutils.git source
 pushd source
   git checkout 8d34b45
   # for AFL argv fuzz
-  sed -i '1215i #include "/home/yuntong/vulnfix/thirdparty/AFL/experimental/argv_fuzzing/argv-fuzz-inl.h"' src/shred.c
-  sed -i '1220i AFL_INIT_SET03("./shred", "/home/yuntong/vulnfix/data/coreutils/gnubug_26545/dummy");' src/shred.c
+  sed -i '1215i #include "$VULNFIX_HOME/vulnfix/thirdparty/AFL/experimental/argv_fuzzing/argv-fuzz-inl.h"' src/shred.c
+  sed -i '1220i AFL_INIT_SET03("./shred", "$VULNFIX_HOME/vulnfix/data/coreutils/gnubug_26545/dummy");' src/shred.c
   # -u option can cause a lot of files to be writting to disk during fuzzing; disable that
   sed -i '1260i break;' src/shred.c
   # remove and recreate output so that it does not grow too big.
@@ -17,7 +17,7 @@ pushd source
   ./bootstrap
 popd
 
-export AFLRUN=/home/yuntong/vulnfix/thirdparty/AFLRun
+export AFLRUN=$VULNFIX_HOME/vulnfix/thirdparty/AFLRun
 rm -rf aflrun_build && mkdir aflrun_build
 pushd aflrun_build
   mkdir temp

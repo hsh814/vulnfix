@@ -9,12 +9,12 @@ popd
 rm -rf smake_source && mkdir smake_source
 pushd smake_source
   CC=clang CXX=clang++ ../source/autogen.sh
-  CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake --init
-  CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake CFLAGS="-static -fsanitize=address -g" CXXFLAGS="-static -fsanitize=address -g" LDFLAGS="-fsanitize=address" -j10
+  CC=clang CXX=clang++ $VULNFIX_HOME/vulnfix/thirdparty/smake/smake --init
+  CC=clang CXX=clang++ $VULNFIX_HOME/vulnfix/thirdparty/smake/smake CFLAGS="-static -fsanitize=address -g" CXXFLAGS="-static -fsanitize=address -g" LDFLAGS="-fsanitize=address" -j10
 popd
 
 rm -rf sparrow-out && mkdir sparrow-out
-/home/yuntong/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \
+$VULNFIX_HOME/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \
 -frontend "cil" -unsound_alloc -unsound_const_string -unsound_recursion -unsound_noreturn_function \
 -unsound_skip_global_array_init 1000 -skip_main_analysis -cut_cyclic_call -unwrap_alloc \
 -entry_point "main" -max_pre_iter 10 -slice "bug=dict.c:285" \
@@ -22,14 +22,14 @@ rm -rf sparrow-out && mkdir sparrow-out
 
 rm -rf dafl_source && mkdir dafl_source
 pushd dafl_source
-  DAFL_SELECTIVE_COV="/home/yuntong/vulnfix/data/libxml2/cve_2016_1839/sparrow-out/bug/slice_func.txt" \
-  DAFL_DFG_SCORE="/home/yuntong/vulnfix/data/libxml2/cve_2016_1839/sparrow-out/bug/slice_dfg.txt" \
-  ASAN_OPTIONS=detect_leaks=0 CC=/home/yuntong/vulnfix/thirdparty/DAFL/afl-clang-fast CXX=/home/yuntong/vulnfix/thirdparty/DAFL/afl-clang-fast++ \
+  DAFL_SELECTIVE_COV="$VULNFIX_HOME/vulnfix/data/libxml2/cve_2016_1839/sparrow-out/bug/slice_func.txt" \
+  DAFL_DFG_SCORE="$VULNFIX_HOME/vulnfix/data/libxml2/cve_2016_1839/sparrow-out/bug/slice_dfg.txt" \
+  ASAN_OPTIONS=detect_leaks=0 CC=$VULNFIX_HOME/vulnfix/thirdparty/DAFL/afl-clang-fast CXX=$VULNFIX_HOME/vulnfix/thirdparty/DAFL/afl-clang-fast++ \
   CMAKE_EXPORT_COMPILE_COMMANDS=1 ../source/autogen.sh
 
-  DAFL_SELECTIVE_COV="/home/yuntong/vulnfix/data/libxml2/cve_2016_1839/sparrow-out/bug/slice_func.txt" \
-  DAFL_DFG_SCORE="/home/yuntong/vulnfix/data/libxml2/cve_2016_1839/sparrow-out/bug/slice_dfg.txt" \
-  ASAN_OPTIONS=detect_leaks=0 CC=/home/yuntong/vulnfix/thirdparty/DAFL/afl-clang-fast CXX=/home/yuntong/vulnfix/thirdparty/DAFL/afl-clang-fast++ \
+  DAFL_SELECTIVE_COV="$VULNFIX_HOME/vulnfix/data/libxml2/cve_2016_1839/sparrow-out/bug/slice_func.txt" \
+  DAFL_DFG_SCORE="$VULNFIX_HOME/vulnfix/data/libxml2/cve_2016_1839/sparrow-out/bug/slice_dfg.txt" \
+  ASAN_OPTIONS=detect_leaks=0 CC=$VULNFIX_HOME/vulnfix/thirdparty/DAFL/afl-clang-fast CXX=$VULNFIX_HOME/vulnfix/thirdparty/DAFL/afl-clang-fast++ \
   make CFLAGS="-static -fsanitize=address -g" CXXFLAGS="-static -fsanitize=address -g" LDFLAGS="-fsanitize=address" -j10
 popd
 
@@ -40,7 +40,7 @@ pushd raw_build
 popd
 
 # aflgo
-export AFLGO=/home/yuntong/vulnfix/thirdparty/aflgo
+export AFLGO=$VULNFIX_HOME/vulnfix/thirdparty/aflgo
 rm -rf aflgo_build && mkdir aflgo_build
 pushd aflgo_build
   # first build

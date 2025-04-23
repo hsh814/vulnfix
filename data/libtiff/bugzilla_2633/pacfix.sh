@@ -16,21 +16,21 @@ pushd pacfix
     cp tiff2ps.c.i.c tiff2ps.c
   popd
 popd
-/home/yuntong/pacfix/main.exe -lv_only 1 config
+$VULNFIX_HOME/pacfix/main.exe -lv_only 1 config
 
 #cp tiff2ps.pacfix.c ./source/tools/tiff2ps.c
 
 #rm -rf smake_source && mkdir smake_source
 #pushd smake_source
 #  CC=clang CXX=clang++ ../source/configure
-#  CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake --init
-#  CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake CFLAGS="-static -fsanitize=address -fsanitize=undefined -g" CXXFLAGS="-static -fsanitize=address -fsanitize=undefined -g" -j10
+#  CC=clang CXX=clang++ $VULNFIX_HOME/vulnfix/thirdparty/smake/smake --init
+#  CC=clang CXX=clang++ $VULNFIX_HOME/vulnfix/thirdparty/smake/smake CFLAGS="-static -fsanitize=address -fsanitize=undefined -g" CXXFLAGS="-static -fsanitize=address -fsanitize=undefined -g" -j10
 #popd
 
 #cp tiff2ps.orig.c ./source/tools/tiff2ps.c
 
 #rm -rf sparrow-out && mkdir sparrow-out
-#/home/yuntong/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \
+#$VULNFIX_HOME/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \
 #-frontend "clang" -unsound_alloc -unsound_const_string -unsound_recursion -unsound_noreturn_function \
 #-unsound_skip_global_array_init 1000 -skip_main_analysis -cut_cyclic_call -unwrap_alloc \
 #-entry_point "main" -max_pre_iter 10 -slice "bug=tiff2ps.c:2470" \
@@ -38,18 +38,18 @@ popd
 
 rm -rf dafl_source && mkdir dafl_source
 pushd dafl_source
-  DAFL_SELECTIVE_COV="/home/yuntong/vulnfix/data/libtiff/bugzilla_2633/sparrow-out/bug/slice_func.txt" \
-  DAFL_DFG_SCORE="/home/yuntong/vulnfix/data/libtiff/bugzilla_2633/sparrow-out/bug/slice_dfg.txt" \
-  ASAN_OPTIONS=detect_leaks=0 CC=/home/yuntong/vulnfix/thirdparty/DAFL/afl-clang-fast CXX=/home/yuntong/vulnfix/thirdparty/DAFL/afl-clang-fast++ \
+  DAFL_SELECTIVE_COV="$VULNFIX_HOME/vulnfix/data/libtiff/bugzilla_2633/sparrow-out/bug/slice_func.txt" \
+  DAFL_DFG_SCORE="$VULNFIX_HOME/vulnfix/data/libtiff/bugzilla_2633/sparrow-out/bug/slice_dfg.txt" \
+  ASAN_OPTIONS=detect_leaks=0 CC=$VULNFIX_HOME/vulnfix/thirdparty/DAFL/afl-clang-fast CXX=$VULNFIX_HOME/vulnfix/thirdparty/DAFL/afl-clang-fast++ \
   ../source/configure 
-  DAFL_SELECTIVE_COV="/home/yuntong/vulnfix/data/libtiff/bugzilla_2633/sparrow-out/bug/slice_func.txt" \
-  DAFL_DFG_SCORE="/home/yuntong/vulnfix/data/libtiff/bugzilla_2633/sparrow-out/bug/slice_dfg.txt" \
-  ASAN_OPTIONS=detect_leaks=0 CC=/home/yuntong/vulnfix/thirdparty/DAFL/afl-clang-fast CXX=/home/yuntong/vulnfix/thirdparty/DAFL/afl-clang-fast++ \
+  DAFL_SELECTIVE_COV="$VULNFIX_HOME/vulnfix/data/libtiff/bugzilla_2633/sparrow-out/bug/slice_func.txt" \
+  DAFL_DFG_SCORE="$VULNFIX_HOME/vulnfix/data/libtiff/bugzilla_2633/sparrow-out/bug/slice_dfg.txt" \
+  ASAN_OPTIONS=detect_leaks=0 CC=$VULNFIX_HOME/vulnfix/thirdparty/DAFL/afl-clang-fast CXX=$VULNFIX_HOME/vulnfix/thirdparty/DAFL/afl-clang-fast++ \
   make CFLAGS="-static -fsanitize=address -fsanitize=undefined -g" CXXFLAGS="-static -fsanitize=address -fsanitize=undefined -g" -j10
 popd
 
 cp dafl_source/tools/tiff2ps ./tiff2ps.instrumented
 
-# AFL_NO_UI=1 timeout 12h /home/yuntong/vulnfix/thirdparty/DAFL/afl-fuzz -C -t 2000ms -m none -i ./in -p /home/yuntong/vulnfix/data/libtiff/cve_2016_5321/sparrow-out/bug/slice_dfg.txt -o 2024-04-04-test -- ./tiffcrop.instrumented @@ /tmp/out.tmp
+# AFL_NO_UI=1 timeout 12h $VULNFIX_HOME/vulnfix/thirdparty/DAFL/afl-fuzz -C -t 2000ms -m none -i ./in -p $VULNFIX_HOME/vulnfix/data/libtiff/cve_2016_5321/sparrow-out/bug/slice_dfg.txt -o 2024-04-04-test -- ./tiffcrop.instrumented @@ /tmp/out.tmp
 
 

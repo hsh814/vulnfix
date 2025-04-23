@@ -29,7 +29,7 @@ subjects=(
     # "zziplib/cve_2017_5975"
     # "zziplib/cve_2017_5976"
 )
-export CLUDAFL="/home/yuntong/vulnfix/thirdparty/CLUDAFL"
+export CLUDAFL="$VULNFIX_HOME/vulnfix/thirdparty/CLUDAFL"
 # subjects=("libjpeg/cve_2017_15232" "libxml2/cve_2016_1839" "libtiff/cve_2016_9532")
 
 array=("cludafl-par-1" "cludafl-par-2" "cludafl-par-3" "cludafl-par-4" "cludafl-par-5" "cludafl-par-6" "cludafl-par-7" "cludafl-par-8" "cludafl-par-9" "cludafl-par-10")

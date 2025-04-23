@@ -21,7 +21,7 @@ pushd pacfix
     cp dwarf2.c.i.c dwarf2.c
   popd
 popd
-/home/yuntong/pacfix/main.exe -lv_only config
+$VULNFIX_HOME/pacfix/main.exe -lv_only config
 
 cp dwarf2.pacfix.c source/bfd/dwarf2.c
 
@@ -30,14 +30,14 @@ mkdir smake_source
 pushd smake_source
   # Build with Smake
   ASAN_OPTIONS=detect_leaks=0 CC=clang CXX=clang++ CMAKE_EXPORT_COMPILE_COMMANDS=1 CFLAGS="-DFORTIFY_SOURCE=2 -fno-omit-frame-pointer -fsanitize=address -ggdb -Wno-error" CXXFLAGS="$CFLAGS" ../source/configure --disable-shared --disable-gdb --disable-libdecnumber --disable-readline --disable-sim LIBS='-ldl -lutil'
-  /home/yuntong/vulnfix/thirdparty/smake/smake --init
-  ASAN_OPTIONS=detect_leaks=0 /home/yuntong/vulnfix/thirdparty/smake/smake CFLAGS="-ldl -lutil -fsanitize=address -ggdb -Wno-error" CXXFLAGS="-fsanitize=address -ldl -lutil -ggdb -Wno-error" LDFLAGS=" -ldl -lutil -fsanitize=address" -j 10
+  $VULNFIX_HOME/vulnfix/thirdparty/smake/smake --init
+  ASAN_OPTIONS=detect_leaks=0 $VULNFIX_HOME/vulnfix/thirdparty/smake/smake CFLAGS="-ldl -lutil -fsanitize=address -ggdb -Wno-error" CXXFLAGS="-fsanitize=address -ldl -lutil -ggdb -Wno-error" LDFLAGS=" -ldl -lutil -fsanitize=address" -j 10
 popd
 
 rm -rf sparrow-out
 mkdir sparrow-out
 # Run Sparrow
-/home/yuntong/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \
+$VULNFIX_HOME/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \
 -frontend "cil" -unsound_alloc -unsound_const_string -unsound_recursion -unsound_noreturn_function \
 -unsound_skip_global_array_init 1000 -skip_main_analysis -cut_cyclic_call -unwrap_alloc \
 -entry_point "main" -max_pre_iter 10 -slice "bug=dwarf2.c:2441" \
@@ -47,15 +47,15 @@ rm -rf dafl_source
 mkdir dafl_source
 pushd dafl_source
   # Run DAFL Instrumentation
-  DAFL_SELECTIVE_COV="/home/yuntong/vulnfix/data/binutils/cve_2017_15025/sparrow-out/bug/slice_func.txt" \
-  DAFL_DFG_SCORE="/home/yuntong/vulnfix/data/binutils/cve_2017_15025/sparrow-out/bug/slice_dfg.txt" \
-  ASAN_OPTIONS=detect_leaks=0 CC=/home/yuntong/vulnfix/thirdparty/DAFL/afl-clang-fast CXX=/home/yuntong/vulnfix/thirdparty/DAFL/afl-clang-fast++ \
+  DAFL_SELECTIVE_COV="$VULNFIX_HOME/vulnfix/data/binutils/cve_2017_15025/sparrow-out/bug/slice_func.txt" \
+  DAFL_DFG_SCORE="$VULNFIX_HOME/vulnfix/data/binutils/cve_2017_15025/sparrow-out/bug/slice_dfg.txt" \
+  ASAN_OPTIONS=detect_leaks=0 CC=$VULNFIX_HOME/vulnfix/thirdparty/DAFL/afl-clang-fast CXX=$VULNFIX_HOME/vulnfix/thirdparty/DAFL/afl-clang-fast++ \
   CMAKE_EXPORT_COMPILE_COMMANDS=1 CFLAGS="-DFORTIFY_SOURCE=2 -fno-omit-frame-pointer -fsanitize=address -ggdb -Wno-error" \
   CXXFLAGS="$CFLAGS" ../source/configure --disable-shared --disable-gdb --disable-libdecnumber --disable-readline --disable-sim LIBS='-ldl -lutil'
 
-  DAFL_SELECTIVE_COV="/home/yuntong/vulnfix/data/binutils/cve_2017_15025/sparrow-out/bug/slice_func.txt" \
-  DAFL_DFG_SCORE="/home/yuntong/vulnfix/data/binutils/cve_2017_15025/sparrow-out/bug/slice_dfg.txt" \
-  ASAN_OPTIONS=detect_leaks=0 CC=/home/yuntong/vulnfix/thirdparty/DAFL/afl-clang-fast CXX=/home/yuntong/vulnfix/thirdparty/DAFL/afl-clang-fast++ \
+  DAFL_SELECTIVE_COV="$VULNFIX_HOME/vulnfix/data/binutils/cve_2017_15025/sparrow-out/bug/slice_func.txt" \
+  DAFL_DFG_SCORE="$VULNFIX_HOME/vulnfix/data/binutils/cve_2017_15025/sparrow-out/bug/slice_dfg.txt" \
+  ASAN_OPTIONS=detect_leaks=0 CC=$VULNFIX_HOME/vulnfix/thirdparty/DAFL/afl-clang-fast CXX=$VULNFIX_HOME/vulnfix/thirdparty/DAFL/afl-clang-fast++ \
   make CFLAGS="-ldl -lutil -fsanitize=address -ggdb -Wno-error" CXXFLAGS="-fsanitize=address -ldl -lutil -ggdb -Wno-error" \
   LDFLAGS=" -ldl -lutil -fsanitize=address" -j 10
 popd

@@ -4,8 +4,8 @@ git clone https://github.com/coreutils/coreutils.git source
 pushd source
   git checkout 8d34b45
   # for AFL argv fuzz
-  sed -i '1215i #include "/home/yuntong/vulnfix/thirdparty/AFL/experimental/argv_fuzzing/argv-fuzz-inl.h"' src/shred.c
-  sed -i '1220i AFL_INIT_SET03("./shred", "/home/yuntong/vulnfix/data/coreutils/gnubug_26545/dummy");' src/shred.c
+  sed -i '1215i #include "$VULNFIX_HOME/vulnfix/thirdparty/AFL/experimental/argv_fuzzing/argv-fuzz-inl.h"' src/shred.c
+  sed -i '1220i AFL_INIT_SET03("./shred", "$VULNFIX_HOME/vulnfix/data/coreutils/gnubug_26545/dummy");' src/shred.c
   # -u option can cause a lot of files to be writting to disk during fuzzing; disable that
   sed -i '1260i break;' src/shred.c
   # remove and recreate output so that it does not grow too big.
@@ -32,7 +32,7 @@ pushd pacfix
   mv tmp.c ./src/shred.c.i.c 
   cp ./src/shred.c.i.c src/shred.c
 popd
-/home/yuntong/pacfix/main.exe -lv_only 1 config
+$VULNFIX_HOME/pacfix/main.exe -lv_only 1 config
 
 #cp ./shred.pacfix2.c ./source/src/shred.c 
 
@@ -40,14 +40,14 @@ popd
 #rm -rf smake_source && mkdir smake_source
 #pushd smake_source
 #  export FORCE_UNSAFE_CONFIGURE=1 && CC=clang CXX=clang++ ../source/configure 
-#  CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake --init
-#  CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake CFLAGS="-Wno-error -fsanitize=address -ggdb" CXXFLAGS="-Wno-error -fsanitize=address -ggdb" LDFLAGS="-fsanitize=address" -j10
+#  CC=clang CXX=clang++ $VULNFIX_HOME/vulnfix/thirdparty/smake/smake --init
+#  CC=clang CXX=clang++ $VULNFIX_HOME/vulnfix/thirdparty/smake/smake CFLAGS="-Wno-error -fsanitize=address -ggdb" CXXFLAGS="-Wno-error -fsanitize=address -ggdb" LDFLAGS="-fsanitize=address" -j10
 #popd
 
 cp ./shred.orig.c ./source/src/shred.c 
 
 #rm -rf sparrow-out && mkdir sparrow-out
-#/home/yuntong/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \
+#$VULNFIX_HOME/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \
 #-frontend "clang" -unsound_alloc -unsound_const_string -unsound_recursion -unsound_noreturn_function \
 #-unsound_skip_global_array_init 1000 -skip_main_analysis -cut_cyclic_call -unwrap_alloc \
 #-entry_point "main" -max_pre_iter 10 -slice "bug=shred.c:294" \
@@ -55,14 +55,14 @@ cp ./shred.orig.c ./source/src/shred.c
 
 rm -rf dafl_source && mkdir dafl_source
 pushd dafl_source
-  DAFL_SELECTIVE_COV="/home/yuntong/vulnfix/data/coreutils/gnubug_26545/sparrow-out/bug/slice_func.txt" \
-  DAFL_DFG_SCORE="/home/yuntong/vulnfix/data/coreutils/gnubug_26545/sparrow-out/bug/slice_dfg.txt" \
-  ASAN_OPTIONS=detect_leaks=0 CC=/home/yuntong/vulnfix/thirdparty/DAFL/afl-clang-fast CXX=/home/yuntong/vulnfix/thirdparty/DAFL/afl-clang-fast++ \
+  DAFL_SELECTIVE_COV="$VULNFIX_HOME/vulnfix/data/coreutils/gnubug_26545/sparrow-out/bug/slice_func.txt" \
+  DAFL_DFG_SCORE="$VULNFIX_HOME/vulnfix/data/coreutils/gnubug_26545/sparrow-out/bug/slice_dfg.txt" \
+  ASAN_OPTIONS=detect_leaks=0 CC=$VULNFIX_HOME/vulnfix/thirdparty/DAFL/afl-clang-fast CXX=$VULNFIX_HOME/vulnfix/thirdparty/DAFL/afl-clang-fast++ \
   ../source/configure
 
-  DAFL_SELECTIVE_COV="/home/yuntong/vulnfix/data/coreutils/gnubug_26545/sparrow-out/bug/slice_func.txt" \
-  DAFL_DFG_SCORE="/home/yuntong/vulnfix/data/coreutils/gnubug_26545/sparrow-out/bug/slice_dfg.txt" \
-  ASAN_OPTIONS=detect_leaks=0 CC=/home/yuntong/vulnfix/thirdparty/DAFL/afl-clang-fast CXX=/home/yuntong/vulnfix/thirdparty/DAFL/afl-clang-fast++ \
+  DAFL_SELECTIVE_COV="$VULNFIX_HOME/vulnfix/data/coreutils/gnubug_26545/sparrow-out/bug/slice_func.txt" \
+  DAFL_DFG_SCORE="$VULNFIX_HOME/vulnfix/data/coreutils/gnubug_26545/sparrow-out/bug/slice_dfg.txt" \
+  ASAN_OPTIONS=detect_leaks=0 CC=$VULNFIX_HOME/vulnfix/thirdparty/DAFL/afl-clang-fast CXX=$VULNFIX_HOME/vulnfix/thirdparty/DAFL/afl-clang-fast++ \
   make CFLAGS="-Wno-error -fsanitize=address -ggdb" CXXFLAGS="-Wno-error -fsanitize=address -ggdb" LDFLAGS="-fsanitize=address" -j10
 popd
 

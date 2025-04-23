@@ -10,7 +10,7 @@ pushd source
 popd
 
 
-export AFLRUN=/home/yuntong/vulnfix/thirdparty/AFLRun
+export AFLRUN=$VULNFIX_HOME/vulnfix/thirdparty/AFLRun
 rm -rf aflrun_build && mkdir aflrun_build
 pushd aflrun_build
   mkdir temp

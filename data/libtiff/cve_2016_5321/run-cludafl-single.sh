@@ -4,14 +4,14 @@ if [ "$#" -ne 1 ]; then
     exit 1
 fi
 SUFFIX="$1"
-TARGET_DIR="/home/yuntong/vulnfix/data/libtiff/cve_2016_5321"
+TARGET_DIR="$VULNFIX_HOME/vulnfix/data/libtiff/cve_2016_5321"
 SEED_DIR="${TARGET_DIR}/seed/"
 SEED_DIR="${SEED_DIR_OVERRIDE:-$SEED_DIR}"
 TARGET_BIN="tiffcrop"
 
 TIMEOUT="24h"
 TIMEOUT="${TIMEOUT_OVERRIDE:-$TIMEOUT}"
-AFL_CMD="timeout $TIMEOUT /home/yuntong/vulnfix/thirdparty/CLUDAFL/afl-fuzz"
+AFL_CMD="timeout $TIMEOUT $VULNFIX_HOME/vulnfix/thirdparty/CLUDAFL/afl-fuzz"
 AFL_OPTS_COMMON="-t 2000+ -m none -d -s mab"
 AFL_OPTS_COMMON="${AFL_OPTS_COMMON_OVERRIDE:-$AFL_OPTS_COMMON}"
 AFL_INPUT_DIR="./in"

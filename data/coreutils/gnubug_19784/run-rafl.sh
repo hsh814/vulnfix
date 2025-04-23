@@ -1,9 +1,9 @@
 #!/bin/bash
 
-TARGET_DIR="/home/yuntong/vulnfix/data/coreutils/gnubug_19784"
+TARGET_DIR="$VULNFIX_HOME/vulnfix/data/coreutils/gnubug_19784"
 SEED_DIR="${TARGET_DIR}/seed2/"
 
-AFL_CMD="timeout 1m /home/yuntong/vulnfix/thirdparty/AFLRun/afl-fuzz"
+AFL_CMD="timeout 1m $VULNFIX_HOME/vulnfix/thirdparty/AFLRun/afl-fuzz"
 AFL_OPTS_COMMON="-t 2000ms -m none"
 AFL_INPUT_DIR="./in"
 AFL_PROG="${TARGET_DIR}/sparrow-out/bug/slice_dfg.txt"

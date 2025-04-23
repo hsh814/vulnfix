@@ -4,8 +4,8 @@ git clone https://github.com/coreutils/coreutils.git source
 pushd source
   git checkout ca99c52
   # for AFL argv fuzz
-  sed -i '856i #include "/home/yuntong/vulnfix/thirdparty/AFL/experimental/argv_fuzzing/argv-fuzz-inl.h"' src/pr.c
-  sed -i '860i AFL_INIT_SET0234("./pr", "/home/yuntong/vulnfix/data/coreutils/gnubug_25023/dummy", "-m", "/home/yuntong/vulnfix/data/coreutils/gnubug_25023/dummy");' src/pr.c
+  sed -i '856i #include "$VULNFIX_HOME/vulnfix/thirdparty/AFL/experimental/argv_fuzzing/argv-fuzz-inl.h"' src/pr.c
+  sed -i '860i AFL_INIT_SET0234("./pr", "$VULNFIX_HOME/vulnfix/data/coreutils/gnubug_25023/dummy", "-m", "$VULNFIX_HOME/vulnfix/data/coreutils/gnubug_25023/dummy");' src/pr.c
   # not bulding man pages
   sed -i '229d' Makefile.am
   # change gnulib source
@@ -13,7 +13,7 @@ pushd source
   ./bootstrap
 popd
 
-export AFLRUN=/home/yuntong/vulnfix/thirdparty/AFLRun
+export AFLRUN=$VULNFIX_HOME/vulnfix/thirdparty/AFLRun
 rm -rf aflrun_build && mkdir aflrun_build
 pushd aflrun_build
   mkdir temp

@@ -1,21 +1,21 @@
 #!/bin/bash
 
-SEED_DIR="/home/yuntong/vulnfix/data/binutils/cve_2017_14745/seed/"
+SEED_DIR="$VULNFIX_HOME/vulnfix/data/binutils/cve_2017_14745/seed/"
 
-AFL_CMD="timeout 12h /home/yuntong/vulnfix/thirdparty/AFLRun/afl-fuzz"
+AFL_CMD="timeout 12h $VULNFIX_HOME/vulnfix/thirdparty/AFLRun/afl-fuzz"
 AFL_OPTS_COMMON="-t 2000ms -m none"
 AFL_INPUT_DIR="./in"
-AFL_PROG="/home/yuntong/vulnfix/data/binutils/cve_2017_14745/sparrow-out/bug/slice_dfg.txt"
-AFL_OUTPUT_BASE="/home/yuntong/vulnfix/data/binutils/cve_2017_14745/aflrun"
-INSTRUMENTED_PROG="/home/yuntong/vulnfix/data/binutils/cve_2017_14745/objdump.aflrun"
+AFL_PROG="$VULNFIX_HOME/vulnfix/data/binutils/cve_2017_14745/sparrow-out/bug/slice_dfg.txt"
+AFL_OUTPUT_BASE="$VULNFIX_HOME/vulnfix/data/binutils/cve_2017_14745/aflrun"
+INSTRUMENTED_PROG="$VULNFIX_HOME/vulnfix/data/binutils/cve_2017_14745/objdump.aflrun"
 OUTPUT_TMP="/tmp/out.tmp"
-EXPLOIT="/home/yuntong/vulnfix/data/binutils/cve_2017_14745/exploit"
+EXPLOIT="$VULNFIX_HOME/vulnfix/data/binutils/cve_2017_14745/exploit"
 
 count=1
 
 for file in "$SEED_DIR"*; do
     input_dir=$(mktemp -d)
-    cov_dir=/home/yuntong/vulnfix/data/binutils/cve_2017_14745/temp/output_$count
+    cov_dir=$VULNFIX_HOME/vulnfix/data/binutils/cve_2017_14745/temp/output_$count
 
     mkdir -p $cov_dir
     
@@ -34,9 +34,9 @@ for file in "$SEED_DIR"*; do
     output_dir="${AFL_OUTPUT_BASE}_seed_$count"
     export AFL_NO_UI=1
     export PACFIX_TARGET_LINE=6635
-    export PACFIX_COV_EXE=/home/yuntong/vulnfix/data/binutils/cve_2017_14745/runtime/objdump.coverage
-    export PACFIX_COV_DIR=/home/yuntong/vulnfix/data/binutils/cve_2017_14745/temp/output_$count
-    export PACFIX_VAL_EXE=/home/yuntong/vulnfix/data/binutils/cve_2017_14745/runtime/objdump.valuation
+    export PACFIX_COV_EXE=$VULNFIX_HOME/vulnfix/data/binutils/cve_2017_14745/runtime/objdump.coverage
+    export PACFIX_COV_DIR=$VULNFIX_HOME/vulnfix/data/binutils/cve_2017_14745/temp/output_$count
+    export PACFIX_VAL_EXE=$VULNFIX_HOME/vulnfix/data/binutils/cve_2017_14745/runtime/objdump.valuation
 
     $AFL_CMD $AFL_OPTS -i "$input_dir" -o "$output_dir" -- "$INSTRUMENTED_PROG" -D @@ &
     # $AFL_CMD $AFL_OPTS -C -i "$input_dir" -p "$AFL_PROG" -o "$output_dir" -b "$EXPLOIT" -- "$INSTRUMENTED_PROG" -D @@ &

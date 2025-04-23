@@ -51,6 +51,9 @@ exploit.eps
 tmp/
 seed_parallel/
 
+**/build.log
+libfuzzer
+
 # vscode
 .vscode/
 .idea/

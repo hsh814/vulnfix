@@ -1,10 +1,10 @@
 #!/bin/bash
 
-TARGET_DIR="/home/yuntong/vulnfix/data/jasper/cve_2016_9557"
+TARGET_DIR="$VULNFIX_HOME/vulnfix/data/jasper/cve_2016_9557"
 SEED_DIR="${TARGET_DIR}/seed/"
 TARGET_BIN="imginfo"
 
-AFL_CMD="timeout 2h /home/yuntong/vulnfix/thirdparty/DAFL/afl-fuzz"
+AFL_CMD="timeout 2h $VULNFIX_HOME/vulnfix/thirdparty/DAFL/afl-fuzz"
 AFL_OPTS_COMMON="-t 2000ms -m none -s m -u n -a 180"
 AFL_INPUT_DIR="./in"
 AFL_PROG="${TARGET_DIR}/sparrow-out/bug/slice_dfg.txt"

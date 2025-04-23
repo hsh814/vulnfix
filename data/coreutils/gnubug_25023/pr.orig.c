@@ -853,11 +853,11 @@ separator_string (const char *optarg_S)
   col_sep_string = optarg_S;
 }
 
-#include "/home/yuntong/vulnfix/thirdparty/AFL/experimental/argv_fuzzing/argv-fuzz-inl.h"
+#include "argv_fuzzing/argv-fuzz-inl.h"
 int
 main (int argc, char **argv)
 {
-AFL_INIT_SET0234("./pr", "/home/yuntong/vulnfix/data/coreutils/gnubug_25023/dummy", "-m", "/home/yuntong/vulnfix/data/coreutils/gnubug_25023/dummy");
+AFL_INIT_SET0234("./pr", AFL_HOME "/vulnfix/data/coreutils/gnubug_25023/dummy", "-m", AFL_HOME "/vulnfix/data/coreutils/gnubug_25023/dummy");
   unsigned int n_files;
   bool old_options = false;
   bool old_w = false;

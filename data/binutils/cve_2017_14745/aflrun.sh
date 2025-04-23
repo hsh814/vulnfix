@@ -6,7 +6,7 @@ pushd source/
   git checkout 7a31b38ef87d133d8204cae67a97f1989d25fa18
 popd
 
-export AFLRUN=/home/yuntong/vulnfix/thirdparty/AFLRun
+export AFLRUN=$VULNFIX_HOME/vulnfix/thirdparty/AFLRun
 export LLVM_CONFIG=$AFLRUN/thirdparty/install/bin/llvm-config
 rm -rf aflrun_build && mkdir aflrun_build
 pushd aflrun_build

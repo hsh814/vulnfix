@@ -4,11 +4,11 @@ if [ "$#" -ne 1 ]; then
     exit 1
 fi
 SUFFIX="$1"
-TARGET_DIR="/home/yuntong/vulnfix/data/coreutils/gnubug_26545"
+TARGET_DIR="$VULNFIX_HOME/vulnfix/data/coreutils/gnubug_26545"
 SEED_DIR="${TARGET_DIR}/seed/"
 TARGET_BIN="shred"
 
-AFL_CMD="timeout 24h /home/yuntong/vulnfix/thirdparty/AFLRun/afl-fuzz"
+AFL_CMD="timeout 24h $VULNFIX_HOME/vulnfix/thirdparty/AFLRun/afl-fuzz"
 AFL_OPTS_COMMON="-C -t 2000ms -m none"
 AFL_INPUT_DIR="./in"
 AFL_PROG="${TARGET_DIR}/sparrow-out/bug/slice_dfg.txt"

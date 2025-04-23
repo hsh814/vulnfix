@@ -1,21 +1,21 @@
 #!/bin/bash
 
-SEED_DIR="/home/yuntong/vulnfix/data/binutils/cve_2017_6965/seed2/"
+SEED_DIR="$VULNFIX_HOME/vulnfix/data/binutils/cve_2017_6965/seed2/"
 
-AFL_CMD="timeout 12h /home/yuntong/vulnfix/thirdparty/AFLRun/afl-fuzz"
+AFL_CMD="timeout 12h $VULNFIX_HOME/vulnfix/thirdparty/AFLRun/afl-fuzz"
 AFL_OPTS_COMMON="-t 2000ms -m none"
 AFL_INPUT_DIR="./in"
-AFL_PROG="/home/yuntong/vulnfix/data/binutils/cve_2017_6965/sparrow-out/bug/slice_dfg.txt"
-AFL_OUTPUT_BASE="/home/yuntong/vulnfix/data/binutils/cve_2017_6965/raflrun"
-INSTRUMENTED_PROG="/home/yuntong/vulnfix/data/binutils/cve_2017_6965/readelf.aflrun"
+AFL_PROG="$VULNFIX_HOME/vulnfix/data/binutils/cve_2017_6965/sparrow-out/bug/slice_dfg.txt"
+AFL_OUTPUT_BASE="$VULNFIX_HOME/vulnfix/data/binutils/cve_2017_6965/raflrun"
+INSTRUMENTED_PROG="$VULNFIX_HOME/vulnfix/data/binutils/cve_2017_6965/readelf.aflrun"
 OUTPUT_TMP="/tmp/out.tmp"
-EXPLOIT="/home/yuntong/vulnfix/data/binutils/cve_2017_6965/exploit"
+EXPLOIT="$VULNFIX_HOME/vulnfix/data/binutils/cve_2017_6965/exploit"
 
 count=1
 
 for file in "$SEED_DIR"*; do
     input_dir=$(mktemp -d)
-    cov_dir=/home/yuntong/vulnfix/data/binutils/cve_2017_6965/temp/output_$count
+    cov_dir=$VULNFIX_HOME/vulnfix/data/binutils/cve_2017_6965/temp/output_$count
 
     mkdir -p $cov_dir
     
@@ -34,9 +34,9 @@ for file in "$SEED_DIR"*; do
     output_dir="${AFL_OUTPUT_BASE}_seed_$count"
     export AFL_NO_UI=1
     export PACFIX_TARGET_LINE=11640
-    export PACFIX_COV_EXE=/home/yuntong/vulnfix/data/binutils/cve_2017_6965/runtime/readelf.coverage
-    export PACFIX_COV_DIR=/home/yuntong/vulnfix/data/binutils/cve_2017_6965/temp/output_$count
-    export PACFIX_VAL_EXE=/home/yuntong/vulnfix/data/binutils/cve_2017_6965/runtime/readelf.valuation
+    export PACFIX_COV_EXE=$VULNFIX_HOME/vulnfix/data/binutils/cve_2017_6965/runtime/readelf.coverage
+    export PACFIX_COV_DIR=$VULNFIX_HOME/vulnfix/data/binutils/cve_2017_6965/temp/output_$count
+    export PACFIX_VAL_EXE=$VULNFIX_HOME/vulnfix/data/binutils/cve_2017_6965/runtime/readelf.valuation
 
     $AFL_CMD $AFL_OPTS -i "$input_dir" -o "$output_dir" -- "$INSTRUMENTED_PROG" -w @@ &
     # $AFL_CMD $AFL_OPTS -C -i "$input_dir" -p "$AFL_PROG" -o "$output_dir" -b "$EXPLOIT" -- "$INSTRUMENTED_PROG" -D @@ &

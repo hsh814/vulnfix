@@ -1,10 +1,10 @@
 #!/bin/bash
 
-TARGET_DIR="/home/yuntong/vulnfix/data/libtiff/cve_2016_5321"
+TARGET_DIR="$VULNFIX_HOME/vulnfix/data/libtiff/cve_2016_5321"
 SEED_DIR="${TARGET_DIR}/seed/"
 TARGET_BIN="tiffcrop"
 
-AFL_CMD="timeout 12h /home/yuntong/vulnfix/thirdparty/AFLRun/afl-fuzz"
+AFL_CMD="timeout 12h $VULNFIX_HOME/vulnfix/thirdparty/AFLRun/afl-fuzz"
 AFL_OPTS_COMMON="-t 2000ms -m none"
 AFL_INPUT_DIR="./in"
 AFL_PROG="${TARGET_DIR}/sparrow-out/bug/slice_dfg.txt"
@@ -42,7 +42,7 @@ for file in "$SEED_DIR"*; do
     export PACFIX_COV_DIR=${TARGET_DIR}/temp/output_$count
     export PACFIX_VAL_EXE=${TARGET_DIR}/runtime/${TARGET_BIN}.valuation
     # Store stderr to file
-    $AFL_CMD $AFL_OPTS -i "$input_dir" -o "$output_dir" -- "$INSTRUMENTED_PROG" @@ ${OUTPUT_TMP} 2> /home/yuntong/vulnfix/data/libtiff/cve_2016_5321/log/aflrun_stderr_$count.txt &
+    $AFL_CMD $AFL_OPTS -i "$input_dir" -o "$output_dir" -- "$INSTRUMENTED_PROG" @@ ${OUTPUT_TMP} 2> $VULNFIX_HOME/vulnfix/data/libtiff/cve_2016_5321/log/aflrun_stderr_$count.txt &
     # $AFL_CMD $AFL_OPTS -C -i "$input_dir" -p "$AFL_PROG" -o "$output_dir" -b "$EXPLOIT" -- "$INSTRUMENTED_PROG" -D @@ &
     count=$((count + 1))
 done

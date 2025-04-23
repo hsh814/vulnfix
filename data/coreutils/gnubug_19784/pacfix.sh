@@ -4,7 +4,7 @@ git clone https://github.com/coreutils/coreutils.git source
 pushd source
   git checkout 658529a
   # for AFL argv fuzz
-  sed -i '29i #include "/home/yuntong/vulnfix/thirdparty/AFL/experimental/argv_fuzzing/argv-fuzz-inl.h"' src/make-prime-list.c
+  sed -i '29i #include "$VULNFIX_HOME/vulnfix/thirdparty/AFL/experimental/argv_fuzzing/argv-fuzz-inl.h"' src/make-prime-list.c
   sed -i '175i AFL_INIT_SET0("./make-prime-list");' src/make-prime-list.c
   git clone https://github.com/coreutils/gnulib.git
   ./bootstrap
@@ -25,7 +25,7 @@ pushd pacfix
     cp make-prime-list.c.i.c make-prime-list.c
   popd
 popd
-# /home/yuntong/pacfix/main.exe -lv_only 1 config
+# $VULNFIX_HOME/pacfix/main.exe -lv_only 1 config
 
 cp make-prime-list.pacfix.c source/src/make-prime-list.c
 
@@ -34,8 +34,8 @@ mkdir smake_source
 pushd smake_source
   # Build with Smake
   export FORCE_UNSAFE_CONFIGURE=1 && ../source/configure
-  /home/yuntong/vulnfix/thirdparty/smake/smake --init
-  /home/yuntong/vulnfix/thirdparty/smake/smake  CFLAGS="-Wno-error -fsanitize=address -g" src/make-prime-list
+  $VULNFIX_HOME/vulnfix/thirdparty/smake/smake --init
+  $VULNFIX_HOME/vulnfix/thirdparty/smake/smake  CFLAGS="-Wno-error -fsanitize=address -g" src/make-prime-list
 popd
 
 cp ./make-prime-list.orig.c ./source/src/make-prime-list.c 
@@ -43,7 +43,7 @@ cp ./make-prime-list.orig.c ./source/src/make-prime-list.c
 rm -rf sparrow-out
 mkdir sparrow-out
 # Run Sparrow
-/home/yuntong/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \
+$VULNFIX_HOME/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \
 -frontend "clang" -unsound_alloc -unsound_const_string -unsound_recursion -unsound_noreturn_function \
 -unsound_skip_global_array_init 1000 -skip_main_analysis -cut_cyclic_call -unwrap_alloc \
 -entry_point "main" -max_pre_iter 10 -slice "bug=make-prime-list.c:218" \
@@ -53,14 +53,14 @@ rm -rf dafl_source
 mkdir dafl_source
 pushd dafl_source
   # Run DAFL Instrumentation
-  DAFL_SELECTIVE_COV="/home/yuntong/vulnfix/data/binutils/cve_2017_15025/sparrow-out/bug/slice_func.txt" \
-  DAFL_DFG_SCORE="/home/yuntong/vulnfix/data/binutils/cve_2017_15025/sparrow-out/bug/slice_dfg.txt" \
-  CC=/home/yuntong/vulnfix/thirdparty/DAFL/afl-clang-fast CXX=/home/yuntong/vulnfix/thirdparty/DAFL/afl-clang-fast++ \
+  DAFL_SELECTIVE_COV="$VULNFIX_HOME/vulnfix/data/binutils/cve_2017_15025/sparrow-out/bug/slice_func.txt" \
+  DAFL_DFG_SCORE="$VULNFIX_HOME/vulnfix/data/binutils/cve_2017_15025/sparrow-out/bug/slice_dfg.txt" \
+  CC=$VULNFIX_HOME/vulnfix/thirdparty/DAFL/afl-clang-fast CXX=$VULNFIX_HOME/vulnfix/thirdparty/DAFL/afl-clang-fast++ \
   CMAKE_EXPORT_COMPILE_COMMANDS=1 ../source/configure
 
-  DAFL_SELECTIVE_COV="/home/yuntong/vulnfix/data/coreutils/gnubug_19784/sparrow-out/bug/slice_func.txt" \
-  DAFL_DFG_SCORE="/home/yuntong/vulnfix/data/coreutils/gnubug_19784/sparrow-out/bug/slice_dfg.txt" \
-  ASAN_OPTIONS=detect_leaks=0 CC=/home/yuntong/vulnfix/thirdparty/DAFL/afl-clang-fast CXX=/home/yuntong/vulnfix/thirdparty/DAFL/afl-clang-fast++ \
+  DAFL_SELECTIVE_COV="$VULNFIX_HOME/vulnfix/data/coreutils/gnubug_19784/sparrow-out/bug/slice_func.txt" \
+  DAFL_DFG_SCORE="$VULNFIX_HOME/vulnfix/data/coreutils/gnubug_19784/sparrow-out/bug/slice_dfg.txt" \
+  ASAN_OPTIONS=detect_leaks=0 CC=$VULNFIX_HOME/vulnfix/thirdparty/DAFL/afl-clang-fast CXX=$VULNFIX_HOME/vulnfix/thirdparty/DAFL/afl-clang-fast++ \
   make CFLAGS="-Wno-error -fsanitize=address -g" src/make-prime-list
 popd
 

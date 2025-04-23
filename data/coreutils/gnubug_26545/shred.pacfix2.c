@@ -1213,12 +1213,12 @@ clear_random_data (void)
   randint_all_free (randint_source);
 }
 
-#include "/home/yuntong/vulnfix/thirdparty/AFL/experimental/argv_fuzzing/argv-fuzz-inl.h"
+#include "argv_fuzzing/argv-fuzz-inl.h"
 
 int
 main (int argc, char **argv)
 {
-AFL_INIT_SET03("./shred", "/home/yuntong/vulnfix/data/coreutils/gnubug_26545/dummy");
+AFL_INIT_SET03("./shred", AFL_HOME "/vulnfix/data/coreutils/gnubug_26545/dummy");
   bool ok = true;
   struct Options flags = { 0, };
   char **file;

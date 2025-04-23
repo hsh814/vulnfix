@@ -4,22 +4,22 @@ if [ "$#" -ne 1 ]; then
     exit 1
 fi
 SUFFIX="$1"
-TARGET_DIR="/home/yuntong/vulnfix/data/binutils/cve_2017_15025"
-SEED_DIR="/home/yuntong/vulnfix/data/binutils/cve_2017_15025/seed/"
+TARGET_DIR="$VULNFIX_HOME/vulnfix/data/binutils/cve_2017_15025"
+SEED_DIR="$VULNFIX_HOME/vulnfix/data/binutils/cve_2017_15025/seed/"
 
-AFL_CMD="timeout 24h /home/yuntong/vulnfix/thirdparty/AFLRun/afl-fuzz"
+AFL_CMD="timeout 24h $VULNFIX_HOME/vulnfix/thirdparty/AFLRun/afl-fuzz"
 AFL_OPTS_COMMON="-C -t 2000ms -m none"
-AFL_PROG="/home/yuntong/vulnfix/data/binutils/cve_2017_15025/sparrow-out/bug/slice_dfg.txt"
-AFL_OUTPUT_BASE="/home/yuntong/vulnfix/data/binutils/cve_2017_15025/aflrun"
-INSTRUMENTED_PROG="/home/yuntong/vulnfix/data/binutils/cve_2017_15025/nm-new.aflrun"
+AFL_PROG="$VULNFIX_HOME/vulnfix/data/binutils/cve_2017_15025/sparrow-out/bug/slice_dfg.txt"
+AFL_OUTPUT_BASE="$VULNFIX_HOME/vulnfix/data/binutils/cve_2017_15025/aflrun"
+INSTRUMENTED_PROG="$VULNFIX_HOME/vulnfix/data/binutils/cve_2017_15025/nm-new.aflrun"
 OUTPUT_TMP="/tmp/out.tmp"
-EXPLOIT="/home/yuntong/vulnfix/data/binutils/cve_2017_15025/exploit"
+EXPLOIT="$VULNFIX_HOME/vulnfix/data/binutils/cve_2017_15025/exploit"
 
 export AFL_NO_UI=1
 export PACFIX_TARGET_LINE=2441
-export PACFIX_COV_EXE=/home/yuntong/vulnfix/data/binutils/cve_2017_15025/runtime/nm-new.coverage
+export PACFIX_COV_EXE=$VULNFIX_HOME/vulnfix/data/binutils/cve_2017_15025/runtime/nm-new.coverage
 export PACFIX_COV_DIR="${TARGET_DIR}/temp/output-${SUFFIX}"
-export PACFIX_VAL_EXE=/home/yuntong/vulnfix/data/binutils/cve_2017_15025/runtime/nm-new.valuation
+export PACFIX_VAL_EXE=$VULNFIX_HOME/vulnfix/data/binutils/cve_2017_15025/runtime/nm-new.valuation
 
 mkdir -p $PACFIX_COV_DIR
 

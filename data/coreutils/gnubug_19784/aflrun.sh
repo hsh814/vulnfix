@@ -4,13 +4,13 @@ git clone https://github.com/coreutils/coreutils.git source
 pushd source
   git checkout 658529a
   # for AFL argv fuzz
-  sed -i '29i #include "/home/yuntong/vulnfix/thirdparty/AFL/experimental/argv_fuzzing/argv-fuzz-inl.h"' src/make-prime-list.c
+  sed -i '29i #include "$VULNFIX_HOME/vulnfix/thirdparty/AFL/experimental/argv_fuzzing/argv-fuzz-inl.h"' src/make-prime-list.c
   sed -i '175i AFL_INIT_SET0("./make-prime-list");' src/make-prime-list.c
   git clone https://github.com/coreutils/gnulib.git
   ./bootstrap
 popd
 
-export AFLRUN=/home/yuntong/vulnfix/thirdparty/AFLRun
+export AFLRUN=$VULNFIX_HOME/vulnfix/thirdparty/AFLRun
 rm -rf aflrun_build && mkdir aflrun_build
 pushd aflrun_build
   mkdir temp
