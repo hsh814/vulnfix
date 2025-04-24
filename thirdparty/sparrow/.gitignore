@@ -9,7 +9,7 @@
 *.cmxa
 
 # ocamlbuild working directory
-_build/
+# _build/
 
 # ocamlbuild targets
 *.byte
@@ -20,7 +20,7 @@ setup.data
 setup.log
 
 # Sparrow binaries and outputs
-bin/sparrow*
+# bin/sparrow*
 sparrow-out
 
 # vim swp files
