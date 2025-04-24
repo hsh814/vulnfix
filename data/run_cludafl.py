@@ -1,18 +1,13 @@
 #!/usr/bin/env python3
-from typing import Union, List, Dict, Tuple, Optional, Set, TextIO
-import multiprocessing as mp
+from typing import List, Dict
 import multiprocessing.pool as mpp
 import subprocess
 
 import os
 import sys
-import json
 import time
-import datetime
-import sbsv
 import argparse
 import shutil
-import psutil
 import signal
 
 SUBJECTS = (
@@ -67,7 +62,8 @@ def execute(cmd: str, cwd: str, env: Dict[str, str], exp: str) -> bool:
   timeout = 3600 * 12 + 600 # Timeout in seconds; 12h + 10m
 
   # Start the subprocess in a new process group.
-  proc = subprocess.Popen(cmd, shell=True, cwd=cwd, env=env, preexec_fn=os.setpgrp)
+  with open(f'{cwd}/cludafl-{exp}.log','w') as f:
+    proc = subprocess.Popen(cmd, shell=True, cwd=cwd, env=env, preexec_fn=os.setpgrp,stdout=f,stderr=f)
 
   try:
     proc.communicate(timeout=timeout)
@@ -122,7 +118,7 @@ def run_cmd(subject: str, exp_iter: int, pool: mpp.Pool):
 
   # Make new dir
   os.makedirs(os.path.join(subject_dir, "dafl-out", str(exp_iter)), exist_ok=True)
-  new_output_dir = os.path.join(subject_dir, "cludafl_out", str(exp_iter))
+  new_output_dir = os.path.join(subject_dir, "dafl-out", str(exp_iter))
 
   env = os.environ.copy()
   env["SEED_DIR_OVERRIDE"] = seed_dir
@@ -135,7 +131,7 @@ def run_cmd(subject: str, exp_iter: int, pool: mpp.Pool):
 
 def run_subjects(pool: mpp.Pool, exp_iter: int):
   for subject in SUBJECTS:
-    run_cmd("run", subject, exp_iter, pool)
+    run_cmd(subject, exp_iter, pool)
 
 def run_experiments(cores: int):
   with mpp.Pool(processes=cores) as pool:

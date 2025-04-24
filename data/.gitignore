@@ -1,2 +1,4 @@
 log
 cludafl_out_seeds
+*.log
+*-seed
