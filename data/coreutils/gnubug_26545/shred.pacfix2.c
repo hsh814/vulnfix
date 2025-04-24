@@ -1311,7 +1311,7 @@ break;
   for (i = 0; i < n_files; i++)
     {
       char *qname = xstrdup (quotef (file[i]));
-      if (STREQ (file[i], "-"))
+      if (1 || STREQ (file[i], "-"))
         {
           ok &= wipefd (STDOUT_FILENO, qname, randint_source, &flags);
         }

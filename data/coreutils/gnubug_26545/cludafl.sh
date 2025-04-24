@@ -10,6 +10,7 @@ pushd source
   sed -i '1260i break;' src/shred.c
   # remove and recreate output so that it does not grow too big.
   sed -i '1320i FILE* file_ptr = fopen(file[i], "w"); fclose(file_ptr);' src/shred.c
+  sed -i 's/if (STREQ (file[i], "-"))/if (1 || STREQ (file[i], "-"))/g' src/shred.c
   # not bulding man pages
   sed -i '217d' Makefile.am
   # change gnulib source
