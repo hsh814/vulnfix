@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from typing import List, Dict
 import multiprocessing.pool as mpp
+import multiprocessing as mp
 import subprocess
 
 import os
@@ -69,9 +70,9 @@ def execute(cmd: str, cwd: str, env: Dict[str, str], exp: str) -> bool:
     proc.communicate(timeout=timeout)
   except subprocess.TimeoutExpired:
     log_out(f"Timeout: {cmd} - Terminating process group for PID {proc.pid}")
-    os.killpg(proc.pid, signal.SIGTERM)  # Graceful termination
+    proc.terminate()  # Graceful termination
     time.sleep(5)
-    os.killpg(proc.pid, signal.SIGKILL)  # Force kill if needed
+    proc.kill()  # Forceful termination if still running
   finally:
     end_time = time.time()
 
@@ -137,8 +138,11 @@ def run_experiments(cores: int):
   with mpp.Pool(processes=cores) as pool:
     for exp in range(0, args.iter):
       run_subjects(pool, exp)
-    pool.close()
-    pool.join()
+    try:
+      pool.close()
+      pool.join()
+    except KeyboardInterrupt:
+      os.system('killall timeout')
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(description="Run symvass experiments")
