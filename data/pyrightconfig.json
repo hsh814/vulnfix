@@ -14,5 +14,6 @@
         "cludafl_out_seeds",
         "log",
         "seeds"
-    ]
+    ],
+    "typeCheckingMode": "off"
 }
