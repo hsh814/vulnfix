@@ -58,9 +58,10 @@ def execute(cmd: str, cwd: str, env: Dict[str, str], exp: str) -> bool:
   Executes a command in a specified directory and environment.
   It isolates the command in its own process group and attempts a graceful shutdown on timeout.
   """
+  global args
   print(f"Executing: {cmd}")
   start_time = time.time()
-  timeout = 3600 * 12 + 600 # Timeout in seconds; 12h + 10m
+  timeout = 3600 * args.timeout + 600 # Timeout in seconds; 12h + 10m
 
   # Start the subprocess in a new process group.
   with open(f'{cwd}/cludafl-{exp}.log','w') as f:
@@ -71,17 +72,19 @@ def execute(cmd: str, cwd: str, env: Dict[str, str], exp: str) -> bool:
   except subprocess.TimeoutExpired:
     log_out(f"Timeout: {cmd} - Terminating process group for PID {proc.pid}")
     proc.terminate()  # Graceful termination
-    time.sleep(5)
+    time.sleep(60)
     proc.kill()  # Forceful termination if still running
-  finally:
     end_time = time.time()
-
-  log_out(f"{exp},{end_time - start_time}\n")
+    log_out(f"{cwd}: {exp},{end_time - start_time}\n")
+    return True
+  
+  end_time = time.time()
+  log_out(f"{cwd}: {exp},{end_time - start_time}\n")
 
   if proc.returncode != 0:
-    print(f"Failed to execute: {cmd}")
+    print(f"Failed to execute: {cwd}, return code: {proc.returncode}")
     try:
-      log_out(f"Failed to execute: {cmd}")
+      log_out(f"Failed to execute: {cwd}, return code: {proc.returncode}")
     except Exception as e:
       print(e)
     return False
