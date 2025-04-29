@@ -3,3 +3,5 @@ cludafl_out_seeds
 *.log
 *-seed
 **/dummy
+dafl-out
+chown.sh

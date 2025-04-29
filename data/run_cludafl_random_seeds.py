@@ -19,9 +19,8 @@ import logging
 from logging.handlers import RotatingFileHandler
 
 ROOT_DIR=os.getenv('VULNFIX_HOME') + '/vulnfix'
-OUT_FILE = "/home/yuntong/vulnfix/fig/log.log"
-SEED_COLLECTION_DIR = "/home/yuntong/seed-collection"
-LOG_FILE = "/home/yuntong/vulnfix/data/log/parallel_seeds.log"
+SEED_COLLECTION_DIR = os.getenv('VULNFIX_HOME') + "/seed-collection"
+LOG_FILE = os.getenv('VULNFIX_HOME') + "/vulnfix/data/log/parallel_seeds.log"
 os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
 logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(message)s")
 file_handler = RotatingFileHandler(LOG_FILE, maxBytes=100*1024*1024, backupCount=5)
@@ -29,40 +28,42 @@ file_handler.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
 logging.getLogger().addHandler(file_handler)
 logging.warning("Starting parallel seed experiment")
 
-subjects = [
+SUBJECTS = (
   "binutils/cve_2017_6965",
   "binutils/cve_2017_14745",
   "binutils/cve_2017_15025",
+
   "coreutils/gnubug_19784",
   "coreutils/gnubug_25003",
   "coreutils/gnubug_25023",
-  # "coreutils/gnubug_26545",
-  # "jasper/cve_2016_8691",
-  # "jasper/cve_2016_9557",
-  # "libjpeg/cve_2012_2806",
-  # "libjpeg/cve_2017_15232",
-  # "libming/cve_2016_9264",
-  # "libtiff/bugzilla_2633",
-  # "libtiff/cve_2016_5321",
-  # "libtiff/cve_2016_9532",
-  # "libtiff/cve_2016_10094",
-  # "libtiff/cve_2017_7595",
-  # "libtiff/cve_2017_7599",
-  # "libtiff/cve_2017_7600",
-  # "libtiff/cve_2017_7601",
-  # "libxml2/cve_2012_5134",
-  # "libxml2/cve_2016_1838",
-  # "libxml2/cve_2016_1839",
-  # "libxml2/cve_2017_5969",
-  # "zziplib/cve_2017_5974",
-  # "zziplib/cve_2017_5975",
-  # "zziplib/cve_2017_5976"
-]
+  "coreutils/gnubug_26545",
 
-# experiments = [
-#   "cludafl-par-seeds"
-# ]
-# experiments = ["cludafl-test-1", "cludafl-test-2"]
+  "jasper/cve_2016_8691",
+  "jasper/cve_2016_9557",
+
+  "libjpeg/cve_2012_2806",
+  "libjpeg/cve_2017_15232",
+
+  "libming/cve_2016_9264",
+
+  "libtiff/bugzilla_2633",
+  "libtiff/cve_2016_5321",
+  "libtiff/cve_2016_9532",
+  "libtiff/cve_2016_10094",
+  "libtiff/cve_2017_7595",
+  "libtiff/cve_2017_7599",
+  "libtiff/cve_2017_7600",
+  "libtiff/cve_2017_7601",
+
+  "libxml2/cve_2012_5134",
+  "libxml2/cve_2016_1838",
+  "libxml2/cve_2016_1839",
+  "libxml2/cve_2017_5969",
+
+  "zziplib/cve_2017_5974",
+  "zziplib/cve_2017_5975",
+  "zziplib/cve_2017_5976"
+)
 
 def log_out(msg: str):
   print(msg, file=sys.stderr)
@@ -221,26 +222,26 @@ def run_fuzzers_for_subject(subject: str, exp_name: str, cores: int, monitor_tim
         fp.kill()
         time.sleep(5)
 
-      if fp.timespan() > monitor_timeout:
+      if fp.timespan() > monitor_timeout: # Fuzzer doesn't find inputs after starting
         output_num = fp.check_output()
         if output_num == 0:
           log_out(f"Monitor kill (no output): {fp.subject} {fp.index} - Terminating process group for PID {fp.proc.pid} time {fp.timespan()}")
           fp.kill()
           time.sleep(5)
       
-      if fp.timespan() > secondary_monitor_timeout:
+      if fp.timespan() > secondary_monitor_timeout: # Fuzzer doesn't find inputs after last input
         if not fp.check_output_secondary(secondary_monitor_timeout):
           log_out(f"Secondary monitor kill (no output): {fp.subject} {fp.index}- Terminating process group for PID {fp.proc.pid} time {fp.timespan()}")
           fp.kill()
           time.sleep(5)
       
-      if fp.timespan() > default_timeout:
+      if fp.timespan() > default_timeout: # Default timeout expired
         log_out(f"Timeout kill: {fp.subject} {fp.index} - Terminating process group for PID {fp.proc.pid} time {fp.timespan()}")
         fp.kill()
         time.sleep(5)
 
       if fp.poll() is not None:
-        if len(seed_queue) > 0 and time.time() - global_start < global_timeout:
+        if len(seed_queue) > 0 and time.time() - global_start < global_timeout: # Global timeout expired
           seed = seed_queue.pop(0)
           log_out(f"Seed {fp.index} finished, starting new seed {seed} with {index}")
           cmd, cwd, env, opt, exp = start_fuzzer_for_seed(seed, index, subject_dir, exp_name, seed_dir, os.path.join(subject_dir, "seed_parallel"))
@@ -253,20 +254,27 @@ def run_fuzzers_for_subject(subject: str, exp_name: str, cores: int, monitor_tim
       del active_slots[slot]
     time.sleep(check_interval)
 
-def run_subject_with_handling(subject, exp_name, cores_per_subject):
+def run_subject_with_handling(subject, exp_name, cores_per_subject,
+                              monitor_time=1, secondary_monitor_time=3, default_timeout=12, global_timeout=72):
   try:
     log_out(f"Starting subject {subject} with {cores_per_subject} cores")
-    run_fuzzers_for_subject(subject, exp_name, cores_per_subject)
+    run_fuzzers_for_subject(subject, exp_name, cores_per_subject,
+                            monitor_timeout=monitor_time * 3600,
+                            secondary_monitor_timeout=secondary_monitor_time * 3600,
+                            default_timeout=default_timeout * 3600,
+                            global_timeout=global_timeout * 3600)
   except Exception as e:
     log_out(f"Error running subject {subject}: {str(e)}")
     raise
 
-def run_subjects(exp_name: str, cores: int):
-  cores_per_subject = cores // len(subjects)
-  args = [(subject, exp_name, cores_per_subject) for subject in subjects]
+def run_subjects(exp_name: str, cores: int,
+                 monitor_time=1, secondary_monitor_time=3, default_timeout=12, global_timeout=72):
+  cores_per_subject = cores // len(SUBJECTS)
+  args = [(subject, exp_name, cores_per_subject,
+           monitor_time,secondary_monitor_time,default_timeout,global_timeout) for subject in SUBJECTS]
 
   try:
-    pool = mp.Pool(processes=len(subjects))
+    pool = mp.Pool(processes=len(SUBJECTS))
     pool.starmap(run_subject_with_handling, args)
     pool.close()
     pool.join()
@@ -282,8 +290,13 @@ def main(argv: List[str]):
   # parser.add_argument("exp_name", type=str, help="Extra arguments")
   # parser.add_argument("subject", type=str, help="Subject to run")
   parser.add_argument("--cores", "-j", type=int, help="Number of cores to use", default=150)
+  parser.add_argument('--first_timeout',type=int, help=' timeout in hours', default=1)
+  parser.add_argument('--last_timeout',type=int, help='Timeout in hours', default=3)
+  parser.add_argument('--default_timeout',type=int, help='Default timeout in hours', default=12)
+  parser.add_argument('--global_timeout',type=int, help='Global timeout in hours', default=72)
+  parser.add_argument('--output_dir', type=str, help='Output directory', default='cludafl-seed-clustering')
   args = parser.parse_args(argv)
-  run_subjects("cludafl-seed-clustering", args.cores)
+  run_subjects(args.output_dir, args.cores)
 
 if __name__ == "__main__":
   main(sys.argv[1:])
