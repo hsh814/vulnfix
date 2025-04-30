@@ -65,13 +65,17 @@ original_files = {
     "run-evocatio-single.sh",
     "evocatio.sh",
     "shred.evocatio.c"
+    "run-afl-single.sh",
+    "afl.sh"
 }
 
-original_file_25003 = {"help.txt", 'pacfix', 'build.sh', 'sparrow-out', 'split.aflrun', 'run-cludafl-single.sh', 'smake_source', 'README.txt', 'runtime', 'pacfix_val', 'rerun.sh~', 'repair-out', 'temp', 'cludafl.sh', 'dafl_all', 'split.instrumented', 'dafl_val', 'aflrun.sh', 'seed', 'cludafl-runtime', 'split.pacfix.c', 'setup.sh', 'dev.patch', 'dafl_samples', 'pacfuzz_samples', 'run-afl.sh', 'dafl2_all', 'run-rafl.sh', 'run-aflrun-single.sh', 'dafl_source', 'split.orig.c', 'aflrun_build', 'live_variables', 'exploit', 'source', 'pacfix.sh', 'rerun.sh', 'config', 'cludafl_out', 'seed_parallel', 'dummy'
-                       ,
+original_file_25003 = {"help.txt", 'pacfix', 'build.sh', 'sparrow-out', 'split.aflrun', 'run-cludafl-single.sh', 'smake_source', 'README.txt', 'runtime', 'pacfix_val', 'rerun.sh~', 'repair-out', 'temp', 'cludafl.sh', 'dafl_all', 'split.instrumented', 'dafl_val', 'aflrun.sh', 'seed', 'cludafl-runtime', 'split.pacfix.c', 'setup.sh', 'dev.patch', 'dafl_samples', 'pacfuzz_samples', 'run-afl.sh', 'dafl2_all', 'run-rafl.sh', 'run-aflrun-single.sh', 'dafl_source', 'split.orig.c', 'aflrun_build', 'live_variables', 'exploit', 'source', 'pacfix.sh', 'rerun.sh', 'config', 'cludafl_out', 'seed_parallel', 'dummy',
     "run-evocatio-single.sh",
     "evocatio.sh",
-    "split.evocatio.c"}
+    "split.evocatio.c",
+        "run-afl-single.sh",
+    "afl.sh"
+}
 
 def remove_all_files(dir: str):
     files = os.listdir(dir)
