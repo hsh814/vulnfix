@@ -29,28 +29,28 @@ popd
 
 # manually fix the code
 # python3 /home/yuntong/vulnfix/src/add_lv.py 327 repair-out/live_variables ./source/jdmarker.c 
-#cp jdmarker.pacfix.c ./source/jdmarker.c
-#cp jdapimin.pacfix.c ./source/jdapimin.c
-#cp jpeglib.pacfix.h ./source/jpeglib.h
+cp jdmarker.pacfix.c ./source/jdmarker.c
+cp jdapimin.pacfix.c ./source/jdapimin.c
+cp jpeglib.pacfix.h ./source/jpeglib.h
 
 
-#rm -rf smake_source && mkdir smake_source
-#pushd smake_source
-#  CC=clang CXX=clang++ ../source/configure
-#  CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake --init
-#  CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake CFLAGS="-static -fsanitize=address -fsanitize=undefined -g" CXXFLAGS="-static -fsanitize=address -fsanitize=undefined -g" -j 10
-#popd
+rm -rf smake_source && mkdir smake_source
+pushd smake_source
+ CC=clang CXX=clang++ ../source/configure
+ CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake --init
+ CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake CFLAGS="-static -fsanitize=address -fsanitize=undefined -g" CXXFLAGS="-static -fsanitize=address -fsanitize=undefined -g" -j 10
+popd
 
 cp ./jdmarker.orig.c ./source/jdmarker.c 
 cp ./jdapimin.orig.c ./source/jdapimin.c
 cp ./jpeglib.orig.h ./source/jpeglib.h
 
-#rm -rf sparrow-out && mkdir sparrow-out
-#/home/yuntong/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \
-#-frontend "clang" -unsound_alloc -unsound_const_string -unsound_recursion -unsound_noreturn_function \
-#-unsound_skip_global_array_init 1000 -skip_main_analysis -cut_cyclic_call -unwrap_alloc \
-#-entry_point "main" -max_pre_iter 10 -slice "bug=jdmarker.c:328" \
-#./smake_source/sparrow/djpeg/*.i ./smake_source/sparrow/jdapimin.o.i  ./smake_source/sparrow/jdinput.o.i  ./smake_source/sparrow/jdmarker.o.i ./smake_source/sparrow/djpeg-*.i
+rm -rf sparrow-out && mkdir sparrow-out
+/home/yuntong/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \
+-frontend "clang" -unsound_alloc -unsound_const_string -unsound_recursion -unsound_noreturn_function \
+-unsound_skip_global_array_init 1000 -skip_main_analysis -cut_cyclic_call -unwrap_alloc \
+-entry_point "main" -max_pre_iter 10 -slice "bug=jdmarker.c:328" \
+./smake_source/sparrow/djpeg/*.i ./smake_source/sparrow/jdapimin.o.i  ./smake_source/sparrow/jdinput.o.i  ./smake_source/sparrow/jdmarker.o.i ./smake_source/sparrow/djpeg-*.i
 
 rm -rf dafl_source && mkdir dafl_source
 pushd dafl_source

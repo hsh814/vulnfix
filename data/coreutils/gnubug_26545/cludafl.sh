@@ -35,24 +35,23 @@ pushd pacfix
 popd
 /home/yuntong/pacfix/main.exe -lv_only 1 config
 
-#cp ./shred.pacfix2.c ./source/src/shred.c 
+cp ./shred.pacfix2.c ./source/src/shred.c 
 
-
-#rm -rf smake_source && mkdir smake_source
-#pushd smake_source
-#  export FORCE_UNSAFE_CONFIGURE=1 && CC=clang CXX=clang++ ../source/configure 
-#  CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake --init
-#  CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake CFLAGS="-Wno-error -fsanitize=address -ggdb" CXXFLAGS="-Wno-error -fsanitize=address -ggdb" LDFLAGS="-fsanitize=address" -j10
-#popd
+rm -rf smake_source && mkdir smake_source
+pushd smake_source
+ export FORCE_UNSAFE_CONFIGURE=1 && CC=clang CXX=clang++ ../source/configure 
+ CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake --init
+ CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake CFLAGS="-Wno-error -fsanitize=address -ggdb" CXXFLAGS="-Wno-error -fsanitize=address -ggdb" LDFLAGS="-fsanitize=address" -j10
+popd
 
 cp ./shred.orig.c ./source/src/shred.c 
 
-#rm -rf sparrow-out && mkdir sparrow-out
-#/home/yuntong/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \
-#-frontend "clang" -unsound_alloc -unsound_const_string -unsound_recursion -unsound_noreturn_function \
-#-unsound_skip_global_array_init 1000 -skip_main_analysis -cut_cyclic_call -unwrap_alloc \
-#-entry_point "main" -max_pre_iter 10 -slice "bug=shred.c:294" \
-#./smake_source/sparrow/src/shred/*.i
+rm -rf sparrow-out && mkdir sparrow-out
+/home/yuntong/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \
+-frontend "clang" -unsound_alloc -unsound_const_string -unsound_recursion -unsound_noreturn_function \
+-unsound_skip_global_array_init 1000 -skip_main_analysis -cut_cyclic_call -unwrap_alloc \
+-entry_point "main" -max_pre_iter 10 -slice "bug=shred.c:294" \
+./smake_source/sparrow/src/shred/*.i
 
 rm -rf dafl_source && mkdir dafl_source
 pushd dafl_source

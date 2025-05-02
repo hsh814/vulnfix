@@ -19,23 +19,23 @@ pushd pacfix
 popd
 /home/yuntong/pacfix/main.exe -lv_only 1 config
 
-#cp tiff2ps.pacfix.c ./source/tools/tiff2ps.c
+cp tiff2ps.pacfix.c ./source/tools/tiff2ps.c
 
-#rm -rf smake_source && mkdir smake_source
-#pushd smake_source
-#  CC=clang CXX=clang++ ../source/configure
-#  CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake --init
-#  CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake CFLAGS="-static -fsanitize=address -fsanitize=undefined -g" CXXFLAGS="-static -fsanitize=address -fsanitize=undefined -g" -j10
-#popd
+rm -rf smake_source && mkdir smake_source
+pushd smake_source
+ CC=clang CXX=clang++ ../source/configure
+ CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake --init
+ CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake CFLAGS="-static -fsanitize=address -fsanitize=undefined -g" CXXFLAGS="-static -fsanitize=address -fsanitize=undefined -g" -j10
+popd
 
-#cp tiff2ps.orig.c ./source/tools/tiff2ps.c
+cp tiff2ps.orig.c ./source/tools/tiff2ps.c
 
-#rm -rf sparrow-out && mkdir sparrow-out
-#/home/yuntong/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \
-#-frontend "clang" -unsound_alloc -unsound_const_string -unsound_recursion -unsound_noreturn_function \
-#-unsound_skip_global_array_init 1000 -skip_main_analysis -cut_cyclic_call -unwrap_alloc \
-#-entry_point "main" -max_pre_iter 10 -slice "bug=tiff2ps.c:2470" \
-#./smake_source/sparrow/tools/tiff2ps/*.i
+rm -rf sparrow-out && mkdir sparrow-out
+/home/yuntong/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \
+-frontend "clang" -unsound_alloc -unsound_const_string -unsound_recursion -unsound_noreturn_function \
+-unsound_skip_global_array_init 1000 -skip_main_analysis -cut_cyclic_call -unwrap_alloc \
+-entry_point "main" -max_pre_iter 10 -slice "bug=tiff2ps.c:2470" \
+./smake_source/sparrow/tools/tiff2ps/*.i
 
 rm -rf dafl_source && mkdir dafl_source
 pushd dafl_source

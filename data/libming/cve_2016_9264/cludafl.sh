@@ -23,24 +23,24 @@ popd
 
 # manually fix the code
 # python3 /home/yuntong/vulnfix/src/add_lv.py 327 repair-out/live_variables ./source/jdmarker.c 
-#cp listmp3.pacfix.c ./source/listmp3.c
+cp listmp3.pacfix.c ./source/listmp3.c
 
-#rm -rf smake_source && cp -R source smake_source
-#pushd smake_source
-#  ./autogen.sh
-#  CC=clang CXX=clang++ ./configure --disable-freetype
-#  CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake --init
-#  CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake CFLAGS="-static -fcommon -fsanitize=address -fsanitize=undefined -g" CXXFLAGS="-static -fsanitize=address -fsanitize=undefined -g"
-#popd
+rm -rf smake_source && cp -R source smake_source
+pushd smake_source
+ ./autogen.sh
+ CC=clang CXX=clang++ ./configure --disable-freetype
+ CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake --init
+ CC=clang CXX=clang++ /home/yuntong/vulnfix/thirdparty/smake/smake CFLAGS="-static -fcommon -fsanitize=address -fsanitize=undefined -g" CXXFLAGS="-static -fsanitize=address -fsanitize=undefined -g"
+popd
 
 cp listmp3.orig.c ./source/listmp3.c
 
-#rm -rf sparrow-out && mkdir sparrow-out
-#/home/yuntong/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \
-#-frontend "clang" -unsound_alloc -unsound_const_string -unsound_recursion -unsound_noreturn_function \
-#-unsound_skip_global_array_init 1000 -skip_main_analysis -cut_cyclic_call -unwrap_alloc \
-#-entry_point "main" -max_pre_iter 10 -slice "bug=listmp3.c:128" \
-#./smake_source/sparrow/util/listmp3/*.i
+rm -rf sparrow-out && mkdir sparrow-out
+/home/yuntong/vulnfix/thirdparty/sparrow/bin/sparrow -outdir ./sparrow-out \
+-frontend "clang" -unsound_alloc -unsound_const_string -unsound_recursion -unsound_noreturn_function \
+-unsound_skip_global_array_init 1000 -skip_main_analysis -cut_cyclic_call -unwrap_alloc \
+-entry_point "main" -max_pre_iter 10 -slice "bug=listmp3.c:128" \
+./smake_source/sparrow/util/listmp3/*.i
 
 rm -rf dafl_source && cp -R source dafl_source
 pushd dafl_source
