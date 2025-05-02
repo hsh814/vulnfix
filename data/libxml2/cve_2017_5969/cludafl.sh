@@ -9,7 +9,7 @@ eval $(opam env --switch=default)
 rm -rf pacfix
 cp -r source pacfix
 pushd pacfix
-  ../source/autogen.sh --disable-silent-rules
+  ./autogen.sh --disable-silent-rules
   make CFLAGS="-static -fsanitize=address -g" CXXFLAGS="-static -fsanitize=address -g" LDFLAGS="-fsanitize=address" LDFLAGS="-fsanitize=address" -j10 > make.log
   # cat make.log | grep valid.c
   gcc -E -DHAVE_CONFIG_H -I. -I../source -I./include -I../source/include -D_REENTRANT -fsanitize=address -g -MT valid.lo -MD -MP -MF .deps/valid.Tpo -c valid.c > valid.c.i

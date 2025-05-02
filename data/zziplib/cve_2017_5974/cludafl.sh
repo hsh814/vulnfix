@@ -15,7 +15,7 @@ eval $(opam env --switch=default)
 rm -rf pacfix
 cp -r source pacfix
 pushd pacfix
-  ../source/configure
+  ./configure
   make CFLAGS="-static -fsanitize=address -g" CXXFLAGS="-static -fsanitize=address -g" -j10 > make.log
   # cat make.log | grep memdisk.c
   pushd zzip
