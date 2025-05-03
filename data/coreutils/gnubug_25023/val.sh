@@ -26,4 +26,7 @@ pushd pacfix
   mv tmp.c ./src/pr.c.i.c 
   cp ./src/pr.c.i.c src/pr.c
 popd
-/home/yuntong/pacfix/main.exe -synth_only -debug -epsilon 0.0 -cycle 60 -nouniq  -timeout 300 ./config 
+mkdir -p runtime/afl-in
+mkdir -p runtime/afl-out/memory/pos
+mkdir -p runtime/afl-out/memory/neg
+/home/yuntong/pacfix/main.exe -debug -epsilon 0.0 -cycle 60 -nouniq  -timeout 300 ./config 

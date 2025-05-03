@@ -26,4 +26,7 @@ pushd pacfix
     cp make-prime-list.c.i.c make-prime-list.c
   popd
 popd
-/home/yuntong/pacfix/main.exe -synth_only -debug -epsilon 0.0 -cycle 60 -lvfile ./live_variables  -timeout 300 ./config
+mkdir -p runtime/afl-in
+mkdir -p runtime/afl-out/memory/pos
+mkdir -p runtime/afl-out/memory/neg
+/home/yuntong/pacfix/main.exe -debug -epsilon 0.0 -cycle 60 -lvfile ./live_variables  -timeout 300 ./config

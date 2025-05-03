@@ -22,4 +22,7 @@ pushd pacfix
     cp memdisk.c.i.c memdisk.c
   popd
 popd
-/home/yuntong/pacfix/main.exe -synth_only -debug -cycle 60 -timeout 200 ./config 
+mkdir -p runtime/afl-in
+mkdir -p runtime/afl-out/memory/pos
+mkdir -p runtime/afl-out/memory/neg
+/home/yuntong/pacfix/main.exe -debug -cycle 60 -timeout 200 ./config 

@@ -17,4 +17,7 @@ pushd pacfix
   mv tmp.c parser.c.i.c
   cp parser.c.i.c parser.c
 popd
-/home/yuntong/pacfix/main.exe -synth_only -debug -nouniq -seed -epsilon 0.0 -lvfile ./live_variables -cycle 60 -timeout 120 ./config
+mkdir -p runtime/afl-in
+mkdir -p runtime/afl-out/memory/pos
+mkdir -p runtime/afl-out/memory/neg
+/home/yuntong/pacfix/main.exe -debug -nouniq -seed -epsilon 0.0 -lvfile ./live_variables -cycle 60 -timeout 120 ./config

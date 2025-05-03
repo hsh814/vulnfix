@@ -29,4 +29,7 @@ pushd pacfix
   mv tmp.c ./split.c.i.c 
   cp split.c.i.c src/split.c
 popd
-/home/yuntong/pacfix/main.exe -synth_only -debug -lvfile ./live_variables -cycle 60 -timeout 300 ./config 
+mkdir -p runtime/afl-in
+mkdir -p runtime/afl-out/memory/pos
+mkdir -p runtime/afl-out/memory/neg
+/home/yuntong/pacfix/main.exe -debug -lvfile ./live_variables -cycle 60 -timeout 300 ./config 

@@ -3,7 +3,7 @@
 rm -rf pacfix
 eval $(opam env --switch=default)
 
-unzip pacfix
+unzip source.zip
 mv libxml2-db07dd61 pacfix
 
 cp HTMLparser.pacfix.c pacfix/HTMLparser.c
@@ -24,4 +24,7 @@ pushd pacfix
   mv tmp.c HTMLparser.c.i.c
   cp HTMLparser.c.i.c HTMLparser.c
 popd
-/home/yuntong/pacfix/main.exe -synth_only -debug -nouniq -seed -epsilon 0.0 -cycle 60 -timeout 300 ./config
+mkdir -p runtime/afl-in
+mkdir -p runtime/afl-out/memory/pos
+mkdir -p runtime/afl-out/memory/neg
+/home/yuntong/pacfix/main.exe -debug -nouniq -seed -epsilon 0.0 -cycle 60 -timeout 300 ./config

@@ -32,4 +32,7 @@ pushd pacfix
   mv tmp.c ./src/shred.c.i.c 
   cp ./src/shred.c.i.c src/shred.c
 popd
-/home/yuntong/pacfix/main.exe -synth_only -debug -cycle 600 -timeout 21600 ./config 
+mkdir -p runtime/afl-in
+mkdir -p runtime/afl-out/memory/pos
+mkdir -p runtime/afl-out/memory/neg
+/home/yuntong/pacfix/main.exe -debug -cycle 600 -timeout 21600 ./config 

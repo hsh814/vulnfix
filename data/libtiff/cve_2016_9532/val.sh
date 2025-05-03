@@ -18,4 +18,7 @@ pushd pacfix
     cp tiffcrop.c.i.c tiffcrop.c
   popd
 popd
-/home/yuntong/pacfix/main.exe -synth_only -debug -nouniq -cycle 60 -timeout 300 ./config
+mkdir -p runtime/afl-in
+mkdir -p runtime/afl-out/memory/pos
+mkdir -p runtime/afl-out/memory/neg
+/home/yuntong/pacfix/main.exe -debug -nouniq -cycle 60 -timeout 300 ./config

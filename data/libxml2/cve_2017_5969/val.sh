@@ -16,4 +16,7 @@ pushd pacfix
   mv tmp.c valid.c.i.c
   cp valid.c.i.c valid.c
 popd
-/home/yuntong/pacfix/main.exe -synth_only -nouniq -seed -epsilon 0.0 -debug -lvfile ./live_variables -cycle 20 -timeout 30 ./config
+mkdir -p runtime/afl-in
+mkdir -p runtime/afl-out/memory/pos
+mkdir -p runtime/afl-out/memory/neg
+/home/yuntong/pacfix/main.exe -nouniq -seed -epsilon 0.0 -debug -lvfile ./live_variables -cycle 20 -timeout 30 ./config

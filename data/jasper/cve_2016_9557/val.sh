@@ -21,4 +21,7 @@ pushd pacfix
     cp jas_image.c.i.c jas_image.c
   popd
 popd
-/home/yuntong/pacfix/main.exe -synth_only -debug -cycle 60 -timeout 300 ./config
+mkdir -p runtime/afl-in
+mkdir -p runtime/afl-out/memory/pos
+mkdir -p runtime/afl-out/memory/neg
+/home/yuntong/pacfix/main.exe -debug -cycle 60 -timeout 300 ./config

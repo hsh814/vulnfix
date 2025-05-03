@@ -18,10 +18,13 @@ pushd pacfix
   make CFLAGS="-static -fsanitize=address -g" CXXFLAGS="-static -fsanitize=address -g" -j10 > make.log
   # cat make.log | grep memdisk.c
   pushd zzip
-    gcc -E -DHAVE_CONFIG_H -I.. -I../. -static -fsanitize=address -g -MT memdisk.lo -MD -MP -MF .deps/memdisk.Tpo -c memdisk.c > memdisk.c.i
+    gcc -E -DHAVE_CONFIG_H -I.. -I.. -static -fsanitize=address -g -MT memdisk.lo -MD -MP -MF -c memdisk.c > memdisk.c.i
     cilly --domakeCFG --gcc=/usr/bin/gcc-7 --out=tmp.c memdisk.c.i
     mv tmp.c memdisk.c.i.c
     cp memdisk.c.i.c memdisk.c
   popd
 popd
-/home/yuntong/pacfix/main.exe -synth_only -debug -cycle 60 -timeout 200 ./config 
+mkdir -p runtime/afl-in
+mkdir -p runtime/afl-out/memory/pos
+mkdir -p runtime/afl-out/memory/neg
+/home/yuntong/pacfix/main.exe -debug -cycle 60 -timeout 200 ./config 

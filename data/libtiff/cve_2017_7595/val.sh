@@ -7,10 +7,6 @@ unzip source.zip
 mv libtiff-2c00d31b6cd5282d172754958b8b87c362f852ee pacfix
 
 cp tif_jpeg.pacifx.c pacfix/libtiff/tif_jpeg.c
-cp pacfix/libtiff/tif_jpeg.c tif_jpeg.orig.c
-cp pacfix/libtiff/tif_write.c tif_write.orig.c
-cp pacfix/libtiff/tiffiop.h tiffiop.orig.h
-
 
 pushd pacfix
   ./configure
@@ -22,4 +18,7 @@ pushd pacfix
     cp tif_jpeg.c.i.c tif_jpeg.c
   popd
 popd
-/home/yuntong/pacfix/main.exe -synth_only -debug -seed -nouniq -epsilon 0.0 -cycle 60 -timeout 300 ./config
+mkdir -p runtime/afl-in
+mkdir -p runtime/afl-out/memory/pos
+mkdir -p runtime/afl-out/memory/neg
+/home/yuntong/pacfix/main.exe -debug -seed -nouniq -epsilon 0.0 -cycle 60 -timeout 300 ./config

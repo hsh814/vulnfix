@@ -3,7 +3,7 @@
 rm -rf pacfix
 eval $(opam env --switch=default)
 
-unzip pacfix
+unzip source.zip
 mv libxml2-cbb271655cadeb8dbb258a64701d9a3a0c4835b4 pacfix
 
 cp parser.pacfix2.c ./pacfix/parser.c
@@ -19,4 +19,7 @@ pushd pacfix
   mv tmp.c parser.c.i.c
   cp parser.c.i.c parser.c
 popd
-/home/yuntong/pacfix/main.exe -synth_only -debug -nouniq -seed -epsilon 0.0 -cycle 60 -timeout 300 ./config
+mkdir -p runtime/afl-in
+mkdir -p runtime/afl-out/memory/pos
+mkdir -p runtime/afl-out/memory/neg
+/home/yuntong/pacfix/main.exe -debug -nouniq -seed -epsilon 0.0 -cycle 60 -timeout 300 ./config
