@@ -19,7 +19,7 @@ subject  = ""
 orig_env = os.environ.copy()
 valfile = ""
 target = ""
-max_threads = 20
+max_threads = 30
 out_postfix = ""
 
 def generate_random_filename(dirs):
@@ -71,7 +71,7 @@ def get_line():
 
 
 def initialize():
-    if len(sys.argv) != 3:
+    if len(sys.argv) != 4:
         print("Usage: python3 get_val.py <subject> <id>")
         sys.exit(1)
     
@@ -155,7 +155,7 @@ if __name__ == "__main__":
     out_dir = os.path.join(seed_save_base_dir, subject, "seeds")
     print(f"Out: {out_dir}")
     aflrun_tc = get_testcases(out_dir)
-    sample_dir = os.path.join(base_path, "cludafl_samples", f"{out_postfix}")
+    sample_dir = os.path.join(base_path, "evocatio-samples", f"{out_postfix}")
     create_directory(sample_dir)
     create_directory(os.path.join(sample_dir, "pos"))
     create_directory(os.path.join(sample_dir, "neg"))
