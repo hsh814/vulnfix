@@ -35,6 +35,6 @@ mkdir -p ${TARGET_DIR}/afl-runtime/out
 output_dir="${TARGET_DIR}/afl-runtime/out/${SUFFIX}"
 output_dir="${OUTPUT_DIR_OVERRIDE:-$output_dir}"
 rm -rf $output_dir
-$AFL_CMD $AFL_OPTS_COMMON -k $EXPLOIT -i "$input_dir"  -o "$output_dir" -- "$INSTRUMENTED_PROG"
+$AFL_CMD $AFL_OPTS_COMMON -i "$input_dir"  -o "$output_dir" -- "$INSTRUMENTED_PROG"
 
 echo "Run Completed."
