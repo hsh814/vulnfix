@@ -18,6 +18,8 @@ import queue
 import logging
 from logging.handlers import RotatingFileHandler
 
+import toml
+
 ROOT_DIR=os.getenv('VULNFIX_HOME') + '/vulnfix'
 SEED_COLLECTION_DIR = os.getenv('VULNFIX_HOME') + "/seed-collection"
 LOG_FILE = os.getenv('VULNFIX_HOME') + "/vulnfix/data/log/parallel_seeds.log"
@@ -90,7 +92,9 @@ class FuzzProcess:
     self.exp = exp
     self.out_dir = out_dir
     self.start_time = time.time()
-    self.proc = subprocess.Popen(cmd, shell=True, cwd=cwd, env=env, start_new_session=True)
+    self.log_file= open(f'{cwd}/dafl-random-{exp}.log','w')
+    self.proc = subprocess.Popen(cmd, shell=True, cwd=cwd, env=env, start_new_session=True,
+                                 stdout=self.log_file, stderr=self.log_file)
     self.index = index
     self.prev_output = 0
     self.prev_monitor_secondary = 0
@@ -102,8 +106,8 @@ class FuzzProcess:
   def check_output(self) -> int:
     if self.prev_output > 0:
       return self.prev_output
-    if os.path.exists(os.path.join(self.out_dir, "memory", "input")):
-      files = os.listdir(os.path.join(self.out_dir, "memory", "input"))
+    if os.path.exists(os.path.join(self.out_dir, "cludafl", "seeds")):
+      files = os.listdir(os.path.join(self.out_dir, "cludafl", "seeds"))
       self.prev_output = len(files)
       log_out(f"{self.subject} {self.index} Output files: {self.prev_output}")
       return self.prev_output
@@ -113,8 +117,8 @@ class FuzzProcess:
     if self.prev_monitor_secondary > 0:
       if time.time() - self.prev_monitor_secondary < timespan:
         return True
-    if os.path.exists(os.path.join(self.out_dir, "memory", "input")):
-      files = os.listdir(os.path.join(self.out_dir, "memory", "input"))
+    if os.path.exists(os.path.join(self.out_dir, "cludafl", "seeds")):
+      files = os.listdir(os.path.join(self.out_dir, "cludafl", "seeds"))
       log_out(f"{self.subject} {self.index} Output files: {self.prev_output} -> {len(files)}")
       result = self.prev_output < len(files)
       self.prev_output = len(files)
@@ -162,6 +166,7 @@ class FuzzProcess:
             
     except Exception as e:
       log_out(f"{self.subject} {self.index} Kill error: {e}")
+    self.log_file.close()
 
 def start_fuzzer_for_seed(seed: str, index: int, subject_dir: str, exp_name: str, seed_dir: str, seed_parallel_dir: str):
   new_seed_dir = os.path.join(seed_parallel_dir, f"{index}")
@@ -170,19 +175,31 @@ def start_fuzzer_for_seed(seed: str, index: int, subject_dir: str, exp_name: str
     os.makedirs(new_seed_dir, exist_ok=True)
     log_out(f"Created new seed directory: {new_seed_dir}")
     shutil.copy(seed, os.path.join(new_seed_dir, os.path.basename(seed)))
-  new_output_dir = os.path.join(subject_dir, "cludafl_out", exp_name, f"{index}")
+  new_output_dir = os.path.join(subject_dir, exp_name, f"{index}")
   env = os.environ.copy()
   env["SEED_DIR_OVERRIDE"] = new_seed_dir
   env["AFL_OPTS_COMMON_OVERRIDE"] = "-t 2000+ -m none -d -s dafl"
   env["OUTPUT_DIR_OVERRIDE"] = new_output_dir
   env["TIMEOUT_OVERRIDE"] = "12h"
   cmd = f"./run-cludafl-single.sh {exp_name}-{index}"
-  log_out(f"SEED_DIR_OVERRIDE=\"{new_seed_dir}\" AFL_OPTS_COMMON_OVERRIDE=\"{env['AFL_OPTS_COMMON_OVERRIDE']}\" OUTPUT_DIR_OVERRIDE=\"{new_output_dir}\" TIMEOUT_OVERRIDE=\"{env['TIMEOUT_OVERRIDE']}\" {cmd}")
+  # log_out(f"SEED_DIR_OVERRIDE=\"{new_seed_dir}\" AFL_OPTS_COMMON_OVERRIDE=\"{env['AFL_OPTS_COMMON_OVERRIDE']}\" OUTPUT_DIR_OVERRIDE=\"{new_output_dir}\" TIMEOUT_OVERRIDE=\"{env['TIMEOUT_OVERRIDE']}\" {cmd}")
   return cmd, subject_dir, env, exp_name, f"{index}"
 
 def get_seeds(subject: str) -> List[str]:
+  with open(os.path.join(SEED_COLLECTION_DIR, "vulnfix.toml")) as f:
+    config = toml.load(f)
+  subj, vers = subject.split("/")
+  if subj=='coreutils':
+    if vers in ('gnubug_19784', 'gnubug_26545'):
+      vers=vers.replace('gnubug','bugzilla')
+  file_type = config[subj][vers]
   subject_dir = os.path.join(ROOT_DIR, "data", subject)
-  seed_dir = os.path.join(subject_dir, "seed")
+  os.makedirs(os.path.join(subject_dir, "random-seeds"), exist_ok=True)
+  for file in os.listdir(os.path.join(SEED_COLLECTION_DIR, 'new-seeds',file_type)):
+    shutil.copy(os.path.join(SEED_COLLECTION_DIR, 'new-seeds',file_type,file), os.path.join(subject_dir, "random-seeds", file))
+  shutil.copy(os.path.join(subject_dir, 'exploit'), os.path.join(subject_dir, "random-seeds", 'exploit'))
+
+  seed_dir = os.path.join(subject_dir, "random-seeds")
   seed_queue = list()
   for file in sorted(os.listdir(seed_dir)):
     if file.startswith("exploit"): # exploit files first
@@ -200,8 +217,8 @@ def get_seeds(subject: str) -> List[str]:
 
 def run_fuzzers_for_subject(subject: str, exp_name: str, cores: int, monitor_timeout: int = 3600, secondary_monitor_timeout: int = 3 * 3600, default_timeout: int = 12 * 3600, global_timeout: int = 3600 * 24 * 3):
   subject_dir = os.path.join(ROOT_DIR, "data", subject)
-  os.makedirs(os.path.join(subject_dir, "cludafl_out", exp_name), exist_ok=True)
-  seed_dir = os.path.join(subject_dir, "seed")
+  os.makedirs(os.path.join(subject_dir, exp_name), exist_ok=True)
+  seed_dir = os.path.join(subject_dir, "random-seeds")
   seed_queue = get_seeds(subject)
   index = 0
   active_slots: Dict[int, FuzzProcess] = dict()
@@ -294,7 +311,7 @@ def main(argv: List[str]):
   parser.add_argument('--last_timeout',type=int, help='Timeout in hours', default=3)
   parser.add_argument('--default_timeout',type=int, help='Default timeout in hours', default=12)
   parser.add_argument('--global_timeout',type=int, help='Global timeout in hours', default=72)
-  parser.add_argument('--output_dir', type=str, help='Output directory', default='cludafl-seed-clustering')
+  parser.add_argument('--output_dir', type=str, help='Output directory', default='dafl-random-out')
   args = parser.parse_args(argv)
   run_subjects(args.output_dir, args.cores)
 

@@ -1,3 +1,4 @@
+import subprocess
 from typing import Dict, List
 import sbsv
 import sys
@@ -42,7 +43,7 @@ SUBJECTS = (
 )
 ROOT_DIR=os.getenv('VULNFIX_HOME') + '/vulnfix/data'
 
-def parse(output_dir:str, target_dir:str, timeout:int=0):
+def parse(output_dir:str, target_dir:str, timeout:int=1000000):
     print(f"Parsing {output_dir} to {target_dir}")
     for d in os.listdir(output_dir):
         times:Dict[int,float]=dict()
@@ -67,20 +68,23 @@ def parse(output_dir:str, target_dir:str, timeout:int=0):
             while _id.startswith('0'):
                 _id=_id[1:]
             id=int(_id)
-            if timeout>0 and times[id] > timeout:
+            if times[id] > timeout:
                 continue
             shutil.copy(os.path.join(output_dir,d,'cludafl','seeds',file), os.path.join(target_dir, 'seeds', file))
-    os.system(f'tar -czf {target_dir}/seeds.tar.gz seeds')
+    subprocess.run(f'tar -czf {target_dir}/seeds.tar.gz seeds', shell=True, cwd=target_dir)
     shutil.rmtree(os.path.join(target_dir, 'seeds'))
 
 if __name__ == "__main__":
-    if len(sys.argv) < 4:
-        print("Usage: python copy_inputs.py <dafl_output_dir> <copy_target_dir> <timeout (h)>")
+    if len(sys.argv) < 3:
+        print("Usage: python copy_inputs.py <dafl_output_dir> <copy_target_dir> [timeout (h)]")
         sys.exit(1)
 
     output_dir = sys.argv[1]
     target_dir = sys.argv[2]
-    timeout = int(sys.argv[3])
+    if len(sys.argv) > 3:
+        timeout = int(sys.argv[3])
+    else:
+        timeout = 1000000
 
     for subject in SUBJECTS:
         subject_dir = os.path.join(ROOT_DIR,subject,output_dir)
