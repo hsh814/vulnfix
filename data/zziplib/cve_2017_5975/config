@@ -1,5 +1,5 @@
-binary=/home/yuntong/vulnfix/data/zziplib/cve_2017_5975/source/Linux_5.15.0-91-generic_x86_64.d/bins/unzzipcat-mem
-binary-dir=/home/yuntong/vulnfix/data/zziplib/cve_2017_5975/pacfix/Linux_5.15.0-91-generic_x86_64.d/bins/unzzipcat-mem
+binary=/home/yuntong/vulnfix/data/zziplib/cve_2017_5975/source/bins/unzzipcat-mem
+binary-dir=/home/yuntong/vulnfix/data/zziplib/cve_2017_5975/pacfix/bins/unzzipcat-mem
 cmd=<exploit>
 exploit=/home/yuntong/vulnfix/data/zziplib/cve_2017_5975/exploit
 fix-location=memdisk.c:180
