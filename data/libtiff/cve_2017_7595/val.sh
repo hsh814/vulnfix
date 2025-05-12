@@ -6,7 +6,7 @@ eval $(opam env --switch=default)
 unzip source.zip 
 mv libtiff-2c00d31b6cd5282d172754958b8b87c362f852ee pacfix
 
-cp tif_jpeg.pacifx.c pacfix/libtiff/tif_jpeg.c
+cp tif_jpeg.pacfix.c pacfix/libtiff/tif_jpeg.c
 
 pushd pacfix
   ./configure

@@ -215,7 +215,7 @@ zzip_mem_entry_new(ZZIP_DISK * disk, ZZIP_DISK_ENTRY * entry)
     {
         /* override sizes/offsets with zip64 values for largefile support */
         zzip_extra_zip64 *block = (zzip_extra_zip64 *)
-            zzip_mem_entry_extra_block(item, ZZIP_EXTRA_zip64); unsigned int size_block = sizeof(block);
+            zzip_mem_entry_extra_block(item, ZZIP_EXTRA_zip64); unsigned int size_block = sizeof(*block);
         if (block)
         {
             item->zz_usize = ZZIP_GET64(block->z_usize);

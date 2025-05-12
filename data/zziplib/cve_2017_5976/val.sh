@@ -12,11 +12,11 @@ pushd pacfix
 popd
 
 pushd pacfix
-  ./configure
+  ../source/configure
   make CFLAGS="-static -fsanitize=address -g" CXXFLAGS="-static -fsanitize=address -g" -j10 > make.log
   # cat make.log | grep memdisk.c
   pushd zzip
-    gcc -E -DHAVE_CONFIG_H -I.. -I../. -static -fsanitize=address -g -MT memdisk.lo -MD -MP -MF .deps/memdisk.Tpo -c memdisk.c > memdisk.c.i
+    gcc -E -DHAVE_CONFIG_H -I.. -I../../source -static -fsanitize=address -g -MT memdisk.lo -MD -MP -MF .deps/memdisk.Tpo -c memdisk.c > memdisk.c.i
     cilly --domakeCFG --gcc=/usr/bin/gcc-7 --out=tmp.c memdisk.c.i
     mv tmp.c memdisk.c.i.c
     cp memdisk.c.i.c memdisk.c

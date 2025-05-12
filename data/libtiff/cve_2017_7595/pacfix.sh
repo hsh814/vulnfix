@@ -3,7 +3,7 @@ rm -rf source
 unzip source.zip 
 mv libtiff-2c00d31b6cd5282d172754958b8b87c362f852ee source
 
-cp tif_jpeg.pacifx.c source/libtiff/tif_jpeg.c
+cp tif_jpeg.pacfix.c source/libtiff/tif_jpeg.c
 cp source/libtiff/tif_jpeg.c tif_jpeg.orig.c
 cp source/libtiff/tif_write.c tif_write.orig.c
 cp source/libtiff/tiffiop.h tiffiop.orig.h
