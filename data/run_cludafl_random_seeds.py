@@ -178,7 +178,7 @@ def start_fuzzer_for_seed(seed: str, index: int, subject_dir: str, exp_name: str
   new_output_dir = os.path.join(subject_dir, exp_name, f"{index}")
   env = os.environ.copy()
   env["SEED_DIR_OVERRIDE"] = new_seed_dir
-  env["AFL_OPTS_COMMON_OVERRIDE"] = "-t 2000+ -m none -d -s dafl"
+  env["AFL_OPTS_COMMON_OVERRIDE"] = "-t 2000+ -m none -d -s dafl -v"
   env["OUTPUT_DIR_OVERRIDE"] = new_output_dir
   env["TIMEOUT_OVERRIDE"] = "12h"
   cmd = f"./run-cludafl-single.sh {exp_name}-{index}"
@@ -215,6 +215,16 @@ def get_seeds(subject: str) -> List[str]:
     log_out(f"Rank file not found!!!: {rank_file}")
   return seed_queue
 
+def check_total_outputs(subject: str) -> int:
+  total_outs=0
+  for i in os.listdir(os.path.join(ROOT_DIR, "data", subject, 'dafl-random-out')):
+    if os.path.isdir(os.path.join(ROOT_DIR, "data", subject, 'dafl-random-out', i)):
+      if os.path.exists(os.path.join(ROOT_DIR, "data", subject, 'dafl-random-out', i, "cludafl", "seeds")):
+        total_outs += len(os.listdir(os.path.join(ROOT_DIR, "data", subject, 'dafl-random-out', i, "cludafl", "seeds")))
+  return total_outs
+
+MAX_OUTPUT_SEEDS = 2000000
+
 def run_fuzzers_for_subject(subject: str, exp_name: str, cores: int, monitor_timeout: int = 3600, secondary_monitor_timeout: int = 3 * 3600, default_timeout: int = 12 * 3600, global_timeout: int = 3600 * 24 * 3):
   subject_dir = os.path.join(ROOT_DIR, "data", subject)
   os.makedirs(os.path.join(subject_dir, exp_name), exist_ok=True)
@@ -239,6 +249,11 @@ def run_fuzzers_for_subject(subject: str, exp_name: str, cores: int, monitor_tim
         fp.kill()
         time.sleep(5)
 
+      if check_total_outputs(subject) > MAX_OUTPUT_SEEDS:
+        log_out(f"Max output seeds reached: {fp.subject} {fp.index} - Terminating process group for PID {fp.proc.pid} time {fp.timespan()}")
+        fp.kill()
+        time.sleep(5)
+
       if fp.timespan() > monitor_timeout: # Fuzzer doesn't find inputs after starting
         output_num = fp.check_output()
         if output_num == 0:
@@ -258,7 +273,7 @@ def run_fuzzers_for_subject(subject: str, exp_name: str, cores: int, monitor_tim
         time.sleep(5)
 
       if fp.poll() is not None:
-        if len(seed_queue) > 0 and time.time() - global_start < global_timeout: # Global timeout expired
+        if len(seed_queue) > 0 and time.time() - global_start < global_timeout and check_total_outputs(subject) < MAX_OUTPUT_SEEDS: # Global timeout expired
           seed = seed_queue.pop(0)
           log_out(f"Seed {fp.index} finished, starting new seed {seed} with {index}")
           cmd, cwd, env, opt, exp = start_fuzzer_for_seed(seed, index, subject_dir, exp_name, seed_dir, os.path.join(subject_dir, "seed_parallel"))

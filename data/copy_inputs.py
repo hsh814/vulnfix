@@ -4,6 +4,7 @@ import sbsv
 import sys
 import os
 import shutil
+import multiprocessing as mp
 
 SUBJECTS = (
   "binutils/cve_2017_6965",
@@ -45,7 +46,9 @@ ROOT_DIR=os.getenv('VULNFIX_HOME') + '/vulnfix/data'
 
 def parse(output_dir:str, target_dir:str, timeout:int=1000000):
     print(f"Parsing {output_dir} to {target_dir}")
+    total_count=0
     for d in os.listdir(output_dir):
+        total_count+=len(os.listdir(os.path.join(output_dir, d, 'cludafl', 'seeds')))
         times:Dict[int,float]=dict()
         # Parse unique seeds
         with open(os.path.join(output_dir, d, 'unique_dafl.log'), 'r') as f:
@@ -68,9 +71,10 @@ def parse(output_dir:str, target_dir:str, timeout:int=1000000):
             while _id.startswith('0'):
                 _id=_id[1:]
             id=int(_id)
-            if times[id] > timeout:
+            if id in times and times[id] > timeout:
                 continue
             shutil.copy(os.path.join(output_dir,d,'cludafl','seeds',file), os.path.join(target_dir, 'seeds', file))
+    print(f"{target_dir} total seeds copied: {total_count}")
     subprocess.run(f'tar -czf {target_dir}/seeds.tar.gz seeds', shell=True, cwd=target_dir)
     shutil.rmtree(os.path.join(target_dir, 'seeds'))
 
@@ -86,6 +90,8 @@ if __name__ == "__main__":
     else:
         timeout = 1000000
 
+    pool=mp.Pool(40)
+
     for subject in SUBJECTS:
         subject_dir = os.path.join(ROOT_DIR,subject,output_dir)
         if not os.path.exists(subject_dir):
@@ -93,4 +99,7 @@ if __name__ == "__main__":
             continue
 
         target_subject_dir = os.path.join(os.getenv('VULNFIX_HOME'), target_dir, subject)
-        parse(subject_dir, target_subject_dir, timeout)
+        pool.apply_async(parse, args=(subject_dir, target_subject_dir, timeout))
+
+    pool.close()
+    pool.join()
