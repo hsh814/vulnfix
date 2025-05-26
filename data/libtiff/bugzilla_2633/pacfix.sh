@@ -4,6 +4,8 @@ unzip source.zip
 mv libtiff-f3069a5adc65b67b90222441e3711b236a16e624 source
 cp ./source/tools/tiff2ps.c tiff2ps.orig.c 
 
+cp tiff2ps.pacfix2.c ./source/tools/tiff2ps.c
+
 rm -rf pacfix
 cp -r source pacfix
 pushd pacfix

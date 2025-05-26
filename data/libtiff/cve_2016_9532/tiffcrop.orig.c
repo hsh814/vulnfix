@@ -1165,7 +1165,7 @@ writeBufferToSeparateStrips (TIFF* out, uint8* buf,
   (void) TIFFGetField(out, TIFFTAG_BITSPERSAMPLE, &bps);
   bytes_per_sample = (bps + 7) / 8;
   rowsize = ((bps * spp * width) + 7) / 8; /* source has interleaved samples */
-  rowstripsize = rowsperstrip * bytes_per_sample * (width + 1); 
+  rowstripsize = rowsperstrip * bytes_per_sample * (width + 1);  unsigned long long lrss = rowsperstrip * bytes_per_sample * (width + 1); 
   if(spp*spp < 0) exit(0);
   obuf = _TIFFmalloc (rowstripsize);
   if (obuf == NULL)

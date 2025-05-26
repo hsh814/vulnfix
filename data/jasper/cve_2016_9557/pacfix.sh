@@ -6,6 +6,7 @@ pushd source
   autoreconf -i
 popd
 
+cp jas_image.pacfix2.c ./source/src/libjasper/base/jas_image.c
 cp ./source/src/libjasper/base/jas_image.c jas_image.orig.c
 cp ./source/src/libjasper/jpc/jpc_dec.c  ./jpc_dec.orig.c
 

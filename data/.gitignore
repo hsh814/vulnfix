@@ -3,3 +3,9 @@ cludafl_out_seeds
 evocatio-*/
 afl-*/
 dafl-*/
+results-*/
+results9-*/
+pkls/
+logs/
+*.tar.xz
+*.tar.gz

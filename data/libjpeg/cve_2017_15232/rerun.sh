@@ -4,8 +4,8 @@ pushd pacfix
   cp jquant1.c.i.c jquant1.c
 popd
 
-# rm -rfruntime
-# mkdir -p runtime/afl-in
-# mkdir runtime/afl-out
+#rm -rf runtime
+#mkdir -p runtime/afl-in
+#mkdir runtime/afl-out
 
-/home/yuntong/pacfix/main.exe -synth_only -debug -nouniq -seed -epsilon 0.0 -cycle 60 -timeout 300 ./config
+/root/pacfix/main.exe -debug -synth_only -epsilon $1 -atomic -cycle 60 -timeout 300 ./config

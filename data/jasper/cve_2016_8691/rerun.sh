@@ -7,4 +7,4 @@ popd
 # mkdir -p runtime/afl-in
 # mkdir runtime/afl-out
 
-/home/yuntong/pacfix/main.exe -synth_only -debug -nouniq -seed -epsilon 0.0 -lvfile ./live_variables -cycle 60 -timeout 300 ./config
+/root/pacfix/main.exe -synth_only -debug -epsilon $1 -atomic -lvfile ./live_variables -cycle 60 -timeout 300 ./config

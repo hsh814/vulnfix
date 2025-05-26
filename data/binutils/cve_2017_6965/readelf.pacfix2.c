@@ -11632,7 +11632,7 @@ target_specific_reloc_handling (Elf_Internal_Rela * reloc,
 	  handle_sym_diff:
 	    if (saved_sym != NULL)
 	      {
-		bfd_vma value; int _g_size = (end - (start + reloc->r_offset));
+		bfd_vma value; long _g_size = (end - (start + reloc->r_offset));
 
 		value = reloc->r_addend
 		  + (symtab[get_reloc_symindex (reloc->r_info)].st_value

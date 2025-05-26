@@ -3,8 +3,8 @@ pushd pacfix/tools
   cp tiffcrop.c.i.c tiffcrop.c
 popd
 
-# rm -rfruntime
-# mkdir -p runtime/afl-in
-# mkdir runtime/afl-out
+#rm -rf runtime
+#mkdir -p runtime/afl-in
+#mkdir runtime/afl-out
 
-/home/yuntong/pacfix/main.exe -synth_only -debug -nouniq -cycle 60 -timeout 300 ./config
+/root/pacfix/main.exe -debug -synth_only -epsilon $1 -atomic -cycle 60 -timeout 300 ./config
