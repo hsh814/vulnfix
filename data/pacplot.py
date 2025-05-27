@@ -370,7 +370,7 @@ if __name__ == "__main__":
             os.makedirs(f"{EXPERIMENT_DIR}/epsilon", exist_ok=True)
 
             # CSV 파일 준비
-            with open(f"{EXPERIMENT_DIR}/epsilon/result_{FUZZER}_{subject_id.replace('/', '_')}_{EPSILON}.csv", "w", newline='') as csvfile:
+            with open(f"{EXPERIMENT_DIR}/epsilon/result_{FUZZER}_{subject_id.replace('/', '_')}_{EPSILON}.csv", "w", newline='', encoding='utf-8') as csvfile:
                 writer = csv.writer(csvfile)
                 writer.writerow(["fuzzer", "patch", "predicted error", "max empirical error", "median empirical error", "average empirical error"])
 
@@ -379,13 +379,13 @@ if __name__ == "__main__":
 
                     print(f"[INFO] 대용량 샘플에서 무작위 샘플 추출 중... {int(samples)} from {len(all_samples)}")
                     if len(all_samples) < samples:
-                        patch = "샘플 부족"
+                        patch = "not enough samples"
                         predicted_error = EPSILON
                         max_empirical_error = "-"
                         median_empirical_error = "-"
                         average_empirical_error = "-"
                         writer.writerow([FUZZER, patch, predicted_error, max_empirical_error, median_empirical_error, average_empirical_error])
-                        print(f"[WARN] 샘플 부족: {len(all_samples)} < {samples}")
+                        print(f"[WARN] not enough samples: {len(all_samples)} < {samples}")
                         continue
 
                     sampled_samples = []
@@ -397,13 +397,13 @@ if __name__ == "__main__":
                     print(f"[INFO] 검증 통과 불변식 개수: {len(validated_invariants)}")
 
                     if len(validated_invariants) == 0:
-                        patch = "정답 없음"
+                        patch = "NONE"
                         predicted_error = EPSILON
                         max_empirical_error = "-"
                         median_empirical_error = "-"
                         average_empirical_error = "-"
                         writer.writerow([FUZZER, patch, predicted_error, max_empirical_error, median_empirical_error, average_empirical_error])
-                        print(f"[WARN] 정답 없음")
+                        print(f"[WARN] NONE")
                         continue
 
                     # random_answer = random.choice(validated_invariants)
