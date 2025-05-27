@@ -6,6 +6,8 @@ dafl-*/
 results-*/
 results9-*/
 pkls/
+experiment-results/
 logs/
 *.tar.xz
 *.tar.gz
+subjects.txt

@@ -100,3 +100,5 @@ data/*/*/*-sparrow
 /all-seeds.tar.gz
 /data-bins.tar.gz
 /data.tar
+/*.tar.gz
+mc
