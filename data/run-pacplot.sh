@@ -19,7 +19,7 @@ cd /home/yuntong/vulnfix/data
 filename="/home/yuntong/vulnfix/data/subjects.txt"
 mkdir -p experiment-results/log
 
-while read -r subject; do
+while IFS= read -r subject || [[ -n "$subject" ]]; do
   for epsilon in "${epsilons[@]}"; do
     for fuzzer in "${fuzzers[@]}"; do
       (
