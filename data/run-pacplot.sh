@@ -25,7 +25,7 @@ while read -r subject; do
       (
         echo "pacplot $subject $fuzzer $epsilon started at $(date)"
         new_subject="${subject//\//_}"
-        python3 /home/yuntong/vulnfix/data/pacplot.py $fuzzer --single-subject=$subject --single-epsilon=$epsilon --skip-plot > experiment-results/log/${new_subject}_${fuzzer}_${epsilon} 2>&1
+        python3 /home/yuntong/vulnfix/data/pacplot.py $fuzzer --single-subject=$subject --single-epsilon=$epsilon --skip-plot > experiment-results/log/${new_subject}_${fuzzer}_${epsilon}.log 2>&1
         echo "pacplot $subject $fuzzer $epsilon finished at $(date)"
       ) &
     done

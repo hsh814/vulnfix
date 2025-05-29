@@ -436,8 +436,9 @@ if __name__ == "__main__":
                             sample_amount = 1 #len(validated_invariants)
                         sampled_invariants = random.sample(validated_invariants, sample_amount)
                         print(f"val_inv {len(validated_invariants)} sampled_inv {len(sampled_invariants)}")
-                        for inv in sampled_invariants:
+                        for idx, inv in enumerate(sampled_invariants):
                             patch_str = string_of_invariant(inv, results)
+                            print(f"[INFO] [{patch_str}] [{idx}/{len(sampled_invariants)}]")
                             predicted_error = EPSILON
                             empirical_error = calculate_error(inv, all_samples)
                             empirical_errors.append(empirical_error)
@@ -470,7 +471,7 @@ if __name__ == "__main__":
             confidence_level = 0.95
             valid_epsilons = []
             sample_nums = list()
-            inv_num = 0
+            inv_num = 1
             VALUATION_FILE = os.path.join(EXPERIMENT_DIR, "data", subject, "valuation.c")
             if os.path.exists(VALUATION_FILE):
                 results = extract_id_variable_pairs(VALUATION_FILE)
@@ -532,7 +533,7 @@ if __name__ == "__main__":
             print(means_array)
 
             plt.plot(sample_nums, means_array, marker='o', color='b', label=subject_label)
-            plt.plot(sample_nums, eps_array, marker='o', color='r', label="epsilon")
+            plt.plot(sample_nums, eps_array, marker='*', color='r', label="epsilon")
             plt.fill_between(sample_nums, ci_lower_array, ci_upper_array, alpha=0.2, color='b', label="95% CI")
             plt.xlabel('Samples')
             plt.ylabel('Avg max empirical error (10 times) - log scale')
@@ -547,6 +548,8 @@ if __name__ == "__main__":
             plt.grid(True, which="both", linestyle='--', alpha=0.5)
             plt.tight_layout()
             filename = f"{EXPERIMENT_DIR}/fig/{subject.replace('/', '_')}_empirical_error_{FUZZER}_log_scale.png"
+            plt.savefig(filename, dpi=200)
+            filename = f"{EXPERIMENT_DIR}/fig/{subject.replace('/', '_')}_empirical_error_{FUZZER}_log_scale.pdf"
             plt.savefig(filename, dpi=200)
             plt.close()
             print(f"{filename} 파일로 저장 완료!")
