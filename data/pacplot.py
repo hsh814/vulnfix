@@ -183,6 +183,21 @@ def build_invariants(ids):
     print(f"[INFO] 생성된 불변식 개수: {len(all_invs)}")
     return all_invs
 
+def infer_hyp_space(n_constant, n_var) -> int:
+    # realistic constant: -1024 to 1024 + observed + 2^11 to 2^32
+    # n_constant = 2049 + len(observed) + 13
+    # n_var = len(ids)
+    one_of_scalar = n_constant * n_var
+    non_zero = n_var
+    lower_bound = n_constant * n_var
+    upper_bound = n_constant * n_var
+    int_greater_than = n_constant * n_var * (n_var - 1) // 2
+    int_diff_lower_bound = n_constant * n_var * n_var
+    int_diff_upper_bound = n_constant * n_var * n_var
+    int_div_upper_bound = n_constant * n_var * n_var
+    int_mul_upper_bound = n_constant * n_var * n_var
+    return one_of_scalar + non_zero + lower_bound + upper_bound + int_greater_than + int_diff_lower_bound + int_diff_upper_bound + int_div_upper_bound + int_mul_upper_bound
+
 
 VALUATION_FILE = "data/libtiff/cve_2016_10024/valuation.c"
 POS_PICKLE = "pkls/libtiff_cve_2016_10024_pos.pkl"
@@ -470,6 +485,8 @@ if __name__ == "__main__":
             ci_upper_max_errors = list()
             confidence_level = 0.95
             valid_epsilons = []
+            eps_medium = list()
+            eps_max = list()
             sample_nums = list()
             inv_num = 1
             VALUATION_FILE = os.path.join(EXPERIMENT_DIR, "data", subject, "valuation.c")
@@ -496,6 +513,10 @@ if __name__ == "__main__":
                     continue
                 samples = math.ceil((math.log(inv_num) + math.log(1.0 / DELTA)) / ep)
                 sample_nums.append(samples)
+                medium_eps = (math.log(infer_hyp_space(2048 + 22, len(results))) + math.log(1.0 / DELTA)) / samples
+                eps_medium.append(medium_eps)
+                max_eps = (math.log(infer_hyp_space(2 ** 32, len(results))) + math.log(1.0 / DELTA))  / samples
+                eps_max.append(max_eps)
                 errors = df['max empirical error'].tolist()
                 all_max_errors.append(errors)
                 mean_max = df['max empirical error'].mean()
@@ -534,6 +555,8 @@ if __name__ == "__main__":
 
             plt.plot(sample_nums, means_array, marker='o', color='b', label=subject_label)
             plt.plot(sample_nums, eps_array, marker='*', color='r', label="epsilon")
+            plt.plot(sample_nums, eps_medium, marker='^', color='orange', label="median epsilon")
+            plt.plot(sample_nums, eps_max, marker='v', color='g', label="max epsilon")
             plt.fill_between(sample_nums, ci_lower_array, ci_upper_array, alpha=0.2, color='b', label="95% CI")
             plt.xlabel('Samples')
             plt.ylabel('Avg max empirical error (10 times) - log scale')
