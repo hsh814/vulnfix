@@ -25,7 +25,7 @@ subjects = [ "binutils/cve_2017_6965", "binutils/cve_2017_14745", "binutils/cve_
     "libxml2/cve_2016_1838", "libxml2/cve_2016_1839", "libxml2/cve_2017_5969",
     "zziplib/cve_2017_5974", "zziplib/cve_2017_5975", "zziplib/cve_2017_5976" ]
 
-epsilons = [0.01, 0.05, 0.1, 0.2, 0.5, 0.8]
+epsilons = [0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 0.8]
 
 observed = []
 sps = [8, 16, 32, 256, 32768, 4294967295]
