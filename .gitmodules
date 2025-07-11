@@ -33,3 +33,6 @@
 [submodule "thirdparty/CLUDAFL"]
 	path = thirdparty/CLUDAFL
 	url = https://github.com/UNIST-LOFT/CLUDAFL.git
+[submodule "thirdparty/AFLplusplus"]
+	path = thirdparty/AFLplusplus
+	url = https://github.com/UNIST-LOFT/AFLplusplus.git
